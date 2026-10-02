@@ -13,10 +13,6 @@
     },
     "url": "https://gugugupan.github.io/cc-lemon-battle-web/",
     "cover": "covers/cc-lemon-battle.jpg",
-    "tags": [
-      "rhythm",
-      "roguelike"
-    ],
     "input": [
       "keyboard",
       "touch"
@@ -42,10 +38,6 @@
     },
     "url": "https://gugugupan.github.io/clickton/",
     "cover": "covers/clickton.jpg",
-    "tags": [
-      "cozy",
-      "builder"
-    ],
     "input": [
       "mouse",
       "touch"
@@ -72,10 +64,6 @@
     },
     "url": "https://gugugupan.github.io/gratin-game/gridlands/",
     "cover": "covers/gridlands.jpg",
-    "tags": [
-      "puzzle",
-      "logic"
-    ],
     "input": [
       "mouse",
       "touch"

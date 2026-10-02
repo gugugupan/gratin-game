@@ -12,25 +12,13 @@ const STRINGS = {
     zh: "刚出炉的网页小游戏，都在这里。",
     en: "Fresh-baked HTML games, all in one dish.",
   },
-  all: { ja: "すべて", zh: "全部", en: "All" },
   play: { ja: "あそぶ", zh: "开玩", en: "Play" },
   soon: { ja: "準備中", zh: "即将推出", en: "Coming soon" },
   newBadge: { ja: "NEW", zh: "新", en: "NEW" },
   count: { ja: "{n} 本のゲーム", zh: "共 {n} 款游戏", en: "{n} games" },
-  empty: { ja: "このタグのゲームはまだありません。", zh: "这个标签下还没有游戏。", en: "No games with this tag yet." },
   language: { ja: "言語", zh: "语言", en: "Language" },
-  filter: { ja: "ジャンル", zh: "类型", en: "Genre" },
   footer: { ja: "すべて手づくり、ブラウザですぐ遊べます。", zh: "全部手工制作，打开浏览器就能玩。", en: "Handmade, and playable right in your browser." },
 } satisfies Record<string, Localized>;
-
-export const TAGS: Record<string, Localized> = {
-  rhythm: { ja: "リズム", zh: "节奏", en: "Rhythm" },
-  roguelike: { ja: "ローグライク", zh: "肉鸽", en: "Roguelike" },
-  cozy: { ja: "まったり", zh: "休闲", en: "Cozy" },
-  builder: { ja: "街づくり", zh: "建造", en: "Builder" },
-  puzzle: { ja: "パズル", zh: "解谜", en: "Puzzle" },
-  logic: { ja: "推理", zh: "逻辑", en: "Logic" },
-};
 
 export const INPUTS: Record<string, Localized> = {
   keyboard: { ja: "キーボード", zh: "键盘", en: "Keyboard" },

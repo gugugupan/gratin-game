@@ -1,5 +1,5 @@
 import data from "./games.json";
-import { INPUTS, LOCALES, TAGS, type Localized } from "./i18n";
+import { INPUTS, LOCALES, type Localized } from "./i18n";
 
 export type Game = {
   id: string;
@@ -7,7 +7,6 @@ export type Game = {
   tagline: Localized;
   url: string;
   cover: string;
-  tags: string[];
   input: string[];
   languages: string[];
   status: "live" | "soon";
@@ -32,15 +31,6 @@ export function sortGames(games: Game[]): Game[] {
   });
 }
 
-export function filterByTag(games: Game[], tag: string | null): Game[] {
-  return tag ? games.filter((g) => g.tags.includes(tag)) : games;
-}
-
-export function usedTags(games: Game[]): string[] {
-  const seen = new Set(games.flatMap((g) => g.tags));
-  return Object.keys(TAGS).filter((t) => seen.has(t));
-}
-
 export function validateGames(games: Game[]): string[] {
   const errors: string[] = [];
   const ids = new Set<string>();
@@ -54,7 +44,6 @@ export function validateGames(games: Game[]): string[] {
     if (!/^https:\/\//.test(g.url)) errors.push(`${g.id}: url must be https`);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(g.added)) errors.push(`${g.id}: added must be YYYY-MM-DD`);
     if (g.status !== "live" && g.status !== "soon") errors.push(`${g.id}: bad status`);
-    for (const tag of g.tags) if (!TAGS[tag]) errors.push(`${g.id}: unknown tag ${tag}`);
     for (const i of g.input) if (!INPUTS[i]) errors.push(`${g.id}: unknown input ${i}`);
   }
   return errors;

@@ -1,8 +1,8 @@
 import "./style.css";
-import { GAMES, filterByTag, isNew, sortGames, usedTags, type Game } from "./games";
-import { INPUTS, LOCALES, LOCALE_LABELS, TAGS, loadLocale, saveLocale, t, type Locale } from "./i18n";
+import { GAMES, isNew, sortGames, type Game } from "./games";
+import { INPUTS, LOCALES, LOCALE_LABELS, loadLocale, saveLocale, t, type Locale } from "./i18n";
 
-const state: { locale: Locale; tag: string | null } = { locale: loadLocale(), tag: null };
+const state: { locale: Locale } = { locale: loadLocale() };
 const games = sortGames(GAMES);
 
 const $ = <T extends Element>(sel: string) => document.querySelector(sel) as T;
@@ -28,7 +28,6 @@ function card(g: Game, locale: Locale, now: Date): string {
       ? `<span class="badge">${t(locale, "newBadge")}</span>`
       : "";
   const cover = `<img src="./${esc(g.cover)}" alt="" loading="lazy" width="900" height="563">`;
-  const tags = g.tags.map((tag) => `<li>${esc(TAGS[tag][locale])}</li>`).join("");
   const inputs = g.input
     .map((i) => `<li title="${esc(INPUTS[i][locale])}">${icon(i)}<span>${esc(INPUTS[i][locale])}</span></li>`)
     .join("");
@@ -41,7 +40,6 @@ function card(g: Game, locale: Locale, now: Date): string {
   <div class="body">
     <h2>${title}</h2>
     <p class="desc">${esc(g.tagline[locale])}</p>
-    <ul class="chips">${tags}</ul>
     <div class="meta"><ul class="inputs">${inputs}</ul><span class="langs">${langs}</span></div>
     <div class="actions">${play}</div>
   </div>
@@ -49,7 +47,7 @@ function card(g: Game, locale: Locale, now: Date): string {
 }
 
 function render(): void {
-  const { locale, tag } = state;
+  const { locale } = state;
   document.documentElement.lang = locale === "zh" ? "zh-CN" : locale;
 
   document.querySelectorAll<HTMLElement>("[data-i18n]").forEach((el) => {
@@ -63,19 +61,9 @@ function render(): void {
     (l) => `<button type="button" data-locale="${l}" aria-pressed="${l === locale}">${LOCALE_LABELS[l]}</button>`,
   ).join("");
 
-  const tags = [null, ...usedTags(games)];
-  $(".tags").innerHTML = tags
-    .map(
-      (tg) =>
-        `<button type="button" data-tag="${tg ?? ""}" aria-pressed="${tg === tag}">${tg ? esc(TAGS[tg][locale]) : t(locale, "all")}</button>`,
-    )
-    .join("");
-
-  const shown = filterByTag(games, tag);
   const now = new Date();
-  $(".grid").innerHTML = shown.map((g) => card(g, locale, now)).join("");
-  $(".count").textContent = t(locale, "count", { n: shown.length });
-  $<HTMLElement>(".empty").hidden = shown.length > 0;
+  $(".grid").innerHTML = games.map((g) => card(g, locale, now)).join("");
+  $(".count").textContent = t(locale, "count", { n: games.length });
 }
 
 document.addEventListener("click", (e) => {
@@ -84,12 +72,6 @@ document.addEventListener("click", (e) => {
   if (langBtn) {
     state.locale = langBtn.dataset.locale as Locale;
     saveLocale(state.locale);
-    render();
-    return;
-  }
-  const tagBtn = target.closest<HTMLButtonElement>("[data-tag]");
-  if (tagBtn) {
-    state.tag = tagBtn.dataset.tag || null;
     render();
   }
 });
