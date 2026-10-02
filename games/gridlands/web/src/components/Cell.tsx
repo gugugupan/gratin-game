@@ -1,5 +1,5 @@
 import type { Cell as CellT } from '../core/engine';
-import { TERRAIN_STYLE, TerrainIcon } from './icons';
+import { TerrainIcon } from './icons';
 
 export interface CellView {
   cell: CellT;
@@ -18,15 +18,12 @@ export function Cell({ cell, tag, bg, fillColor, blocked, highlight, preview, co
   if (highlight) cls.push(highlight === 'pos' ? 'hl-pos' : 'hl-neg');
   if (preview) cls.push('preview');
   if (conflict) cls.push('conflict');
+  if (fillColor) cls.push('assigned');
 
-  const style: React.CSSProperties = { background: fillColor ?? bg };
-  // 图标色：障碍/已归属区域用白色，否则用地形主色
-  const glyphColor = blocked || fillColor
-    ? 'rgba(255,255,255,0.9)'
-    : (tag ? TERRAIN_STYLE[tag]?.fg : '') || '';
+  const style = (fillColor ? { ['--region' as any]: fillColor } : { background: bg }) as React.CSSProperties;
   return (
     <div className={cls.join(' ')} style={style} data-id={cell.id}>
-      {tag ? <TerrainIcon tag={tag} color={glyphColor} /> : null}
+      {tag ? <TerrainIcon tag={tag} /> : null}
     </div>
   );
 }

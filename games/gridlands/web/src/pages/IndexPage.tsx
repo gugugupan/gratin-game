@@ -19,8 +19,8 @@ function SampleBoard() {
       {ordered.map((c) => {
         const tag = (c.tags || []).find((tg) => tg !== 'plain') || null;
         return (
-          <div key={c.id} className="cell" style={{ background: color[cellRegion[c.id]] }}>
-            {tag ? <TerrainIcon tag={tag} color="rgba(255,255,255,0.92)" /> : null}
+          <div key={c.id} className="cell assigned" style={{ ['--region' as any]: color[cellRegion[c.id]] }}>
+            {tag ? <TerrainIcon tag={tag} /> : null}
           </div>
         );
       })}
@@ -66,7 +66,7 @@ export function IndexPage() {
             {LEGEND_TAGS.map((tag) => (
               <div key={tag} className="legend-item">
                 <span className="legend-icon" style={{ background: TERRAIN_STYLE[tag]?.bg }}>
-                  <TerrainIcon tag={tag} color={TERRAIN_STYLE[tag]?.fg} />
+                  <TerrainIcon tag={tag} />
                 </span>
                 <span>{tagName(tag, locale)}</span>
               </div>
