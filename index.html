@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>グラタンゲーム · Gratin Game</title>
+  <meta name="description" content="焼きたての HTML ゲーム、そろってます。Fresh-baked HTML games, all in one dish.">
+  <meta name="theme-color" content="#FFF1D6">
+  <link rel="icon" href="./favicon.ico" sizes="48x48">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="グラタンゲーム">
+  <meta property="og:description" content="焼きたての HTML ゲーム、そろってます。">
+  <meta property="og:image" content="https://gugugupan.github.io/gratin-game/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="drip" aria-hidden="true"></div>
+  <header class="top">
+    <h1 class="brand"><img src="./wordmark.svg" alt="グラタンゲーム" width="1344" height="240"></h1>
+    <p class="tagline" data-i18n="tagline"></p>
+    <div class="lang" role="group" data-i18n-label="language"></div>
+  </header>
+  <main>
+    <div class="toolbar">
+      <div class="tags" role="group" data-i18n-label="filter"></div>
+      <p class="count" aria-live="polite"></p>
+    </div>
+    <ul class="grid"></ul>
+    <p class="empty" hidden data-i18n="empty"></p>
+  </main>
+  <footer class="foot">
+    <img src="./icon.svg" alt="" width="40" height="40">
+    <p><span data-i18n="footer"></span><br>© 2026 グラタンゲーム · <a href="https://github.com/gugugupan">GitHub</a></p>
+  </footer>
+  <script type="module" src="./src/main.ts"></script>
+</body>
+</html>
