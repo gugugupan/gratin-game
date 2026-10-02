@@ -12,7 +12,6 @@
       "en": "Strike on the 4th beat. A rhythm-battle roguelike — can you win 20 in a row?"
     },
     "url": "https://gugugupan.github.io/cc-lemon-battle-web/",
-    "repo": "https://github.com/gugugupan/cc-lemon-battle-web",
     "cover": "covers/cc-lemon-battle.jpg",
     "tags": [
       "rhythm",
@@ -42,7 +41,6 @@
       "en": "Click tiles together into an endless brick town — trains, people and pets move in."
     },
     "url": "https://gugugupan.github.io/clickton/",
-    "repo": "https://github.com/gugugupan/clickton",
     "cover": "covers/clickton.jpg",
     "tags": [
       "cozy",
@@ -73,7 +71,6 @@
       "en": "Split the map into rectangles that satisfy every clue — pure-logic puzzles."
     },
     "url": "https://gugugupan.github.io/gratin-game/gridlands/",
-    "repo": "https://github.com/gugugupan/gratin-game/tree/main/games/gridlands",
     "cover": "covers/gridlands.jpg",
     "tags": [
       "puzzle",

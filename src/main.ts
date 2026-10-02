@@ -14,8 +14,7 @@ const ICONS: Record<string, string> = {
   keyboard: '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>',
   mouse: '<rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 7v4"/>',
   touch: '<rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/>',
-  play: '<path d="M7 5l12 7-12 7z" fill="currentColor"/>',
-  code: '<path d="M8 8l-4 4 4 4M16 8l4 4-4 4"/>',
+  play: '<path d="M7 5l12 7-12 7z" fill="currentColor"/>'
 };
 const icon = (name: string) =>
   `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`;
@@ -37,7 +36,6 @@ function card(g: Game, locale: Locale, now: Date): string {
   const play = live
     ? `<a class="play" href="${esc(g.url)}">${icon("play")}${t(locale, "play")}</a>`
     : `<span class="play disabled" aria-disabled="true">${t(locale, "soon")}</span>`;
-  const repo = g.repo ? `<a class="repo" href="${esc(g.repo)}">${icon("code")}${t(locale, "source")}</a>` : "";
   return `<li class="card${live ? "" : " is-soon"}">
   <a class="cover" href="${live ? esc(g.url) : "#"}" ${live ? "" : 'tabindex="-1" aria-hidden="true"'}>${cover}${badge}</a>
   <div class="body">
@@ -45,7 +43,7 @@ function card(g: Game, locale: Locale, now: Date): string {
     <p class="desc">${esc(g.tagline[locale])}</p>
     <ul class="chips">${tags}</ul>
     <div class="meta"><ul class="inputs">${inputs}</ul><span class="langs">${langs}</span></div>
-    <div class="actions">${play}${repo}</div>
+    <div class="actions">${play}</div>
   </div>
 </li>`;
 }

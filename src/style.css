@@ -125,7 +125,7 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px 24px; }
 .langs { font-weight: 700; }
 
 .actions { display: flex; gap: 10px; margin-top: 4px; }
-.play, .repo {
+.play {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -139,8 +139,6 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px 24px; }
 .play:hover { background: var(--terracotta-dark); color: var(--milk); }
 .play:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--terracotta-dark); }
 .play.disabled { background: var(--line); color: var(--crust-soft); box-shadow: none; }
-.repo { padding: 0 16px; color: var(--crust); box-shadow: inset 0 0 0 2px var(--line); font-size: 15px; }
-.repo:hover { color: var(--crust); box-shadow: inset 0 0 0 2px var(--cheese); }
 
 .empty { text-align: center; color: var(--crust-soft); padding: 48px 0; }
 

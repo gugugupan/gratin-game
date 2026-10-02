@@ -6,7 +6,6 @@ export type Game = {
   title: Localized;
   tagline: Localized;
   url: string;
-  repo?: string;
   cover: string;
   tags: string[];
   input: string[];

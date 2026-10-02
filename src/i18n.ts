@@ -14,7 +14,6 @@ const STRINGS = {
   },
   all: { ja: "すべて", zh: "全部", en: "All" },
   play: { ja: "あそぶ", zh: "开玩", en: "Play" },
-  source: { ja: "ソース", zh: "源码", en: "Source" },
   soon: { ja: "準備中", zh: "即将推出", en: "Coming soon" },
   newBadge: { ja: "NEW", zh: "新", en: "NEW" },
   count: { ja: "{n} 本のゲーム", zh: "共 {n} 款游戏", en: "{n} games" },
