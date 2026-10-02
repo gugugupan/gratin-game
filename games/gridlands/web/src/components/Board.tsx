@@ -4,6 +4,7 @@ import { Cell } from './Cell';
 import { TERRAIN_STYLE } from './icons';
 
 interface Drag { ax: number; ay: number; cx: number; cy: number; }
+interface Stamp { ids: Set<number>; ax: number; ay: number; odd: boolean; }
 
 export function Board() {
   const level = useGame((s) => s.level);
@@ -13,6 +14,8 @@ export function Board() {
   const validation = useValidation();
   const boardRef = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<Drag | null>(null);
+  const [stamp, setStamp] = useState<Stamp | null>(null);
+  const won = validation?.ok ?? false;
 
   const { width, height } = level.board;
 
@@ -87,7 +90,12 @@ export function Board() {
     if (p) setDrag((d) => (d ? { ...d, cx: p.x, cy: p.y } : d));
   }
   function commit() {
-    if (drag) assignCells([...previewSet]);
+    if (drag) {
+      assignCells([...previewSet]);
+      if (selectedRegion && previewSet.size) {
+        setStamp((s) => ({ ids: new Set(previewSet), ax: drag.ax, ay: drag.ay, odd: !s?.odd }));
+      }
+    }
     setDrag(null);
   }
 
@@ -121,6 +129,8 @@ export function Board() {
             highlight={highlight.get(c.id)}
             preview={previewSet.has(c.id)}
             conflict={conflictCells.has(c.id)}
+            stamp={stamp?.ids.has(c.id) ? { odd: stamp.odd, delay: (Math.abs(c.x - stamp.ax) + Math.abs(c.y - stamp.ay)) * 35 } : undefined}
+            celebrateDelay={won ? 250 + (c.x + c.y) * 70 : undefined}
           />
         );
       })}

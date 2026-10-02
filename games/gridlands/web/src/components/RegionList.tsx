@@ -24,7 +24,7 @@ export function RegionList() {
         return (
           <div
             key={r.id}
-            className={'region-item' + (active ? ' active' : '')}
+            className={'region-item' + (active ? ' active' : '') + (validation?.ok ? ' celebrate' : '')}
             onClick={() => selectRegion(r.id)}
           >
             <div className="region-head">

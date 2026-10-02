@@ -82,8 +82,9 @@ body {
   transition: background .1s;
 }
 .cell .terrain { width: 66%; height: 66%; display: block; pointer-events: none; user-select: none; }
+.cell { background-size: cover; background-repeat: no-repeat; }
 .cell.assigned {
-  background: color-mix(in srgb, var(--region) 42%, #fff);
+  background-color: color-mix(in srgb, var(--region) 42%, #fff);
   box-shadow: inset 0 0 0 3px var(--region);
 }
 .cell.blocked { background: repeating-linear-gradient(45deg, #8a8270, #8a8270 6px, #6f6857 6px, #6f6857 12px) !important; }
@@ -195,7 +196,7 @@ body {
 .legend.roles { margin-top: 14px; }
 
 /* ── 关卡列表 ── */
-.levels-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+.levels-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px; }
 .lvl-card {
   display: flex; flex-direction: column; gap: 6px; padding: 16px; min-height: 96px;
   background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
@@ -210,3 +211,46 @@ body {
 .lvl-name { font-size: 17px; font-weight: 700; }
 .lvl-status { margin-top: auto; font-size: 12px; font-weight: 600; color: var(--muted); }
 .lvl-card.done .lvl-status { color: var(--ok); }
+.lvl-thumb {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  height: 120px; margin: -4px -4px 4px; padding: 10px;
+  background: var(--bg); border-radius: 10px;
+}
+.mini-board {
+  max-width: 100%; max-height: 100%;
+  display: grid; grid-template-columns: repeat(var(--cols), 1fr); grid-template-rows: repeat(var(--rows), 1fr);
+  gap: 2px; padding: 2px; background: var(--path); border-radius: 6px;
+}
+.lvl-thumb .mini-board { height: 100%; }
+.mini-cell { border-radius: 2px; display: flex; align-items: center; justify-content: center; min-width: 0; }
+.mini-cell .terrain { width: 78%; height: 78%; display: block; }
+.mini-cell.blocked { background: repeating-linear-gradient(45deg, #8a8270, #8a8270 3px, #6f6857 3px, #6f6857 6px) !important; }
+.lvl-card.locked .mini-board { filter: grayscale(1) opacity(.45); }
+.lvl-lock {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--muted);
+}
+.lvl-roles { display: flex; gap: 6px; }
+@media (max-width: 480px) {
+  .levels-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .lvl-card { padding: 10px; }
+  .lvl-thumb { height: 84px; padding: 6px; margin: 0 0 2px; }
+  .lvl-name { font-size: 15px; }
+}
+.lvl-card.locked .lvl-roles { filter: grayscale(1); opacity: .5; }
+
+/* ── 动效 ── */
+.cell.stamp-a { animation: stamp-a .32s cubic-bezier(.3,1.6,.5,1) both; }
+.cell.stamp-b { animation: stamp-b .32s cubic-bezier(.3,1.6,.5,1) both; }
+@keyframes stamp-a { 0% { transform: scale(.82); } 100% { transform: scale(1); } }
+@keyframes stamp-b { 0% { transform: scale(.82); } 100% { transform: scale(1); } }
+.cell.celebrate .terrain { animation: hop .5s ease-out var(--celebrate-delay, 0ms) both; }
+.cell.celebrate::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: #fff; opacity: 0; animation: shine .6s ease-out var(--celebrate-delay, 0ms);
+}
+@keyframes hop { 0%, 100% { transform: translateY(0) scale(1); } 35% { transform: translateY(-22%) scale(1.08); } 60% { transform: translateY(0) scale(.96, 1.04); } }
+@keyframes shine { 0% { opacity: 0; } 30% { opacity: .45; } 100% { opacity: 0; } }
+.region-item.celebrate .avatar { animation: hop .5s ease-out .2s both; }
+@media (prefers-reduced-motion: reduce) {
+  .cell.stamp-a, .cell.stamp-b, .cell.celebrate .terrain, .cell.celebrate::before, .region-item.celebrate .avatar { animation: none; }
+}
