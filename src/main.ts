@@ -5,6 +5,8 @@ import { INPUTS, LOCALES, LOCALE_LABELS, loadLocale, saveLocale, t, type Locale 
 const state: { locale: Locale } = { locale: loadLocale() };
 const games = sortGames(GAMES);
 
+const FEEDBACK_EMAIL = ["guratan.game.asobu", "gmail.com"].join("@");
+
 const $ = <T extends Element>(sel: string) => document.querySelector(sel) as T;
 
 const esc = (s: string) =>
@@ -64,6 +66,8 @@ function render(): void {
   const now = new Date();
   $(".grid").innerHTML = games.map((g) => card(g, locale, now)).join("");
   $(".count").textContent = t(locale, "count", { n: games.length });
+  $<HTMLAnchorElement>(".mail").href = `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(t(locale, "feedbackSubject"))}`;
+  $(".mail-address").textContent = FEEDBACK_EMAIL;
 }
 
 document.addEventListener("click", (e) => {

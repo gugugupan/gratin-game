@@ -17,6 +17,14 @@ const STRINGS = {
   newBadge: { ja: "NEW", zh: "新", en: "NEW" },
   count: { ja: "{n} 本のゲーム", zh: "共 {n} 款游戏", en: "{n} games" },
   language: { ja: "言語", zh: "语言", en: "Language" },
+  feedbackTitle: { ja: "ご意見・ご感想をお待ちしています", zh: "欢迎留下你的意见和感想", en: "We'd love your feedback" },
+  feedbackBody: {
+    ja: "バグの報告、遊んでみた感想、こんなゲームがほしいというアイデアなど、気軽にメールで送ってください。",
+    zh: "发现 bug、玩后感想、想玩什么样的游戏，都欢迎发邮件告诉我们。",
+    en: "Found a bug, have thoughts after playing, or an idea for a new game? Send us an email anytime.",
+  },
+  feedbackButton: { ja: "メールを送る", zh: "发送邮件", en: "Send an email" },
+  feedbackSubject: { ja: "【グラタンゲーム】ご意見・ご感想", zh: "【グラタンゲーム】意见反馈", en: "[Gratin Game] Feedback" },
   footer: { ja: "すべて手づくり、ブラウザですぐ遊べます。", zh: "全部手工制作，打开浏览器就能玩。", en: "Handmade, and playable right in your browser." },
 } satisfies Record<string, Localized>;
 

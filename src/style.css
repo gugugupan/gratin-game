@@ -135,6 +135,32 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px 24px; }
 .play:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--terracotta-dark); }
 .play.disabled { background: var(--line); color: var(--crust-soft); box-shadow: none; }
 
+.feedback {
+  max-width: 1120px;
+  margin: 40px auto 0;
+  padding: 0 24px;
+}
+.feedback > * { max-width: 640px; }
+.feedback h2 { margin: 0 0 8px; font-family: var(--display); font-weight: 400; font-size: 26px; line-height: 1.3; }
+.feedback p { margin: 0 0 18px; color: var(--crust-soft); }
+.feedback-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
+.mail {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: 14px;
+  background: var(--cheese);
+  color: var(--crust);
+  font-weight: 900;
+  text-decoration: none;
+  box-shadow: 0 3px 0 #d99a1e;
+}
+.mail:hover { background: #f0a91c; color: var(--crust); }
+.mail:active { transform: translateY(2px); box-shadow: 0 1px 0 #d99a1e; }
+.mail-address { font-weight: 700; color: var(--crust-soft); user-select: all; word-break: break-all; }
+
 .foot {
   max-width: 1120px;
   margin: 24px auto 0;
@@ -155,6 +181,8 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px 24px; }
   .lang { justify-self: start; }
   .tagline { font-size: 16px; }
   main { padding: 24px 16px; }
+  .feedback { padding: 0 16px; }
+  .feedback h2 { font-size: 22px; }
   .foot { padding: 24px 16px 40px; }
 }
 
