@@ -7,18 +7,20 @@
 ## 现状（as-built）
 
 纯前端 MVP，可玩，无后端。已完成：
-- 规则引擎 + 唯一解校验器；6 关样例（`levels/1-1.json` … `4-1.json`），全部过唯一解校验。
+- 规则引擎 + 唯一解校验器 + 「无猜测」推理检查（`tools/deduce.mjs`）；第 1 章 `levels/1-1.json` … `1-6.json`，第 2 章 `2-1.json`、`2-2.json`，全部通过。
+- 关卡编号 2026-10-03 改过：旧 2-1/2-2/3-1/4-1 → 1-3/1-4/1-5/1-6；`state/store.ts` 里有一次性的通关进度迁移（`rlp-progress-version`）。
+- 每关有 `theme`（氛围色 + 故事卡插图）和 `story`（背景故事）。
 - 三页路由（介绍 / 关卡列表 / 游玩）；进度与**顺序解锁**存 localStorage。
 - 中英双语 i18n；扁平 SVG 图标（地形 + 角色头像）；品牌 logo / favicon。
 
-未做：后端 / 数据库 / 账号 / 订阅 / 自动关卡生成器 / 「无猜测」自动校验器（`isHumanSolvable`）/ 每日挑战。
+未做：后端 / 数据库 / 账号 / 订阅 / 自动关卡生成器 / 每日挑战。
 
 ## 目录
 
 ```
 document/   设计文档：PRD.md、LEVEL_SCHEMA.md（关卡 JSON 权威定义）、TECH_DESIGN.md、README.md
 levels/     关卡 JSON（权威数据；结构见 LEVEL_SCHEMA.md）
-tools/      gen-samples.mjs（生成 1-2…4-1）、verify-levels.mjs（校验唯一解 + 比对内置答案）
+tools/      gen-samples.mjs（生成 1-2…1-6）、gen-chapter2.mjs（生成 2-1、2-2）、verify-levels.mjs（唯一解 + 比对内置答案 + 推理可解）、deduce.mjs（排除推理求解器）
 web/        Vite + React + TS 前端
   src/core/engine.js   规则引擎（纯 ESM JS，前端与 node 校验脚本共用；类型在 engine.d.ts）
   src/pages/           IndexPage / LevelsPage / PlayPage
@@ -35,7 +37,8 @@ cd web && npm install
 npm run dev        # 开发 (http://localhost:5173，HashRouter：#/ 首页)
 npm run build      # tsc -b && vite build（提交前务必跑通）
 node ../tools/verify-levels.mjs   # 校验所有关卡唯一解（改/加关卡后必跑）
-node ../tools/gen-samples.mjs     # 重新生成 1-2…4-1（1-1 是手写 JSON，不由生成器产出）
+node ../tools/gen-samples.mjs     # 重新生成 1-2…1-6（1-1 是手写 JSON，不由生成器产出）
+node ../tools/gen-chapter2.mjs    # 重新生成 2-1、2-2
 ```
 
 ## 架构与关键决策
@@ -53,7 +56,7 @@ node ../tools/gen-samples.mjs     # 重新生成 1-2…4-1（1-1 是手写 JSON�
 
 1. 改 `tools/gen-samples.mjs`（或直接写 `levels/x.json`，遵循 `document/LEVEL_SCHEMA.md`）。
 2. `node tools/gen-samples.mjs`（若用生成器）。
-3. **必须** `node tools/verify-levels.mjs` 确认 `solutions=1 matchesStored=true`——唯一解是硬要求。
+3. **必须** `node tools/verify-levels.mjs` 确认 `solutions=1 matchesStored=true deducible=true`——唯一解、且只靠推理可解是硬要求。
 4. 关卡按 `levels.ts` 里的 `LEVELS`（按 id 排序）顺序解锁，命名遵循 `章-关`（如 `2-3`）。
 5. 只支持 `shapeRule: "RECT"` + `coverage: "FULL"`（求解器与 UI 目前的范围）。
 

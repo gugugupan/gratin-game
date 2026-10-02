@@ -16,6 +16,11 @@
   },
   "chapter": 1,
   "difficulty": 2,
+  "theme": "town",
+  "story": {
+    "zh": "两位地主都想买下镇边这片地。大地主要最大、而且带房子的一块；小地主只要最小的那块。",
+    "en": "Two landlords both want the land at the edge of town. The big landlord wants the largest plot, with a building on it; the small landlord only wants the smallest."
+  },
   "board": {
     "width": 4,
     "height": 4,

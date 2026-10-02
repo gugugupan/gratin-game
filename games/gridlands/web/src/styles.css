@@ -25,6 +25,30 @@ body {
 }
 
 .app { display: flex; flex-direction: column; min-height: 100dvh; }
+.app.themed { background: linear-gradient(160deg, var(--bg), var(--bg2)); transition: background .4s; }
+
+/* ── 关卡背景故事 ── */
+.story {
+  width: min(92vw, 540px);
+  background: rgba(255,255,255,.72); border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: var(--shadow); padding: 10px 14px;
+}
+.story summary {
+  display: flex; align-items: center; gap: 12px; cursor: pointer; list-style: none; min-height: 44px;
+}
+.story summary::-webkit-details-marker { display: none; }
+.story summary::after {
+  content: ''; margin-left: auto; width: 8px; height: 8px; flex: 0 0 auto;
+  border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg); transition: transform .2s;
+}
+.story[open] summary::after { transform: rotate(-135deg); }
+.story-icon { width: 40px; height: 40px; flex: 0 0 auto; }
+.story-head { display: flex; flex-direction: column; line-height: 1.25; }
+.story-label { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .04em; }
+.story-title { font-size: 17px; font-weight: 800; }
+.story p { margin: 8px 0 2px 52px; font-size: 14px; line-height: 1.7; color: #4a443b; }
+@media (max-width: 480px) { .story p { margin-left: 0; } }
 
 .app-header {
   position: sticky; top: 0; z-index: 10;
@@ -70,7 +94,7 @@ body {
   grid-template-rows: repeat(var(--rows), 1fr);
   background: var(--path);
   padding: 3px; gap: 3px;
-  border: 3px solid #b8b09c;
+  border: 3px solid var(--frame, #b8b09c);
   border-radius: 14px; box-shadow: var(--shadow);
   touch-action: none; user-select: none;
 }
@@ -196,6 +220,8 @@ body {
 .legend.roles { margin-top: 14px; }
 
 /* ── 关卡列表 ── */
+.chapter + .chapter { margin-top: 28px; }
+.chapter-title { margin: 0 0 12px; font-size: 15px; font-weight: 800; color: var(--muted); letter-spacing: .06em; }
 .levels-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px; }
 .lvl-card {
   display: flex; flex-direction: column; gap: 6px; padding: 16px; min-height: 96px;
@@ -214,7 +240,7 @@ body {
 .lvl-thumb {
   position: relative; display: flex; align-items: center; justify-content: center;
   height: 120px; margin: -4px -4px 4px; padding: 10px;
-  background: var(--bg); border-radius: 10px;
+  background: linear-gradient(160deg, var(--bg), var(--bg2)); border-radius: 10px;
 }
 .mini-board {
   max-width: 100%; max-height: 100%;

@@ -6,6 +6,7 @@ import { LanguageSelect } from '../components/LanguageSelect';
 import { localized, t } from '../i18n';
 import { MiniBoard } from '../components/MiniBoard';
 import { RoleAvatar } from '../components/icons';
+import { themeVars } from '../components/themes';
 
 export function LevelsPage() {
   const passed = useGame((s) => s.passed);
@@ -16,13 +17,16 @@ export function LevelsPage() {
       <Header><LanguageSelect /></Header>
       <main className="page">
         <h2 className="page-title">{t(locale, 'levelsTitle')}</h2>
+        {[...new Set(LEVELS.map((l) => l.chapter ?? 1))].map((ch) => (
+        <section key={ch} className="chapter">
+        <h3 className="chapter-title">{t(locale, `chapter_${ch}`)}</h3>
         <div className="levels-grid">
-          {LEVELS.map((l) => {
+          {LEVELS.filter((l) => (l.chapter ?? 1) === ch).map((l) => {
             const unlocked = isUnlocked(l.id, passed);
             const done = passed.includes(l.id);
             const body = (
               <>
-                <div className="lvl-thumb">
+                <div className="lvl-thumb" style={themeVars(l.theme)}>
                   <MiniBoard level={l} />
                   {!unlocked && (
                     <span className="lvl-lock" aria-hidden="true">
@@ -47,6 +51,8 @@ export function LevelsPage() {
             );
           })}
         </div>
+        </section>
+        ))}
       </main>
     </div>
   );

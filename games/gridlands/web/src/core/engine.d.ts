@@ -44,6 +44,8 @@ export interface Level {
   name: LocalizedString;
   chapter?: number;
   difficulty?: number;
+  theme?: string;
+  story?: LocalizedString;
   shapeRule: 'RECT' | 'ANY' | 'SQUARE' | 'L';
   adjacency?: 4 | 8;
   coverage: 'FULL' | 'PARTIAL';

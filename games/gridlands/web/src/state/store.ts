@@ -9,8 +9,19 @@ const initialLocale: Locale = (() => {
   try { return (localStorage.getItem('rlp-locale') as Locale) || DEFAULT_LOCALE; } catch { return DEFAULT_LOCALE; }
 })();
 
+// v1 的关卡编号是 1-1,1-2,2-1,2-2,3-1,4-1；v2 起它们统一为第 1 章 1-1…1-6，2-x 留给新关卡
+const PROGRESS_VERSION = '2';
+const V1_TO_V2: Record<string, string> = { '1-1': '1-1', '1-2': '1-2', '2-1': '1-3', '2-2': '1-4', '3-1': '1-5', '4-1': '1-6' };
+
 const initialPassed: string[] = (() => {
-  try { return JSON.parse(localStorage.getItem('rlp-progress') || '[]'); } catch { return []; }
+  try {
+    const saved: string[] = JSON.parse(localStorage.getItem('rlp-progress') || '[]');
+    if (localStorage.getItem('rlp-progress-version') === PROGRESS_VERSION) return saved;
+    const migrated = [...new Set(saved.map((id) => V1_TO_V2[id]).filter(Boolean))];
+    localStorage.setItem('rlp-progress', JSON.stringify(migrated));
+    localStorage.setItem('rlp-progress-version', PROGRESS_VERSION);
+    return migrated;
+  } catch { return []; }
 })();
 
 interface GameState {

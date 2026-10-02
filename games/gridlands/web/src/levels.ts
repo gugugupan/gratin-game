@@ -3,7 +3,11 @@ import type { Level } from './core/engine';
 // 编译期把上级 levels/ 目录的所有关卡 JSON 打包进来（MVP：硬编码关卡）
 const mods = import.meta.glob('../../levels/*.json', { eager: true, import: 'default' }) as Record<string, Level>;
 
-export const LEVELS: Level[] = Object.values(mods).sort((a, b) => (a.id < b.id ? -1 : 1));
+const order = (id: string) => id.split('-').map(Number);
+export const LEVELS: Level[] = Object.values(mods).sort((a, b) => {
+  const [ca, na] = order(a.id), [cb, nb] = order(b.id);
+  return ca - cb || na - nb;
+});
 
 export function getLevel(id: string): Level | undefined {
   return LEVELS.find((l) => l.id === id);

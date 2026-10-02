@@ -2,6 +2,11 @@
   "schemaVersion": 1,
   "id": "1-1",
   "name": { "zh": "第一块地", "en": "First Plot" },
+  "theme": "meadow",
+  "story": {
+    "zh": "你是新来的土地规划师。第一份工作很简单：帮农场主和牧场主分好这块小地。",
+    "en": "You're the new land planner. Your first job is simple: split this small plot between a farmer and a rancher."
+  },
   "chapter": 1,
   "difficulty": 1,
   "shapeRule": "RECT",

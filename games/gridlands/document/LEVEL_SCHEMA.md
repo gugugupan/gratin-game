@@ -54,6 +54,8 @@
 | `name` | LocalizedString | ✓ | 展示名（字符串或 `{zh,en,…}`） |
 | `chapter` | int | — | 章节编号 |
 | `difficulty` | int | — | 难度（建议 1~10），由 `human-solver` 评估或人工填 |
+| `theme` | string | — | 关卡氛围键（页面底色、棋盘边框、故事卡插图），取值见 `web/src/components/themes.ts`；缺省 `meadow` |
+| `story` | LocalizedString | — | 关卡背景故事，游玩页棋盘上方的卡片显示 |
 | `shapeRule` | enum | ✓ | `RECT`(MVP) / `ANY` / `SQUARE` / `L` |
 | `adjacency` | 4\|8 | — | 区域连通判定，默认 `4` |
 | `coverage` | enum | ✓ | `FULL`=所有可分配格必须归属；`PARTIAL`=允许中立空地 |
@@ -295,4 +297,4 @@
 2. 所有条件引用的 `cellId` / `region` / `tag` 都存在。
 3. `fixedRegion` 指向的 region 存在；被锁定的 cell `assignable` 必须为 `true`。
 4. `solution` 与全部条件一致；每格至多归一个 region；`coverage=FULL` 时所有可分配格都被覆盖；区域满足 `shapeRule` 与 `adjacency` 连通性。
-5. `isUniqueSolution()` 为真、`isHumanSolvable()` 为真 → 方可置 `meta.verified* = true`。
+5. `tools/verify-levels.mjs` 通过（唯一解 + 与内置答案一致 + `tools/deduce.mjs` 只靠排除推理可解）→ 方可置 `meta.verified* = true`。

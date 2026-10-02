@@ -8,6 +8,8 @@ import { ConditionPanel } from '../components/ConditionPanel';
 import { Header } from '../components/Header';
 import { LanguageSelect } from '../components/LanguageSelect';
 import { t } from '../i18n';
+import { StoryCard } from '../components/StoryCard';
+import { themeVars } from '../components/themes';
 
 export function PlayPage() {
   const { id } = useParams();
@@ -39,7 +41,7 @@ export function PlayPage() {
   const nxt = nextLevel(level.id);
 
   return (
-    <div className="app">
+    <div className="app themed" style={themeVars(level.theme)}>
       <Header>
         <Link className="btn-link" to="/levels">‹ {t(locale, 'backToLevels')}</Link>
         <button onClick={reset}>{t(locale, 'reset')}</button>
@@ -48,6 +50,7 @@ export function PlayPage() {
 
       <main className="layout">
         <section className="board-area">
+          <StoryCard key={level.id} level={level} locale={locale} />
           {ready ? <Board /> : null}
           {won && (
             <div className="win-banner">

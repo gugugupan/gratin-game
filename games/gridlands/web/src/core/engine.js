@@ -76,7 +76,7 @@ export function isFilledRect(ix, cells) {
 }
 
 /** 求值单条条件。regionId 为 null 表示全局条件 */
-function evalConstraint(ix, regionsMap, regionId, c) {
+export function evalConstraint(ix, regionsMap, regionId, c) {
   const all = ix.level.regions.map((r) => r.id);
   const myCells = regionId ? cellsOf(ix, regionId, regionsMap) : [];
   const p = c.params || {};
@@ -220,11 +220,31 @@ function rectCandidates(ix, region) {
  * 求解：枚举矩形划分，返回满足全部条件的方案（最多 maxSolutions 个）。
  * 仅支持 shapeRule=RECT（MVP）。
  */
+// 只依赖本区域自身格子的条件：可在搜索前逐个候选矩形单独判定
+const LOCAL_TYPES = new Set([
+  'AREA_EQ', 'AREA_GE', 'AREA_LE', 'MUST_CONTAIN_CELL', 'MUST_NOT_CONTAIN_CELL',
+  'MUST_CONTAIN_TAG', 'MUST_NOT_CONTAIN_TAG', 'TAG_COUNT_EQ', 'TAG_COUNT_GE', 'TAG_COUNT_LE',
+  'MUST_TOUCH_TAG', 'MUST_NOT_TOUCH_TAG', 'MUST_ON_EDGE', 'MUST_NOT_ON_CORNER',
+]);
+
+/** 区域的候选矩形，已剔除违反本区域局部条件的（不改变解集，只缩小搜索） */
+export function localCandidates(ix, region) {
+  const local = (region.constraints || []).filter((c) => LOCAL_TYPES.has(c.type));
+  return rectCandidates(ix, region).filter((ids) => {
+    const map = new Map([[region.id, ids]]);
+    return local.every((c) => evalConstraint(ix, map, region.id, c));
+  });
+}
+
 export function solve(level, opts = {}) {
   const maxSolutions = opts.maxSolutions ?? 2;
   const ix = buildIndex(level);
-  const regions = level.regions;
-  const candidates = regions.map((r) => rectCandidates(ix, r));
+  // 候选少的区域先搜，剪枝更早生效
+  const regions = level.regions
+    .map((r) => ({ r, cands: localCandidates(ix, r) }))
+    .sort((a, b) => a.cands.length - b.cands.length);
+  const candidates = regions.map((x) => x.cands);
+  const maxArea = candidates.map((cs) => cs.reduce((m, ids) => Math.max(m, ids.length), 0));
   const totalAssignable = ix.assignableIds.length;
   const solutions = [];
 
@@ -236,16 +256,22 @@ export function solve(level, opts = {}) {
     if (i === regions.length) {
       if (level.coverage !== 'PARTIAL' && covered.size !== totalAssignable) return;
       if (checkSolution(ix, chosen)) {
-        solutions.push(regions.map((r) => ({ region: r.id, cells: [...(chosen.get(r.id) || [])].sort((a, b) => a - b) })));
+        solutions.push(level.regions.map((r) => ({ region: r.id, cells: [...(chosen.get(r.id) || [])].sort((a, b) => a - b) })));
       }
       return;
+    }
+    // 覆盖剪枝：剩余区域即使都取最大候选也铺不满 → 回退
+    if (level.coverage !== 'PARTIAL') {
+      let rest = 0;
+      for (let j = i; j < regions.length; j++) rest += maxArea[j];
+      if (covered.size + rest < totalAssignable) return;
     }
     for (const ids of candidates[i]) {
       if (ids.some((id) => covered.has(id))) continue; // 重叠剪枝
       for (const id of ids) covered.add(id);
-      chosen.set(regions[i].id, ids);
+      chosen.set(regions[i].r.id, ids);
       backtrack(i + 1);
-      chosen.delete(regions[i].id);
+      chosen.delete(regions[i].r.id);
       for (const id of ids) covered.delete(id);
       if (solutions.length >= maxSolutions) return;
     }

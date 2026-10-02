@@ -9,13 +9,18 @@
     "verifiedHumanSolvable": true,
     "createdAt": "2026-06-13"
   },
-  "id": "4-1",
+  "id": "1-5",
   "name": {
-    "zh": "黄金封地",
-    "en": "Golden Fief"
+    "zh": "靠山吃山",
+    "en": "Live off the Mountain"
   },
-  "chapter": 4,
-  "difficulty": 6,
+  "chapter": 1,
+  "difficulty": 5,
+  "theme": "mountain",
+  "story": {
+    "zh": "山脚下，矿业公司想紧挨着山；农业公司怕落石，离山越远越好。",
+    "en": "At the foot of the mountain, the miners want to be right against the slope, while the farmers want to stay clear of falling rocks."
+  },
   "board": {
     "width": 5,
     "height": 5,
@@ -25,13 +30,12 @@
         "x": 0,
         "y": 0,
         "tags": [
-          "plain",
-          "gold"
+          "mountain"
         ],
-        "assignable": true,
+        "assignable": false,
         "fixedRegion": null,
         "display": {
-          "bg": "#ffd54f",
+          "bg": "#8d6e63",
           "sprite": null
         }
       },
@@ -96,12 +100,12 @@
         "x": 0,
         "y": 1,
         "tags": [
-          "plain"
+          "mountain"
         ],
-        "assignable": true,
+        "assignable": false,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#8d6e63",
           "sprite": null
         }
       },
@@ -166,12 +170,12 @@
         "x": 0,
         "y": 2,
         "tags": [
-          "plain"
+          "mountain"
         ],
-        "assignable": true,
+        "assignable": false,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#8d6e63",
           "sprite": null
         }
       },
@@ -236,12 +240,12 @@
         "x": 0,
         "y": 3,
         "tags": [
-          "plain"
+          "mountain"
         ],
-        "assignable": true,
+        "assignable": false,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#8d6e63",
           "sprite": null
         }
       },
@@ -306,13 +310,12 @@
         "x": 0,
         "y": 4,
         "tags": [
-          "plain",
-          "gold"
+          "mountain"
         ],
-        "assignable": true,
+        "assignable": false,
         "fixedRegion": null,
         "display": {
-          "bg": "#ffd54f",
+          "bg": "#8d6e63",
           "sprite": null
         }
       },
@@ -379,11 +382,11 @@
       "id": "R1",
       "owner": {
         "name": {
-          "zh": "黄金家族",
-          "en": "House Gold"
+          "zh": "矿业公司",
+          "en": "Mining Co."
         },
-        "color": "#ffd54f",
-        "icon": "crown",
+        "color": "#ffb300",
+        "icon": "miner",
         "avatar": null
       },
       "constraints": [
@@ -394,9 +397,9 @@
           }
         },
         {
-          "type": "MUST_CONTAIN_TAG",
+          "type": "MUST_TOUCH_TAG",
           "params": {
-            "tag": "gold"
+            "tag": "mountain"
           }
         }
       ]
@@ -405,70 +408,57 @@
       "id": "R2",
       "owner": {
         "name": {
-          "zh": "白银家族",
-          "en": "House Silver"
+          "zh": "农业公司",
+          "en": "Farming Co."
         },
-        "color": "#b0bec5",
-        "icon": "crown",
+        "color": "#66bb6a",
+        "icon": "farmer",
         "avatar": null
       },
       "constraints": [
         {
           "type": "AREA_EQ",
           "params": {
-            "value": 15
+            "value": 10
+          }
+        },
+        {
+          "type": "MUST_NOT_TOUCH_TAG",
+          "params": {
+            "tag": "mountain"
           }
         }
       ]
     }
   ],
-  "globalConstraints": [
-    {
-      "type": "ONLY_ONE_CONTAINS",
-      "params": {
-        "tag": "gold"
-      }
-    },
-    {
-      "type": "AREA_LARGER_THAN",
-      "params": {
-        "a": "R2",
-        "b": "R1"
-      }
-    }
-  ],
+  "globalConstraints": [],
   "solution": [
     {
       "region": "R1",
       "cells": [
-        1,
         2,
-        6,
+        3,
         7,
-        11,
+        8,
         12,
-        16,
+        13,
         17,
-        21,
-        22
+        18,
+        22,
+        23
       ]
     },
     {
       "region": "R2",
       "cells": [
-        3,
         4,
         5,
-        8,
         9,
         10,
-        13,
         14,
         15,
-        18,
         19,
         20,
-        23,
         24,
         25
       ]
