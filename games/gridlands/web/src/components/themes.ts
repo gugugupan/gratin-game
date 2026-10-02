@@ -10,6 +10,11 @@ export const THEMES: Record<string, Theme> = {
   royal: { bg: '#f7f2e4', bg2: '#efe2c4', frame: '#c9a85a' },
   river: { bg: '#eef3f6', bg2: '#d9e7ef', frame: '#8fb3c7' },
   mine: { bg: '#f4eee6', bg2: '#e4d6c4', frame: '#a98a66' },
+  contract: { bg: '#f7f3ea', bg2: '#ece2cc', frame: '#b9a27a' },
+  wishlist: { bg: '#f6f3e4', bg2: '#e9e1bf', frame: '#b5a35c' },
+  debate: { bg: '#f2f1f5', bg2: '#e0dde9', frame: '#9c93b5' },
+  blueprint: { bg: '#eef2f8', bg2: '#d9e2ef', frame: '#7f97b8' },
+  epilogue: { bg: '#f7f1ec', bg2: '#f0dfd2', frame: '#c99a7c' },
 };
 
 export const DEFAULT_THEME = 'meadow';
