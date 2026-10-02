@@ -17,6 +17,8 @@ export type Game = {
 
 export const GAMES = data as Game[];
 
+export const SITE_URL = "https://gugugupan.github.io/gratin-game/";
+
 const NEW_DAYS = 30;
 
 export function isNew(game: Game, now: Date): boolean {

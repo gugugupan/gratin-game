@@ -1,12 +1,26 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { GAMES, filterByTag, isNew, sortGames, usedTags, validateGames, type Game } from "../src/games";
+import { GAMES, SITE_URL, filterByTag, isNew, sortGames, usedTags, validateGames, type Game } from "../src/games";
 import { detectLocale } from "../src/i18n";
 
 describe("games.json", () => {
   it("is valid", () => {
     expect(validateGames(GAMES)).toEqual([]);
+  });
+
+  it("builds every game hosted on this site from games/", () => {
+    const root = path.join(import.meta.dirname, "..");
+    const builds: Record<string, string> = JSON.parse(fs.readFileSync(path.join(root, "games/builds.json"), "utf8"));
+    const hosted = GAMES.flatMap((g) => {
+      const m = g.url.match(new RegExp(`^${SITE_URL.replace(/[.]/g, "\\.")}([^/]+)/$`));
+      return m ? [m[1]] : [];
+    });
+    expect(hosted.sort()).toEqual(Object.keys(builds).sort());
+    for (const [id, out] of Object.entries(builds)) {
+      expect(fs.existsSync(path.join(root, `games/${id}`)), id).toBe(true);
+      expect(out.startsWith(`games/${id}/`), out).toBe(true);
+    }
   });
 
   it("has a cover file for every game", () => {

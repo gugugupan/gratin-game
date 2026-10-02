@@ -1,7 +1,11 @@
 [
   {
     "id": "cc-lemon-battle",
-    "title": { "ja": "CCレモン バトル", "zh": "CC 柠檬对战", "en": "CC Lemon Battle" },
+    "title": {
+      "ja": "CCレモン バトル",
+      "zh": "CC 柠檬对战",
+      "en": "CC Lemon Battle"
+    },
     "tagline": {
       "ja": "4拍目の「モン」で技を出せ。20連勝をめざすリズム対戦ローグライク。",
       "zh": "在第 4 拍「檬」出招，挑战 20 连胜的节奏对战肉鸽。",
@@ -10,15 +14,28 @@
     "url": "https://gugugupan.github.io/cc-lemon-battle-web/",
     "repo": "https://github.com/gugugupan/cc-lemon-battle-web",
     "cover": "covers/cc-lemon-battle.jpg",
-    "tags": ["rhythm", "roguelike"],
-    "input": ["keyboard", "touch"],
-    "languages": ["ja", "zh"],
+    "tags": [
+      "rhythm",
+      "roguelike"
+    ],
+    "input": [
+      "keyboard",
+      "touch"
+    ],
+    "languages": [
+      "ja",
+      "zh"
+    ],
     "status": "live",
     "added": "2026-09-28"
   },
   {
     "id": "clickton",
-    "title": { "ja": "カチッとタウン", "zh": "咔哒镇", "en": "Clickton" },
+    "title": {
+      "ja": "カチッとタウン",
+      "zh": "咔哒镇",
+      "en": "Clickton"
+    },
     "tagline": {
       "ja": "タイルをカチッと置いて、終わらないレンガの町をつくろう。",
       "zh": "一块块拼出永不完工的积木小镇，铁路通车、居民入住。",
@@ -27,26 +44,49 @@
     "url": "https://gugugupan.github.io/clickton/",
     "repo": "https://github.com/gugugupan/clickton",
     "cover": "covers/clickton.jpg",
-    "tags": ["cozy", "builder"],
-    "input": ["mouse", "touch"],
-    "languages": ["ja", "zh", "en"],
+    "tags": [
+      "cozy",
+      "builder"
+    ],
+    "input": [
+      "mouse",
+      "touch"
+    ],
+    "languages": [
+      "ja",
+      "zh",
+      "en"
+    ],
     "status": "live",
     "added": "2026-10-02"
   },
   {
     "id": "gridlands",
-    "title": { "ja": "阡陌 Gridlands", "zh": "阡陌", "en": "Gridlands" },
+    "title": {
+      "ja": "阡陌 Gridlands",
+      "zh": "阡陌",
+      "en": "Gridlands"
+    },
     "tagline": {
       "ja": "条件どおりに地図を長方形で区切る、純粋な推理パズル。",
       "zh": "按条件把地图划分成矩形区域，纯逻辑推理解谜。",
       "en": "Split the map into rectangles that satisfy every clue — pure-logic puzzles."
     },
-    "url": "https://gugugupan.github.io/gridlands/",
-    "repo": "https://github.com/gugugupan/gridlands",
+    "url": "https://gugugupan.github.io/gratin-game/gridlands/",
+    "repo": "https://github.com/gugugupan/gratin-game/tree/main/games/gridlands",
     "cover": "covers/gridlands.jpg",
-    "tags": ["puzzle", "logic"],
-    "input": ["mouse", "touch"],
-    "languages": ["zh", "en"],
+    "tags": [
+      "puzzle",
+      "logic"
+    ],
+    "input": [
+      "mouse",
+      "touch"
+    ],
+    "languages": [
+      "zh",
+      "en"
+    ],
     "status": "live",
     "added": "2026-10-02"
   }

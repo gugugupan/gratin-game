@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "id": "1-1",
+  "name": { "zh": "第一块地", "en": "First Plot" },
+  "chapter": 1,
+  "difficulty": 1,
+  "shapeRule": "RECT",
+  "adjacency": 4,
+  "coverage": "FULL",
+
+  "board": {
+    "width": 3,
+    "height": 3,
+    "cells": [
+      { "id": 1, "x": 0, "y": 0, "tags": ["farmland"], "assignable": true, "fixedRegion": null, "display": { "bg": "#f4ecd4", "sprite": null } },
+      { "id": 2, "x": 1, "y": 0, "tags": ["farmland"], "assignable": true, "fixedRegion": null, "display": { "bg": "#f4ecd4", "sprite": null } },
+      { "id": 3, "x": 2, "y": 0, "tags": ["farmland"], "assignable": true, "fixedRegion": null, "display": { "bg": "#f4ecd4", "sprite": null } },
+      { "id": 4, "x": 0, "y": 1, "tags": ["lake"], "assignable": true, "fixedRegion": null, "display": { "bg": "#d4ecf8", "sprite": null } },
+      { "id": 5, "x": 1, "y": 1, "tags": ["plain"], "assignable": true, "fixedRegion": null, "display": { "bg": "#edf4e8", "sprite": null } },
+      { "id": 6, "x": 2, "y": 1, "tags": ["lake"], "assignable": true, "fixedRegion": null, "display": { "bg": "#d4ecf8", "sprite": null } },
+      { "id": 7, "x": 0, "y": 2, "tags": ["plain"], "assignable": true, "fixedRegion": null, "display": { "bg": "#edf4e8", "sprite": null } },
+      { "id": 8, "x": 1, "y": 2, "tags": ["plain"], "assignable": true, "fixedRegion": null, "display": { "bg": "#edf4e8", "sprite": null } },
+      { "id": 9, "x": 2, "y": 2, "tags": ["plain"], "assignable": true, "fixedRegion": null, "display": { "bg": "#edf4e8", "sprite": null } }
+    ]
+  },
+
+  "regions": [
+    {
+      "id": "R1",
+      "owner": { "name": { "zh": "农场主", "en": "Farmer" }, "color": "#4caf50", "icon": "farmer", "avatar": null },
+      "constraints": [
+        { "type": "AREA_EQ", "params": { "value": 3 } },
+        { "type": "MUST_CONTAIN_TAG", "params": { "tag": "farmland" } },
+        { "type": "MUST_NOT_CONTAIN_TAG", "params": { "tag": "lake" } }
+      ]
+    },
+    {
+      "id": "R2",
+      "owner": { "name": { "zh": "牧场主", "en": "Rancher" }, "color": "#a1887f", "icon": "rancher", "avatar": null },
+      "constraints": [
+        { "type": "AREA_EQ", "params": { "value": 6 } }
+      ]
+    }
+  ],
+
+  "globalConstraints": [],
+
+  "solution": [
+    { "region": "R1", "cells": [1, 2, 3] },
+    { "region": "R2", "cells": [4, 5, 6, 7, 8, 9] }
+  ],
+
+  "meta": {
+    "author": "manual",
+    "verifiedUnique": true,
+    "verifiedHumanSolvable": true,
+    "createdAt": "2026-06-13",
+    "locale": "zh"
+  }
+}
