@@ -10,6 +10,7 @@
 - 规则引擎 + 唯一解校验器 + 「无猜测」推理检查（`tools/deduce.mjs`）；第 1 章 `levels/1-1.json` … `1-6.json`，第 2 章 `2-1.json`、`2-2.json`，全部通过。
 - 关卡编号 2026-10-03 改过：旧 2-1/2-2/3-1/4-1 → 1-3/1-4/1-5/1-6；`state/store.ts` 里有一次性的通关进度迁移（`rlp-progress-version`）。
 - 每关有 `theme`（氛围色 + 故事卡插图）和 `story`（背景故事）。
+- 网址带 `?unlock=all`（如 `/gridlands/?unlock=all#/levels`，或 `#/levels?unlock=all`）时所有关卡可玩，不写入通关记录。
 - 三页路由（介绍 / 关卡列表 / 游玩）；进度与**顺序解锁**存 localStorage。
 - 中英双语 i18n；扁平 SVG 图标（地形 + 角色头像）；品牌 logo / favicon。
 
