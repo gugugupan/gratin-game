@@ -1,6 +1,7 @@
 import "./style.css";
 import { GAMES, isNew, sortGames, type Game } from "./games";
 import { INPUTS, LOCALES, LOCALE_LABELS, loadLocale, saveLocale, t, type Locale } from "./i18n";
+import { PRIVACY } from "./privacy";
 
 const state: { locale: Locale } = { locale: loadLocale() };
 const games = sortGames(GAMES);
@@ -48,6 +49,27 @@ function card(g: Game, locale: Locale, now: Date): string {
 </li>`;
 }
 
+function privacyBody(locale: Locale): string {
+  const p = PRIVACY[locale];
+  const mail = `<a href="mailto:${FEEDBACK_EMAIL}">${FEEDBACK_EMAIL}</a>`;
+  const sections = p.sections
+    .map((s) => {
+      const body = s.body ? `<p>${s.body.replace("{email}", mail)}</p>` : "";
+      const table = s.table
+        ? `<div class="table-wrap"><table><thead><tr>${s.table.head.map((h) => `<th scope="col">${h}</th>`).join("")}</tr></thead><tbody>${s.table.rows
+            .map((r) => `<tr>${r.map((c, i) => (i === 0 ? `<th scope="row">${c}</th>` : `<td data-label="${s.table!.head[i]}">${c}</td>`)).join("")}</tr>`)
+            .join("")}</tbody></table></div>`
+        : "";
+      return `<h3>${s.heading}</h3>${body}${table}`;
+    })
+    .join("");
+  return `<p>${p.intro}</p>${sections}<p class="enacted">${p.enacted}</p>`;
+}
+
+function openPrivacy(): void {
+  if (location.hash === "#privacy") $<HTMLDetailsElement>(".privacy details").open = true;
+}
+
 function render(): void {
   const { locale } = state;
   document.documentElement.lang = locale === "zh" ? "zh-CN" : locale;
@@ -68,16 +90,27 @@ function render(): void {
   $(".count").textContent = t(locale, "count", { n: games.length });
   $<HTMLAnchorElement>(".mail").href = `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(t(locale, "feedbackSubject"))}`;
   $(".mail-address").textContent = FEEDBACK_EMAIL;
+
+  $(".privacy summary h2").textContent = PRIVACY[locale].title;
+  $(".privacy-body").innerHTML = privacyBody(locale);
+  $(".privacy-link").textContent = PRIVACY[locale].linkLabel;
 }
 
 document.addEventListener("click", (e) => {
   const target = e.target as HTMLElement;
   const langBtn = target.closest<HTMLButtonElement>("[data-locale]");
+  if (target.closest(".privacy-link")) $<HTMLDetailsElement>(".privacy details").open = true;
   if (langBtn) {
     state.locale = langBtn.dataset.locale as Locale;
     saveLocale(state.locale);
-    render();
+    window.addEventListener("hashchange", openPrivacy);
+
+render();
+openPrivacy();
   }
 });
 
+window.addEventListener("hashchange", openPrivacy);
+
 render();
+openPrivacy();
