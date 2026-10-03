@@ -25,6 +25,7 @@ const STRINGS = {
   },
   feedbackButton: { ja: "メールを送る", zh: "发送邮件", en: "Send an email" },
   feedbackSubject: { ja: "【グラタンゲーム】ご意見・ご感想", zh: "【グラタンゲーム】意见反馈", en: "[Gratin Game] Feedback" },
+  backHome: { ja: "ゲーム一覧へもどる", zh: "返回游戏列表", en: "Back to all games" },
   footer: { ja: "すべて手づくり、ブラウザですぐ遊べます。", zh: "全部手工制作，打开浏览器就能玩。", en: "Handmade, and playable right in your browser." },
 } satisfies Record<string, Localized>;
 
@@ -64,4 +65,10 @@ export function saveLocale(locale: Locale): void {
   try {
     localStorage.setItem(STORAGE_KEY, locale);
   } catch {}
+}
+
+export function langButtons(locale: Locale): string {
+  return LOCALES.map(
+    (l) => `<button type="button" data-locale="${l}" aria-pressed="${l === locale}">${LOCALE_LABELS[l]}</button>`,
+  ).join("");
 }

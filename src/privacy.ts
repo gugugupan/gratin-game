@@ -8,6 +8,8 @@ export interface PrivacyPolicy {
   enacted: string;
 }
 
+export const FEEDBACK_EMAIL = ["guratan.game.asobu", "gmail.com"].join("@");
+
 const link = (href: string, label: string) => `<a href="${href}" target="_blank" rel="noopener">${label}</a>`;
 
 const GOOGLE_PARTNER = "https://policies.google.com/technologies/partner-sites";
@@ -158,3 +160,20 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
     enacted: `Recipient’s privacy policy: ${link(GOOGLE_PRIVACY, "Google Privacy Policy")}<br>Effective: October 3, 2026`,
   },
 };
+
+export function renderPolicy(locale: Locale): string {
+  const p = PRIVACY[locale];
+  const mail = `<a href="mailto:${FEEDBACK_EMAIL}">${FEEDBACK_EMAIL}</a>`;
+  const sections = p.sections
+    .map((s) => {
+      const body = s.body ? `<p>${s.body.replace("{email}", mail)}</p>` : "";
+      const table = s.table
+        ? `<div class="table-wrap"><table><thead><tr>${s.table.head.map((h) => `<th scope="col">${h}</th>`).join("")}</tr></thead><tbody>${s.table.rows
+            .map((r) => `<tr>${r.map((c, i) => (i === 0 ? `<th scope="row">${c}</th>` : `<td data-label="${s.table!.head[i]}">${c}</td>`)).join("")}</tr>`)
+            .join("")}</tbody></table></div>`
+        : "";
+      return `<h2>${s.heading}</h2>${body}${table}`;
+    })
+    .join("");
+  return `<p>${p.intro}</p>${sections}<p class="enacted">${p.enacted}</p>`;
+}

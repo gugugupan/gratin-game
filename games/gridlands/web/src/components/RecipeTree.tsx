@@ -5,6 +5,7 @@ import { RoleAvatar } from './icons';
 import { recipeGraph } from './recipe';
 
 const TILE = `${import.meta.env.BASE_URL}tiles/`;
+const LEGEND_KEY = 'rlp-recipe-legend';
 
 interface Line { d: string; ok: boolean; color: string; lx: number; ly: number; tag?: string; value?: number }
 
@@ -16,6 +17,13 @@ export function RecipeTree() {
   const validation = useValidation();
   const boxRef = useRef<HTMLDivElement>(null);
   const [lines, setLines] = useState<Line[]>([]);
+  const [legendOpen, setLegendOpenState] = useState(() => {
+    try { return localStorage.getItem(LEGEND_KEY) !== 'closed'; } catch { return true; }
+  });
+  const setLegendOpen = (open: boolean) => {
+    setLegendOpenState(open);
+    try { localStorage.setItem(LEGEND_KEY, open ? 'open' : 'closed'); } catch { /* ignore */ }
+  };
 
   const product = level.product;
   const { nodes, edges, depth } = recipeGraph(level);
@@ -97,16 +105,18 @@ export function RecipeTree() {
           </div>
         )}
       </div>
-      <Legend />
+      {legend()}
     </div>
   );
 
-  function Legend() {
+  function legend() {
     const ex = edges.find((e) => e.tag && e.value != null);
     const name = (id: string) => localized(level.regions.find((r) => r.id === id)?.owner.name ?? id, locale);
     const polluting = level.regions.some((r) => r.constraints.some((c) => c.type === 'NO_TAG_WITHIN'));
     const exTag = ex?.tag ?? 'iron';
     return (
+      <details className="recipe-legend-box" open={legendOpen} onToggle={(e) => setLegendOpen((e.target as HTMLDetailsElement).open)}>
+      <summary>{t(locale, 'legendToggle')}</summary>
       <ul className="recipe-legend">
         <li><span className="lg lg-node" /><span>{t(locale, 'legendFacility')}</span></li>
         <li><svg className="lg" viewBox="0 0 28 12"><path d="M2 6 H26" stroke="#4caf50" strokeWidth="2.5" /></svg><span>{t(locale, 'legendLinked')}</span></li>
@@ -120,6 +130,7 @@ export function RecipeTree() {
           </li>
         )}
       </ul>
+      </details>
     );
   }
 }

@@ -322,7 +322,18 @@ body {
 @media (prefers-reduced-motion: reduce) { .flow-overlay image { display: none; } .flow-path { animation: none; } .flow-overlay .flow-product { display: inline; animation: none; opacity: 1; } }
 .cell.hl-zone { background-image: repeating-linear-gradient(135deg, rgba(220,38,38,.16) 0 4px, transparent 4px 10px) !important; }
 
-.recipe-legend { list-style: none; margin: 12px 0 0; padding: 10px 0 0; border-top: 1px dashed var(--line); display: flex; flex-direction: column; gap: 7px; font-size: 12px; line-height: 1.5; color: #5a5348; }
+.recipe-legend-box { margin-top: 12px; border-top: 1px dashed var(--line); padding-top: 4px; }
+.recipe-legend-box summary {
+  display: flex; align-items: center; gap: 6px; min-height: 36px; cursor: pointer; list-style: none;
+  font-size: 12px; font-weight: 700; color: var(--muted);
+}
+.recipe-legend-box summary::-webkit-details-marker { display: none; }
+.recipe-legend-box summary::before {
+  content: ''; width: 6px; height: 6px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted);
+  transform: rotate(-45deg); transition: transform .2s;
+}
+.recipe-legend-box[open] summary::before { transform: rotate(45deg); }
+.recipe-legend { list-style: none; margin: 2px 0 0; padding: 0; display: flex; flex-direction: column; gap: 7px; font-size: 12px; line-height: 1.5; color: #5a5348; }
 .recipe-legend li { display: flex; gap: 8px; align-items: flex-start; }
 .recipe-legend .lg { flex: 0 0 34px; height: 18px; margin-top: 1px; display: inline-flex; align-items: center; justify-content: center; }
 .lg-node { width: 26px; height: 18px; border: 1px solid var(--line-strong); border-radius: 5px; background: #fff; flex: 0 0 26px !important; margin: 1px 4px 0; }
