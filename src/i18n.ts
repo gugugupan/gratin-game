@@ -2,7 +2,9 @@ export const LOCALES = ["ja", "zh", "en"] as const;
 export type Locale = (typeof LOCALES)[number];
 export type Localized = Record<Locale, string>;
 
-const STORAGE_KEY = "gratin-game:locale";
+// Shared by every site on gugugupan.github.io so a choice made on one applies to all.
+const SHARED_KEY = "gratin:lang";
+const LEGACY_KEY = "gratin-game:locale";
 
 export const LOCALE_LABELS: Localized = { ja: "日本語", zh: "中文", en: "EN" };
 
@@ -55,25 +57,42 @@ export function isLocale(v: unknown): v is Locale {
 }
 
 export function detectLocale(languages: readonly string[]): Locale {
-  for (const lang of languages) {
-    const base = lang.toLowerCase().split("-")[0];
-    if (isLocale(base)) return base;
+  const bases = languages.map((lang) => lang.toLowerCase().split("-")[0]);
+  if (bases.includes("ja")) return "ja";
+  return bases.find(isLocale) ?? "ja";
+}
+
+function chosen(): string | null {
+  try {
+    return localStorage.getItem(SHARED_KEY) ?? localStorage.getItem(LEGACY_KEY);
+  } catch {
+    return null;
   }
-  return "ja";
 }
 
 export function loadLocale(): Locale {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (isLocale(saved)) return saved;
-  } catch {}
-  return detectLocale(navigator.languages ?? [navigator.language]);
+  const saved = chosen();
+  if (saved) return isLocale(saved) ? saved : "ja";
+  return detectLocale(navigator.languages?.length ? navigator.languages : [navigator.language]);
 }
 
 export function saveLocale(locale: Locale): void {
   try {
-    localStorage.setItem(STORAGE_KEY, locale);
+    localStorage.setItem(SHARED_KEY, locale);
   } catch {}
+}
+
+export function watchLocale(current: () => Locale, onChange: (locale: Locale) => void): void {
+  const update = () => {
+    const next = loadLocale();
+    if (next !== current()) onChange(next);
+  };
+  window.addEventListener("storage", (e) => {
+    if (e.key === SHARED_KEY || e.key === null) update();
+  });
+  window.addEventListener("languagechange", () => {
+    if (!chosen()) update();
+  });
 }
 
 export function langButtons(locale: Locale): string {

@@ -72,8 +72,11 @@ describe("library logic", () => {
 });
 
 describe("detectLocale", () => {
-  it("picks the first supported language", () => {
-    expect(detectLocale(["fr-FR", "zh-CN", "ja"])).toBe("zh");
+  it("prefers Japanese whenever the browser accepts it", () => {
+    expect(detectLocale(["en-US", "zh-CN", "ja-JP"])).toBe("ja");
+  });
+  it("otherwise picks the first supported language, defaulting to Japanese", () => {
+    expect(detectLocale(["fr-FR", "zh-CN", "en"])).toBe("zh");
     expect(detectLocale(["en-US"])).toBe("en");
     expect(detectLocale(["ko"])).toBe("ja");
   });

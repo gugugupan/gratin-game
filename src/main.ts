@@ -1,6 +1,6 @@
 import "./style.css";
 import { GAMES, isNew, sortGames, type Game } from "./games";
-import { INPUTS, LOCALE_LABELS, langButtons, loadLocale, saveLocale, t, type Locale } from "./i18n";
+import { INPUTS, LOCALE_LABELS, langButtons, loadLocale, saveLocale, t, watchLocale, type Locale } from "./i18n";
 import { initFeedback, mailto } from "./feedback";
 import { FEEDBACK_EMAIL, PRIVACY } from "./privacy";
 
@@ -85,4 +85,11 @@ document.addEventListener("click", (e) => {
 });
 
 initFeedback(() => state.locale);
+watchLocale(
+  () => state.locale,
+  (locale) => {
+    state.locale = locale;
+    render();
+  },
+);
 render();

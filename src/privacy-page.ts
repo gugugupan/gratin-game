@@ -1,5 +1,5 @@
 import "./style.css";
-import { langButtons, loadLocale, saveLocale, t, type Locale } from "./i18n";
+import { langButtons, loadLocale, saveLocale, t, watchLocale, type Locale } from "./i18n";
 import { PRIVACY, renderPolicy } from "./privacy";
 
 let locale: Locale = loadLocale();
@@ -31,4 +31,11 @@ document.addEventListener("click", (e) => {
   }
 });
 
+watchLocale(
+  () => locale,
+  (next) => {
+    locale = next;
+    render();
+  },
+);
 render();
