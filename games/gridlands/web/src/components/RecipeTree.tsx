@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { useGame, useValidation } from '../state/store';
-import { localized, t, type Locale } from '../i18n';
+import { localized, t, tagName, type Locale } from '../i18n';
 import { RoleAvatar } from './icons';
 import { recipeGraph } from './recipe';
 
@@ -97,6 +97,29 @@ export function RecipeTree() {
           </div>
         )}
       </div>
+      <Legend />
     </div>
   );
+
+  function Legend() {
+    const ex = edges.find((e) => e.tag && e.value != null);
+    const name = (id: string) => localized(level.regions.find((r) => r.id === id)?.owner.name ?? id, locale);
+    const polluting = level.regions.some((r) => r.constraints.some((c) => c.type === 'NO_TAG_WITHIN'));
+    const exTag = ex?.tag ?? 'iron';
+    return (
+      <ul className="recipe-legend">
+        <li><span className="lg lg-node" /><span>{t(locale, 'legendFacility')}</span></li>
+        <li><svg className="lg" viewBox="0 0 28 12"><path d="M2 6 H26" stroke="#4caf50" strokeWidth="2.5" /></svg><span>{t(locale, 'legendLinked')}</span></li>
+        <li><svg className="lg" viewBox="0 0 28 12"><path d="M2 6 H26" stroke="#c9c2b4" strokeWidth="2.5" strokeDasharray="4 4" /></svg><span>{t(locale, 'legendUnlinked')}</span></li>
+        <li><span className="lg lg-badge"><img src={`${TILE}terrain-${exTag}.svg`} alt="" />{ex?.value ?? 2}</span><span>{t(locale, 'legendAmount')}</span></li>
+        {product && <li><span className="lg lg-product"><img src={`${TILE}product-${product.icon}.svg`} alt="" /></span><span>{t(locale, 'legendProduct')}</span></li>}
+        {polluting && <li><span className="lg lg-zone" /><span>{t(locale, 'legendPollution')}</span></li>}
+        {ex && (
+          <li className="recipe-example">
+            {t(locale, 'legendExample', { from: name(ex.from), to: name(ex.to), tag: tagName(exTag, locale), value: ex.value! })}
+          </li>
+        )}
+      </ul>
+    );
+  }
 }

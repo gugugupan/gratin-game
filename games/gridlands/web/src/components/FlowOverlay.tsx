@@ -4,10 +4,11 @@ import { recipeGraph } from './recipe';
 
 const TILE = `${import.meta.env.BASE_URL}tiles/`;
 const HOP = 0.9; // 每一级流水线的延迟（秒）
+const TRAVEL = 1.4; // 物资走完一段流水线的时间（秒）
 
 interface Flow { path: string; icon: string; delay: number }
 
-/** 通关后，物资沿流水线从供料设施流向制造设施，最后在成品设施上冒出成品 */
+/** 通关后，物资沿流水线从供料设施流向制造设施，最后在成品设施上冒出成品；循环播放，表示流水线一直在运转 */
 export function FlowOverlay({ level, assignment, board }: { level: Level; assignment: Record<number, string>; board: HTMLDivElement | null }) {
   const [state, setState] = useState<{ w: number; h: number; flows: Flow[]; goal?: { x: number; y: number; delay: number } } | null>(null);
 
@@ -39,29 +40,39 @@ export function FlowOverlay({ level, assignment, board }: { level: Level; assign
     let goal;
     if (product) {
       const g = cellsOf(product.goal);
-      if (g.length) goal = { ...mid(g), delay: (Math.max(0, ...[...depth.values()]) + 0.6) * HOP };
+      if (g.length) goal = { ...mid(g), delay: Math.max(0, ...[...depth.values()]) * HOP + TRAVEL };
     }
     setState({ w: base.width, h: base.height, flows, goal });
   }, [level, assignment, board]);
 
   if (!state) return null;
   const size = Math.min(state.w, state.h) / 10;
+  // 流水线循环：每一圈里各级物资按顺序出发、到站，最后成品跳一下，然后重新开始
+  const cycle = (state.goal?.delay ?? 0) + TRAVEL + 0.8;
+  const r = (t: number) => Math.min(1, Math.max(0, t / cycle)).toFixed(4);
   return (
     <svg className="flow-overlay" viewBox={`0 0 ${state.w} ${state.h}`} aria-hidden="true">
-      {state.flows.map((f, i) => (
-        <g key={i}>
-          <path d={f.path} className="flow-path" />
-          <image href={f.icon} width={size} height={size} x={-size / 2} y={-size / 2} opacity="0">
-            <animateMotion path={f.path} dur="1.4s" begin={`${f.delay}s`} fill="freeze" />
-            <set attributeName="opacity" to="1" begin={`${f.delay}s`} />
-            <set attributeName="opacity" to="0" begin={`${f.delay + 1.4}s`} />
-          </image>
-        </g>
-      ))}
+      {state.flows.map((f, i) => {
+        const a = r(f.delay), b = r(f.delay + TRAVEL);
+        return (
+          <g key={i}>
+            <path d={f.path} className="flow-path" />
+            <image href={f.icon} width={size} height={size} x={-size / 2} y={-size / 2} opacity="0">
+              <animateMotion path={f.path} dur={`${cycle}s`} repeatCount="indefinite" calcMode="linear" keyPoints="0;0;1;1" keyTimes={`0;${a};${b};1`} />
+              <animate attributeName="opacity" dur={`${cycle}s`} repeatCount="indefinite" values="0;0;1;1;0;0"
+                keyTimes={`0;${a};${r(f.delay + 0.1)};${r(f.delay + TRAVEL - 0.1)};${b};1`} />
+            </image>
+          </g>
+        );
+      })}
       {state.goal && level.product && (
         <g transform={`translate(${state.goal.x},${state.goal.y})`}>
-          <image className="flow-product" href={`${TILE}product-${level.product.icon}.svg`} width={size * 2.4} height={size * 2.4} x={-size * 1.2} y={-size * 1.2}
-            style={{ animationDelay: `${state.goal.delay}s` }} />
+          <g>
+            <animateTransform attributeName="transform" type="scale" dur={`${cycle}s`} repeatCount="indefinite"
+              values="1;1;1.18;1;1" keyTimes={`0;${r(state.goal.delay)};${r(state.goal.delay + 0.25)};${r(state.goal.delay + 0.5)};1`} />
+            <image className="flow-product" href={`${TILE}product-${level.product.icon}.svg`} width={size * 2.4} height={size * 2.4} x={-size * 1.2} y={-size * 1.2}
+              style={{ animationDelay: `${state.goal.delay}s` }} />
+          </g>
         </g>
       )}
     </svg>
