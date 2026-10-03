@@ -1,6 +1,7 @@
 import "./style.css";
 import { GAMES, isNew, sortGames, type Game } from "./games";
 import { INPUTS, LOCALE_LABELS, langButtons, loadLocale, saveLocale, t, type Locale } from "./i18n";
+import { initFeedback, mailto } from "./feedback";
 import { FEEDBACK_EMAIL, PRIVACY } from "./privacy";
 
 if (location.hash === "#privacy") location.replace("./privacy/");
@@ -59,13 +60,16 @@ function render(): void {
   document.querySelectorAll<HTMLElement>("[data-i18n-label]").forEach((el) => {
     el.setAttribute("aria-label", t(locale, el.dataset.i18nLabel as Parameters<typeof t>[1]));
   });
+  document.querySelectorAll<HTMLInputElement>("[data-i18n-placeholder]").forEach((el) => {
+    el.placeholder = t(locale, el.dataset.i18nPlaceholder as Parameters<typeof t>[1]);
+  });
 
   $(".lang").innerHTML = langButtons(locale);
 
   const now = new Date();
   $(".grid").innerHTML = games.map((g) => card(g, locale, now)).join("");
   $(".count").textContent = t(locale, "count", { n: games.length });
-  $<HTMLAnchorElement>(".mail").href = `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(t(locale, "feedbackSubject"))}`;
+  $<HTMLAnchorElement>(".mail-address").href = mailto(locale);
   $(".mail-address").textContent = FEEDBACK_EMAIL;
   $(".privacy-link").textContent = PRIVACY[locale].linkLabel;
 }
@@ -80,4 +84,5 @@ document.addEventListener("click", (e) => {
   }
 });
 
+initFeedback(() => state.locale);
 render();

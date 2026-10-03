@@ -15,6 +15,7 @@ const link = (href: string, label: string) => `<a href="${href}" target="_blank"
 const GOOGLE_PARTNER = "https://policies.google.com/technologies/partner-sites";
 const GA_OPTOUT = "https://tools.google.com/dlpage/gaoptout";
 const GOOGLE_PRIVACY = "https://policies.google.com/privacy";
+const WEB3FORMS_PRIVACY = "https://web3forms.com/privacy";
 
 // Bodies are trusted static HTML; `{email}` is replaced with the contact link at render time.
 export const PRIVACY: Record<Locale, PrivacyPolicy> = {
@@ -30,7 +31,7 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
       },
       {
         heading: "2. 収集する情報",
-        body: "当サイトでは、氏名やメールアドレスなど、個人を特定できる情報の入力を求めることはありません。",
+        body: "当サイトでは、氏名など個人を特定できる情報の入力を求めることはありません。ご意見フォームのメールアドレス欄は任意で、返信をご希望の場合のみご入力ください。",
       },
       {
         heading: "3. ブラウザ内に保存する情報",
@@ -45,8 +46,8 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
         body: "文字の表示に Google Fonts を利用しています。フォントを読み込む際、お使いの IP アドレスやブラウザの情報が Google に送信されます。",
       },
       {
-        heading: "6. メールでのお問い合わせ",
-        body: "メールでいただいたメールアドレスや内容は、返信および当サイトの改善のためにのみ使用し、法令に基づく場合を除き、第三者に提供することはありません。",
+        heading: "6. ご意見フォーム・メールでのお問い合わせ",
+        body: "ご意見フォームまたはメールでいただいた内容とメールアドレスは、返信および当サイトの改善のためにのみ使用し、法令に基づく場合を除き、第三者に提供することはありません。ご意見フォームの内容は、メール転送サービス Web3Forms を経由して運営者に届きます。不具合の調査のため、表示言語・画面サイズ・ブラウザの情報もあわせて送信されます。",
       },
       {
         heading: "7. 外部送信について",
@@ -55,6 +56,7 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
           rows: [
             ["Google Analytics（Google LLC）", "閲覧ページの URL、参照元、ブラウザ・端末の情報、Cookie ID、IP アドレス", "アクセス状況の分析"],
             ["Google Fonts（Google LLC）", "IP アドレス、ブラウザの情報、読み込むフォント", "Web フォントの配信"],
+            ["Web3Forms", "ご意見フォームの入力内容、任意のメールアドレス、表示言語・画面サイズ・ブラウザの情報、IP アドレス", "ご意見の運営者へのメール転送"],
           ],
         },
       },
@@ -63,7 +65,7 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
         body: "本ポリシーは、必要に応じて改定することがあります。改定後のポリシーは、本ページに掲載した時点から効力を生じるものとします。",
       },
     ],
-    enacted: `送信先のプライバシーポリシー：${link(`${GOOGLE_PRIVACY}?hl=ja`, "Google プライバシーポリシー")}<br>制定日：2026年10月3日`,
+    enacted: `送信先のプライバシーポリシー：${link(`${GOOGLE_PRIVACY}?hl=ja`, "Google プライバシーポリシー")}、${link(WEB3FORMS_PRIVACY, "Web3Forms Privacy Policy")}<br>制定日：2026年10月3日<br>最終改定日：2026年10月4日`,
   },
   zh: {
     title: "隐私政策",
@@ -77,7 +79,7 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
       },
       {
         heading: "2. 收集的信息",
-        body: "本站不会要求你填写姓名、邮箱等能识别个人身份的信息。",
+        body: "本站不会要求你填写姓名等能识别个人身份的信息。意见表单中的邮箱为选填，仅在希望收到回复时填写。",
       },
       {
         heading: "3. 保存在浏览器中的信息",
@@ -92,8 +94,8 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
         body: "本站使用 Google Fonts 显示文字。加载字体时，你的 IP 地址和浏览器信息会发送给 Google。",
       },
       {
-        heading: "6. 邮件咨询",
-        body: "通过邮件收到的邮箱地址和内容，仅用于回复和改进本站。除法律要求外，不会提供给第三方。",
+        heading: "6. 意见表单与邮件咨询",
+        body: "通过意见表单或邮件收到的内容和邮箱地址，仅用于回复和改进本站。除法律要求外，不会提供给第三方。意见表单的内容会经由邮件转发服务 Web3Forms 送达运营者。为了排查问题，显示语言、屏幕尺寸和浏览器信息也会一并发送。",
       },
       {
         heading: "7. 外部传输说明",
@@ -102,6 +104,7 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
           rows: [
             ["Google Analytics（Google LLC）", "浏览页面的 URL、来源、浏览器和设备信息、Cookie ID、IP 地址", "分析访问情况"],
             ["Google Fonts（Google LLC）", "IP 地址、浏览器信息、加载的字体", "提供网页字体"],
+            ["Web3Forms", "意见表单填写的内容、选填的邮箱、显示语言、屏幕尺寸、浏览器信息、IP 地址", "将意见以邮件转发给运营者"],
           ],
         },
       },
@@ -110,7 +113,7 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
         body: "本政策可能会根据需要进行修改。修改后的政策自在本页面发布之时起生效。",
       },
     ],
-    enacted: `发送对象的隐私政策：${link(`${GOOGLE_PRIVACY}?hl=zh-CN`, "Google 隐私权政策")}<br>制定日期：2026 年 10 月 3 日`,
+    enacted: `发送对象的隐私政策：${link(`${GOOGLE_PRIVACY}?hl=zh-CN`, "Google 隐私权政策")}、${link(WEB3FORMS_PRIVACY, "Web3Forms Privacy Policy")}<br>制定日期：2026 年 10 月 3 日<br>最后修订：2026 年 10 月 4 日`,
   },
   en: {
     title: "Privacy Policy",
@@ -124,7 +127,7 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
       },
       {
         heading: "2. Information we collect",
-        body: "This site never asks you to enter information that identifies you, such as your name or email address.",
+        body: "This site never asks you to enter information that identifies you, such as your name. The email field in the feedback form is optional — fill it in only if you'd like a reply.",
       },
       {
         heading: "3. Information stored in your browser",
@@ -139,8 +142,8 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
         body: "We use Google Fonts to display text. When the fonts load, your IP address and browser information are sent to Google.",
       },
       {
-        heading: "6. Email enquiries",
-        body: "The email address and message you send us are used only to reply and to improve this site, and are not shared with third parties except where required by law.",
+        heading: "6. Feedback form and email enquiries",
+        body: "Messages and email addresses you send through the feedback form or by email are used only to reply and to improve this site, and are not shared with third parties except where required by law. Feedback form messages reach us through the email-forwarding service Web3Forms. To help us look into problems, your display language, screen size and browser information are sent along with the message.",
       },
       {
         heading: "7. Data sent to third parties",
@@ -149,6 +152,7 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
           rows: [
             ["Google Analytics (Google LLC)", "Page URL, referrer, browser and device information, cookie ID, IP address", "Analysing site traffic"],
             ["Google Fonts (Google LLC)", "IP address, browser information, requested fonts", "Delivering web fonts"],
+            ["Web3Forms", "Feedback form message, optional email address, display language, screen size, browser information, IP address", "Forwarding feedback to us by email"],
           ],
         },
       },
@@ -157,7 +161,7 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
         body: "We may update this policy when needed. The updated policy takes effect as soon as it is posted on this page.",
       },
     ],
-    enacted: `Recipient’s privacy policy: ${link(GOOGLE_PRIVACY, "Google Privacy Policy")}<br>Effective: October 3, 2026`,
+    enacted: `Recipients’ privacy policies: ${link(GOOGLE_PRIVACY, "Google Privacy Policy")}, ${link(WEB3FORMS_PRIVACY, "Web3Forms Privacy Policy")}<br>Effective: October 3, 2026<br>Last updated: October 4, 2026`,
   },
 };
 

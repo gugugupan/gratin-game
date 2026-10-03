@@ -32,10 +32,17 @@
   <section class="feedback" aria-labelledby="feedback-title">
     <h2 id="feedback-title" data-i18n="feedbackTitle"></h2>
     <p data-i18n="feedbackBody"></p>
-    <div class="feedback-actions">
-      <a class="mail" href="#"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span data-i18n="feedbackButton"></span></a>
-      <span class="mail-address"></span>
-    </div>
+    <form class="fb-form" novalidate>
+      <textarea id="fb-message" class="fb-input" rows="4" maxlength="3000" data-i18n-placeholder="feedbackPlaceholder" data-i18n-label="feedbackPlaceholder"></textarea>
+      <input id="fb-email" class="fb-input" type="email" autocomplete="email" data-i18n-placeholder="feedbackEmail" data-i18n-label="feedbackEmail">
+      <label class="fb-bot" aria-hidden="true"><input id="fb-bot" type="checkbox" tabindex="-1"></label>
+      <div class="feedback-actions">
+        <button type="submit" class="mail fb-send"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg><span data-i18n="feedbackSend"></span></button>
+        <span class="fb-status" role="status" aria-live="polite"></span>
+        <a class="fb-fallback" href="#" hidden data-i18n="feedbackByMail"></a>
+      </div>
+      <p class="fb-alt"><span data-i18n="feedbackOr"></span> <a class="mail-address" href="#"></a></p>
+    </form>
   </section>
   <footer class="foot">
     <img src="./icon.svg" alt="" width="40" height="40">

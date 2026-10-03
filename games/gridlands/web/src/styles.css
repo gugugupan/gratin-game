@@ -342,3 +342,5 @@ body {
 .lg-product img { width: 18px; height: 18px; }
 .lg-zone { background: repeating-linear-gradient(135deg, rgba(220,38,38,.3) 0 3px, transparent 3px 7px); border-radius: 4px; }
 .recipe-example { display: block !important; padding: 8px 10px; background: var(--accent-soft); border-radius: 8px; color: #2f5a31; }
+.tag-chip { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
+.tag-chip img { width: 1.25em; height: 1.25em; vertical-align: -0.25em; }

@@ -21,12 +21,27 @@ export function describeConstraint(level: Level, locale: Locale, c: ConstraintRe
   return t(locale, key, params);
 }
 
+const TILE = `${import.meta.env.BASE_URL}tiles/`;
+const TAG_MARK = '\u0000';
+
+// 同 describeConstraint，但资源名字前带上它的地形图标，方便和棋盘对照
+function describeWithIcons(level: Level, locale: Locale, c: ConstraintResult): React.ReactNode {
+  const tag = c.params?.tag as string | undefined;
+  if (!tag) return describeConstraint(level, locale, c);
+  const text = describeConstraint(level, locale, { ...c, params: { ...c.params, tag: TAG_MARK } }).replace(tagName(TAG_MARK, locale), TAG_MARK);
+  const parts = text.split(TAG_MARK);
+  return parts.flatMap((part, i) => i === 0 ? [part] : [
+    <span key={i} className="tag-chip"><img src={`${TILE}terrain-${tag}.svg`} alt="" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />{tagName(tag, locale)}</span>,
+    part,
+  ]);
+}
+
 // 一条条件行（✓/✗ + 文字）
 export function CondRow({ level, locale, c }: { level: Level; locale: Locale; c: ConstraintResult }) {
   return (
     <li className={c.satisfied ? 'cond ok' : 'cond bad'}>
       <span className="tick">{c.satisfied ? '✓' : '✗'}</span>
-      <span>{describeConstraint(level, locale, c)}</span>
+      <span>{describeWithIcons(level, locale, c)}</span>
     </li>
   );
 }
