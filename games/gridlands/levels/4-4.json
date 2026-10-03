@@ -1,0 +1,1114 @@
+{
+  "schemaVersion": 1,
+  "shapeRule": "RECT",
+  "adjacency": 4,
+  "coverage": "FULL",
+  "meta": {
+    "author": "manual",
+    "verifiedUnique": true,
+    "verifiedHumanSolvable": true,
+    "createdAt": "2026-10-04"
+  },
+  "chapter": 4,
+  "id": "4-4",
+  "difficulty": 9,
+  "theme": "candle",
+  "name": {
+    "zh": "冬夜的蜡烛",
+    "en": "Candles for Winter"
+  },
+  "story": {
+    "zh": "冬夜漫长，家家户户都要点蜡烛。炼脂坊熬羊油，纺线厂用棉花做烛芯，两路原料一起送进制烛坊。熬油的味道太冲，炼脂坊旁边不能有民房。",
+    "en": "Winter nights are long and every home needs candles. The tallow works renders mutton fat, the wick mill spins cotton wicks, and both lines feed the chandlery. The smell is so strong that no house may sit next to the tallow works."
+  },
+  "product": {
+    "name": {
+      "zh": "蜡烛",
+      "en": "Candle"
+    },
+    "icon": "candle",
+    "goal": "R5"
+  },
+  "regions": [
+    {
+      "id": "R1",
+      "facility": "gather",
+      "owner": {
+        "name": {
+          "zh": "牧场",
+          "en": "Pasture"
+        },
+        "color": "#a1887f",
+        "icon": "rancher",
+        "avatar": null
+      },
+      "constraints": [
+        {
+          "type": "TAG_COUNT_EQ",
+          "params": {
+            "tag": "pasture",
+            "value": 2
+          }
+        },
+        {
+          "type": "EXCLUSIVE_TO",
+          "params": {
+            "region": "R2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "facility": "factory",
+      "owner": {
+        "name": {
+          "zh": "炼脂坊",
+          "en": "Tallow Works"
+        },
+        "color": "#ff8a65",
+        "icon": "tallow",
+        "avatar": null
+      },
+      "constraints": [
+        {
+          "type": "SUPPLIED_BY",
+          "params": {
+            "region": "R1",
+            "tag": "pasture",
+            "value": 2
+          }
+        },
+        {
+          "type": "NO_TAG_WITHIN",
+          "params": {
+            "tag": "building",
+            "dist": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "facility": "gather",
+      "owner": {
+        "name": {
+          "zh": "棉田",
+          "en": "Cotton Field"
+        },
+        "color": "#9ccc65",
+        "icon": "farmer",
+        "avatar": null
+      },
+      "constraints": [
+        {
+          "type": "TAG_COUNT_EQ",
+          "params": {
+            "tag": "cotton",
+            "value": 3
+          }
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "facility": "factory",
+      "owner": {
+        "name": {
+          "zh": "纺线厂",
+          "en": "Wick Mill"
+        },
+        "color": "#7e57c2",
+        "icon": "threader",
+        "avatar": null
+      },
+      "constraints": [
+        {
+          "type": "TAG_COUNT_EQ",
+          "params": {
+            "tag": "farmland",
+            "value": 1
+          }
+        },
+        {
+          "type": "TAG_COUNT_EQ",
+          "params": {
+            "tag": "building",
+            "value": 2
+          }
+        },
+        {
+          "type": "SUPPLIED_BY",
+          "params": {
+            "region": "R3",
+            "tag": "cotton",
+            "value": 3
+          }
+        }
+      ]
+    },
+    {
+      "id": "R5",
+      "facility": "factory",
+      "owner": {
+        "name": {
+          "zh": "制烛坊",
+          "en": "Chandlery"
+        },
+        "color": "#f9a825",
+        "icon": "chandler",
+        "avatar": null
+      },
+      "constraints": [
+        {
+          "type": "TAG_COUNT_EQ",
+          "params": {
+            "tag": "pasture",
+            "value": 1
+          }
+        },
+        {
+          "type": "SUPPLIED_BY",
+          "params": {
+            "region": "R2"
+          }
+        },
+        {
+          "type": "SUPPLIED_BY",
+          "params": {
+            "region": "R4"
+          }
+        }
+      ]
+    },
+    {
+      "id": "R6",
+      "owner": {
+        "name": {
+          "zh": "居民区",
+          "en": "Homes"
+        },
+        "color": "#ef5350",
+        "icon": "house",
+        "avatar": null
+      },
+      "constraints": [
+        {
+          "type": "TAG_COUNT_EQ",
+          "params": {
+            "tag": "cotton",
+            "value": 1
+          }
+        },
+        {
+          "type": "TAG_COUNT_EQ",
+          "params": {
+            "tag": "forest",
+            "value": 1
+          }
+        }
+      ]
+    }
+  ],
+  "globalConstraints": [
+    {
+      "type": "AREA_EQUAL_TO",
+      "params": {
+        "a": "R1",
+        "b": "R2"
+      }
+    },
+    {
+      "type": "AREA_LARGER_THAN",
+      "params": {
+        "a": "R2",
+        "b": "R5"
+      }
+    },
+    {
+      "type": "AREA_LARGER_THAN",
+      "params": {
+        "a": "R6",
+        "b": "R2"
+      }
+    }
+  ],
+  "board": {
+    "width": 7,
+    "height": 8,
+    "cells": [
+      {
+        "id": 1,
+        "x": 0,
+        "y": 0,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 2,
+        "x": 1,
+        "y": 0,
+        "tags": [
+          "cotton"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#e8eedf",
+          "sprite": null
+        }
+      },
+      {
+        "id": 3,
+        "x": 2,
+        "y": 0,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 4,
+        "x": 3,
+        "y": 0,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 5,
+        "x": 4,
+        "y": 0,
+        "tags": [
+          "farmland"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#f4ecd4",
+          "sprite": null
+        }
+      },
+      {
+        "id": 6,
+        "x": 5,
+        "y": 0,
+        "tags": [
+          "building"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cfd5dd",
+          "sprite": null
+        }
+      },
+      {
+        "id": 7,
+        "x": 6,
+        "y": 0,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 8,
+        "x": 0,
+        "y": 1,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 9,
+        "x": 1,
+        "y": 1,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 10,
+        "x": 2,
+        "y": 1,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 11,
+        "x": 3,
+        "y": 1,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 12,
+        "x": 4,
+        "y": 1,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 13,
+        "x": 5,
+        "y": 1,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 14,
+        "x": 6,
+        "y": 1,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 15,
+        "x": 0,
+        "y": 2,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 16,
+        "x": 1,
+        "y": 2,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 17,
+        "x": 2,
+        "y": 2,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 18,
+        "x": 3,
+        "y": 2,
+        "tags": [
+          "cotton"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#e8eedf",
+          "sprite": null
+        }
+      },
+      {
+        "id": 19,
+        "x": 4,
+        "y": 2,
+        "tags": [
+          "forest"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#2e7d32",
+          "sprite": null
+        }
+      },
+      {
+        "id": 20,
+        "x": 5,
+        "y": 2,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 21,
+        "x": 6,
+        "y": 2,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 22,
+        "x": 0,
+        "y": 3,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 23,
+        "x": 1,
+        "y": 3,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 24,
+        "x": 2,
+        "y": 3,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 25,
+        "x": 3,
+        "y": 3,
+        "tags": [
+          "cotton"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#e8eedf",
+          "sprite": null
+        }
+      },
+      {
+        "id": 26,
+        "x": 4,
+        "y": 3,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 27,
+        "x": 5,
+        "y": 3,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 28,
+        "x": 6,
+        "y": 3,
+        "tags": [
+          "building"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cfd5dd",
+          "sprite": null
+        }
+      },
+      {
+        "id": 29,
+        "x": 0,
+        "y": 4,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 30,
+        "x": 1,
+        "y": 4,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 31,
+        "x": 2,
+        "y": 4,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 32,
+        "x": 3,
+        "y": 4,
+        "tags": [
+          "forest"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#2e7d32",
+          "sprite": null
+        }
+      },
+      {
+        "id": 33,
+        "x": 4,
+        "y": 4,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 34,
+        "x": 5,
+        "y": 4,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 35,
+        "x": 6,
+        "y": 4,
+        "tags": [
+          "farmland"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#f4ecd4",
+          "sprite": null
+        }
+      },
+      {
+        "id": 36,
+        "x": 0,
+        "y": 5,
+        "tags": [
+          "cotton"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#e8eedf",
+          "sprite": null
+        }
+      },
+      {
+        "id": 37,
+        "x": 1,
+        "y": 5,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 38,
+        "x": 2,
+        "y": 5,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 39,
+        "x": 3,
+        "y": 5,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 40,
+        "x": 4,
+        "y": 5,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 41,
+        "x": 5,
+        "y": 5,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 42,
+        "x": 6,
+        "y": 5,
+        "tags": [
+          "pasture"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#e3f1d6",
+          "sprite": null
+        }
+      },
+      {
+        "id": 43,
+        "x": 0,
+        "y": 6,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 44,
+        "x": 1,
+        "y": 6,
+        "tags": [
+          "pasture"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#e3f1d6",
+          "sprite": null
+        }
+      },
+      {
+        "id": 45,
+        "x": 2,
+        "y": 6,
+        "tags": [
+          "pasture"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#e3f1d6",
+          "sprite": null
+        }
+      },
+      {
+        "id": 46,
+        "x": 3,
+        "y": 6,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 47,
+        "x": 4,
+        "y": 6,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 48,
+        "x": 5,
+        "y": 6,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 49,
+        "x": 6,
+        "y": 6,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 50,
+        "x": 0,
+        "y": 7,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 51,
+        "x": 1,
+        "y": 7,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 52,
+        "x": 2,
+        "y": 7,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 53,
+        "x": 3,
+        "y": 7,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 54,
+        "x": 4,
+        "y": 7,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 55,
+        "x": 5,
+        "y": 7,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 56,
+        "x": 6,
+        "y": 7,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      }
+    ]
+  },
+  "solution": [
+    {
+      "region": "R1",
+      "cells": [
+        43,
+        44,
+        45,
+        50,
+        51,
+        52
+      ]
+    },
+    {
+      "region": "R2",
+      "cells": [
+        46,
+        47,
+        48,
+        53,
+        54,
+        55
+      ]
+    },
+    {
+      "region": "R3",
+      "cells": [
+        1,
+        2,
+        3,
+        4,
+        8,
+        9,
+        10,
+        11,
+        15,
+        16,
+        17,
+        18,
+        22,
+        23,
+        24,
+        25
+      ]
+    },
+    {
+      "region": "R4",
+      "cells": [
+        5,
+        6,
+        7,
+        12,
+        13,
+        14,
+        19,
+        20,
+        21,
+        26,
+        27,
+        28
+      ]
+    },
+    {
+      "region": "R5",
+      "cells": [
+        35,
+        42,
+        49,
+        56
+      ]
+    },
+    {
+      "region": "R6",
+      "cells": [
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41
+      ]
+    }
+  ]
+}

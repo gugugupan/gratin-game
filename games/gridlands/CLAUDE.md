@@ -7,7 +7,7 @@
 ## 现状（as-built）
 
 纯前端 MVP，可玩，无后端。已完成：
-- 规则引擎 + 唯一解校验器 + 「无猜测」推理检查（`tools/deduce.mjs`）；第 1 章 `levels/1-1.json` … `1-6.json`，第 2 章「开发商来了」`2-1.json` … `2-7.json`（地图从 6×5 逐关长到 8×8，2-7 是尾声），第 3 章「海岛拓荒」`3-1.json` … `3-7.json`（8×8 → 11×10，不规则海岸线 + 开局营地旗 + 方位条件，3-7 是尾声），第 4 章「蒸汽时代」制作中（4-1、4-2 已上线），全部通过。
+- 规则引擎 + 唯一解校验器 + 「无猜测」推理检查（`tools/deduce.mjs`）；第 1 章 `levels/1-1.json` … `1-6.json`，第 2 章「开发商来了」`2-1.json` … `2-7.json`（地图从 6×5 逐关长到 8×8，2-7 是尾声），第 3 章「海岛拓荒」`3-1.json` … `3-7.json`（8×8 → 11×10，不规则海岸线 + 开局营地旗 + 方位条件，3-7 是尾声），第 4 章「蒸汽时代」`4-1.json` … `4-7.json`（6×6 → 10×10，剪刀 → 铁锅 → 毛线 → 蜡烛 → 怀表 → 雨伞 → 大衣，4-7 是尾声），全部通过。
 - 第 4 章机制：区域可标 `facility: gather|factory`，关卡带 `product`；新条件 SUPPLIED_BY（流水线供料 + 产量）、EXCLUSIVE_TO（独占供料）、NO_TAG_WITHIN（污染范围）；侧边栏 RecipeTree 画配方树，通关时 FlowOverlay 播放物资流动。
 - `web/public/tiles/terrain-{coal,copper,cotton}.svg` 是本项目自绘（仿 Fluent Flat 风格），其余图标来自 Fluent Emoji（MIT）。
 - 关卡编号 2026-10-03 改过：旧 2-1/2-2/3-1/4-1 → 1-3/1-4/1-5/1-6；`state/store.ts` 里有一次性的通关进度迁移（`rlp-progress-version`）。
@@ -47,6 +47,7 @@ node ../tools/gen-chapter3.mjs    # 重新生成 3-1…3-7
 node ../tools/generate-level.mjs search 7 7 5 1 60   # 找候选；再用 show W H K SEED 查看，挑中的手写进 gen-chapterN.mjs
 # 海岛关：加 --sea=3 --noblock --dir --flags=2 [--mindir=3] [--maxshare=0.25]；大地图搜得慢，放后台跑，结果逐行输出
 node ../tools/generate-level.mjs factory pan 6 7 1 300 --maxshare=0.3   # 第 4 章：按配方树搜；factoryshow 查看、factoryjs 导出代码块
+# 设施多的大配方（怀表/雨伞/大衣）加 --loose --nodecoy，并可用 recipes-ch4.mjs 里的 *-lean（去掉普通区域）；候选每家常有 4 条条件
 ```
 
 ## 架构与关键决策

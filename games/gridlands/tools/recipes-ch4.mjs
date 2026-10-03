@@ -73,3 +73,7 @@ export const RECIPES = {
     scatter: { building: 3, farmland: 2, forest: 2, cotton: 1, pasture: 1, iron: 1, coal: 1 },
   },
 };
+
+// 设施多的大配方去掉普通区域，减少区域数量（线索更少、更好读）
+for (const key of ['watch', 'umbrella', 'coat']) RECIPES[`${key}-lean`] = { ...RECIPES[key], extras: [] };
+

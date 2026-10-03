@@ -3,7 +3,8 @@
 // 用法：
 //   node tools/generate-level.mjs search W H K FROM TO   # 搜种子，按推理轮数排序输出
 //   node tools/generate-level.mjs show   W H K SEED       # 打印该种子的地图、答案和条件
-//   选项：--sea=N 切 N 块海做海岸线；--noblock 不放湖/山障碍；--dir 允许方位线索；--flags=N 至少保留 N 面营地旗；--mindir=N 至少保留 N 条方位线索；--maxshare=0.3 单个区域最多占地图的比例
+//   选项：--sea=N 切 N 块海做海岸线；--noblock 不放湖/山障碍；--dir 允许方位线索；--flags=N 至少保留 N 面营地旗；--mindir=N 至少保留 N 条方位线索；--maxshare=0.3 单个区域最多占地图的比例；--budget=N 计算量上限放大 N 倍
+//   第 4 章额外选项：--loose 不强求采集设施只挨着自己的工厂；--nodecoy 不在别处撒配方资源当诱饵
 //   （地图里 ~ 是海，* 是营地旗所在格）
 //   node tools/generate-level.mjs factory RECIPE W H FROM TO   # 第 4 章：按 recipes-ch4.mjs 的配方树搜种子
 //   node tools/generate-level.mjs factoryshow RECIPE W H SEED
@@ -123,7 +124,9 @@ function assemble(level, list) {
   return lv;
 }
 
-const good = (lv) => { const s = solve(lv, { maxSolutions: 2, maxNodes: 200000 }); if (s.aborted || s.length !== 1) return null; const d = deduce(lv, { maxWork: 3e6 }); return d.solved ? d : null; };
+// --budget=N：计算量上限放大 N 倍（大地图删线索时更不容易因超时而保留多余线索）
+const BUDGET = Number((process.argv.find((x) => x.startsWith('--budget=')) || '--budget=1').split('=')[1]);
+const good = (lv) => { const s = solve(lv, { maxSolutions: 2, maxNodes: 200000 * BUDGET }); if (s.aborted || s.length !== 1) return null; const d = deduce(lv, { maxWork: 3e6 * BUDGET }); return d.solved ? d : null; };
 
 // 贪心删条件：保持唯一解 + 可推理；优先保留权重高（数量类）的
 // opts.direction / opts.flags：加入方位、预置旗线索；opts.minFlags：至少保留几面旗
@@ -158,7 +161,8 @@ const fmt = (c) => c.type + (c.params ? ' ' + Object.values(c.params).join(' ') 
 // ── 第 4 章：先定配方树，再找能装下它的切法 ─────────────────────────
 // recipe.nodes：{ id, name, icon, facility: 'gather'|'factory', tag?, count?: [min,max], inputs?: [nodeId] }
 // recipe.extras：普通区域（居民、农场…）；recipe.pollution：[{ node, tag, dist }]
-export function generateFactory({ W, H, recipe, s, scatter = {}, maxShare = 1 }) {
+// strictExclusive=false 时不强求采集设施只挨着自己的工厂；独占供料只在碰巧成立时作为线索
+export function generateFactory({ W, H, recipe, s, scatter = {}, maxShare = 1, strictExclusive = true }) {
   seed = s;
   const nodes = recipe.nodes, extras = recipe.extras || [];
   const parts = partition(W, H, nodes.length + extras.length);
@@ -172,11 +176,11 @@ export function generateFactory({ W, H, recipe, s, scatter = {}, maxShare = 1 })
   const pick = new Map();
   const used = new Set();
   const okSoFar = () => edges.every(([a, b]) => !pick.has(a) || !pick.has(b) || touch(parts[pick.get(a)], parts[pick.get(b)]))
-    && nodes.filter((n) => n.facility === 'gather' && pick.has(n.id)).every((n) => {
+    && (!strictExclusive || nodes.filter((n) => n.facility === 'gather' && pick.has(n.id)).every((n) => {
       const mine = parts[pick.get(n.id)];
       const consumers = edges.filter(([a]) => a === n.id).map(([, b]) => b);
       return factories.every((f) => consumers.includes(f) || !pick.has(f) || !touch(mine, parts[pick.get(f)]));
-    });
+    }));
   const bt = (i) => {
     if (i === nodes.length) return true;
     for (const pi of order) {
@@ -225,7 +229,10 @@ export function generateFactory({ W, H, recipe, s, scatter = {}, maxShare = 1 })
   }
   for (const n of nodes.filter((n) => n.facility === 'gather')) {
     const consumers = edges.filter(([x]) => x === n.id).map(([, y]) => y);
-    if (consumers.length === 1) extra.push({ rid: nodeRid.get(n.id), c: { type: 'EXCLUSIVE_TO', params: { region: nodeRid.get(consumers[0]) } }, w: 2 });
+    if (consumers.length !== 1) continue;
+    const mine = parts[pick.get(n.id)];
+    const exclusive = factories.every((f) => f === consumers[0] || !touch(mine, parts[pick.get(f)]));
+    if (exclusive) extra.push({ rid: nodeRid.get(n.id), c: { type: 'EXCLUSIVE_TO', params: { region: nodeRid.get(consumers[0]) } }, w: 2 });
   }
   for (const pol of recipe.pollution || []) extra.push({ rid: nodeRid.get(pol.node), c: { type: 'NO_TAG_WITHIN', params: { tag: pol.tag, dist: pol.dist } }, w: 9, keep: true });
   const lvCheck = structuredClone(level);
@@ -246,7 +253,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const { RECIPES } = await import('./recipes-ch4.mjs');
     const recipe = RECIPES[args[1]];
     const [FW, FH, fa, fb] = args.slice(2).filter((x) => !x.startsWith('--')).map(Number);
-    const makeF = (s) => { const g = generateFactory({ W: FW, H: FH, recipe, s, scatter: recipe.scatter, maxShare: flag('maxshare', 1) }); if (!g) return null; const m = minimize(g.level, g.truth, { extra: g.extra }); return m && { ...m, product: g.product }; };
+    const makeF = (s) => { const g = generateFactory({ W: FW, H: FH, recipe, s, scatter: flag('nodecoy', false) ? Object.fromEntries(Object.entries(recipe.scatter || {}).filter(([t]) => ['building', 'farmland', 'forest'].includes(t))) : recipe.scatter, maxShare: flag('maxshare', 1), strictExclusive: !flag('loose', false) }); if (!g) return null; const m = minimize(g.level, g.truth, { extra: g.extra }); return m && { ...m, product: g.product }; };
     if (cmd === 'factory') {
       for (let s = fa; s < fb; s++) {
         const m = makeF(s); if (!m || m.unarySolved) continue;
