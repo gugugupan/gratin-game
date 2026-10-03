@@ -59,6 +59,11 @@ export function initFeedback(getLocale: () => Locale): void {
       setStatus(t(locale, "feedbackWait"), "bad");
       return;
     }
+    if ($<HTMLInputElement>("#fb-bot").checked) {
+      field.value = "";
+      setStatus(t(locale, "feedbackThanks"), "ok");
+      return;
+    }
     const send = $<HTMLButtonElement>(".fb-send");
     send.disabled = true;
     setStatus(t(locale, "feedbackSending"));
@@ -70,7 +75,6 @@ export function initFeedback(getLocale: () => Locale): void {
           access_key: key,
           subject: `${SUBJECT} (${locale})`,
           from_name: "グラタンゲーム",
-          botcheck: $<HTMLInputElement>("#fb-bot").checked,
           ...(email ? { email, replyto: email } : {}),
           message: `${message}\n\n---\n${details(locale)}`,
         }),
