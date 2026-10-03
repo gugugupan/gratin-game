@@ -1,13 +1,28 @@
 import { create } from 'zustand';
 import type { Level, RegionsMap, ValidateResult } from '../core/engine';
 import { validate } from '../core/engine.js';
-import { DEFAULT_LOCALE, type Locale } from '../i18n';
+import { DEFAULT_LOCALE, LOCALES, type Locale } from '../i18n';
 
 type Assignment = Record<number, string>; // cellId -> regionId
 
+const isLocale = (v: unknown): v is Locale => LOCALES.some((l) => l.code === v);
+
+// 没选过语言时，先沿用グラタンゲーム首页的语言，再看浏览器语言
 const initialLocale: Locale = (() => {
-  try { return (localStorage.getItem('rlp-locale') as Locale) || DEFAULT_LOCALE; } catch { return DEFAULT_LOCALE; }
+  try {
+    for (const key of ['rlp-locale', 'gratin-game:locale']) {
+      const saved = localStorage.getItem(key);
+      if (isLocale(saved)) return saved;
+    }
+  } catch { /* ignore */ }
+  const browser = (navigator.languages ?? [navigator.language]).map((l) => l.toLowerCase().split('-')[0]).find(isLocale);
+  return browser ?? DEFAULT_LOCALE;
 })();
+
+const setDocumentLang = (locale: Locale) => {
+  document.documentElement.lang = locale === 'zh' ? 'zh-CN' : locale;
+};
+setDocumentLang(initialLocale);
 
 // v1 的关卡编号是 1-1,1-2,2-1,2-2,3-1,4-1；v2 起它们统一为第 1 章 1-1…1-6，2-x 留给新关卡
 const PROGRESS_VERSION = '2';
@@ -120,6 +135,7 @@ export const useGame = create<GameState>((set, get) => ({
 
   setLocale: (locale) => {
     try { localStorage.setItem('rlp-locale', locale); } catch { /* ignore */ }
+    setDocumentLang(locale);
     set({ locale });
   },
 }));

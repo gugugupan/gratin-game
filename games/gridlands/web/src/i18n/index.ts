@@ -1,7 +1,10 @@
 // 轻量 i18n（无第三方依赖）。新增语言只需在各表里补一列。
-export type Locale = 'zh' | 'en';
+import { JA_TEXT } from './ja-text';
+
+export type Locale = 'zh' | 'ja' | 'en';
 export const LOCALES: { code: Locale; label: string }[] = [
   { code: 'zh', label: '中文' },
+  { code: 'ja', label: '日本語' },
   { code: 'en', label: 'English' },
 ];
 export const DEFAULT_LOCALE: Locale = 'zh';
@@ -58,6 +61,54 @@ const MESSAGES: Record<Locale, Dict> = {
     legendExample: '例：{from} → {to} 线上标着「{tag} {value}」，意思是 {from} 要挨着 {to}，而且 {from} 里正好有 {value} 块{tag}。',
     dir_north: '北', dir_south: '南', dir_east: '东', dir_west: '西',
   },
+  ja: {
+    appTitle: '阡陌',
+    undo: '元に戻す', reset: 'リセット', clear: 'クリア',
+    prevLevel: '前へ', nextLevel: '次へ',
+    language: '言語',
+    hint: 'エリアを選ぶ → ドラッグで長方形を囲む',
+    rules: '遊び方：エリアをタップしてから、マップ上をドラッグして長方形を囲み、マスを割り当てます。各エリアは1つの長方形にすること。すべての条件を満たせばクリアです。',
+    win: '🎉 クリア！すべての条件を満たしました',
+    tagline: 'ルールどおりに土地を分ける論理パズル',
+    start: 'はじめる',
+    backToLevels: 'ステージ一覧',
+    howToTitle: '遊び方',
+    step1: '各エリアの条件（面積、含むもの、接してはいけないもの…）を読む',
+    step2: 'エリアを選び、マップ上をドラッグして長方形を囲む',
+    step3: '各エリアは1つの長方形。すべての条件を満たせばクリア',
+    legendTitle: '地形と登場人物',
+    levelsTitle: 'ステージを選ぶ',
+    locked: '未解放',
+    cleared: 'クリア済み',
+    lockedHint: '前のステージをクリアすると解放',
+    cells: '{n}マス',
+    globalConditions: '全体の条件',
+    story: 'ストーリー',
+    chapter_1: '第1章 · はじめての土地', chapter_2: '第2章 · 開発業者がやってきた', chapter_3: '第3章 · 島の開拓', chapter_4: '第4章 · 蒸気の時代',
+    AREA_EQ: '面積 = {value}', AREA_GE: '面積 ≥ {value}', AREA_LE: '面積 ≤ {value}',
+    AREA_MAX: '面積が最大', AREA_MIN: '面積が最小',
+    MUST_CONTAIN_CELL: 'マス #{cellId}を含む', MUST_NOT_CONTAIN_CELL: 'マス #{cellId}を含まない',
+    MUST_CONTAIN_TAG: '「{tag}」を含む', MUST_NOT_CONTAIN_TAG: '「{tag}」を含まない',
+    TAG_COUNT_EQ: '「{tag}」をちょうど{value}個含む', TAG_COUNT_GE: '「{tag}」を{value}個以上含む', TAG_COUNT_LE: '「{tag}」は{value}個まで',
+    MUST_TOUCH_TAG: '「{tag}」に接する', MUST_NOT_TOUCH_TAG: '「{tag}」に接しない',
+    MUST_TOUCH_REGION: '{region}と隣り合う', MUST_NOT_TOUCH_REGION: '{region}と隣り合わない',
+    MUST_ON_EDGE: 'マップの端にある', MUST_NOT_ON_CORNER: '角にはない',
+    AREA_LARGER_THAN: '{a}は{b}より広い', AREA_EQUAL_TO: '{a}と{b}は同じ面積',
+    DIRECTION_OF: '{a}は{b}の{dir}側',
+    ONLY_ONE_CONTAINS: '「{tag}」を含む唯一のエリア', ONLY_ONE_TOUCHES: '「{tag}」に接する唯一のエリア',
+    SUPPLIED_BY: '{region}から「{tag}」を{value}個受け取る', SUPPLIED_BY_ANY: '{region}から材料を受け取る',
+    EXCLUSIVE_TO: '{region}にだけ供給する', NO_TAG_WITHIN: '{dist}マス以内に「{tag}」がない',
+    recipe: 'レシピ', product: '完成品',
+    legendToggle: '記号の説明',
+    legendFacility: '施設：採取施設は土地から資源を掘り出し、製造施設は材料を新しいものに加工します。タップすると選択できます。',
+    legendLinked: 'つながっている：2つの施設の土地が隣り合い、供給する数も合っているので、この線に沿って物資を運べます。',
+    legendUnlinked: 'まだつながっていない：2つの土地が隣り合っていないか、供給元にある資源の数が合っていません。',
+    legendAmount: '供給数：供給元の施設には、その資源のマスがちょうどこの数だけ必要です。',
+    legendProduct: '完成品：すべてのラインがつながり、すべての条件を満たすと光ります。',
+    legendPollution: '汚染範囲：汚染を出す工場を選ぶと、その工場が入れないマスに斜線が表示されます。',
+    legendExample: '例：{from} → {to} の線に「{tag} {value}」とあれば、{from}は{to}と隣り合い、{tag}をちょうど{value}マス含む必要があります。',
+    dir_north: '北', dir_south: '南', dir_east: '東', dir_west: '西',
+  },
   en: {
     appTitle: 'Gridlands',
     undo: 'Undo', reset: 'Reset', clear: 'Clear',
@@ -109,7 +160,7 @@ const MESSAGES: Record<Locale, Dict> = {
 };
 
 export function t(locale: Locale, key: string, params?: Record<string, string | number>): string {
-  let s = MESSAGES[locale]?.[key] ?? MESSAGES[DEFAULT_LOCALE][key] ?? key;
+  let s = MESSAGES[locale]?.[key] ?? MESSAGES.en[key] ?? MESSAGES[DEFAULT_LOCALE][key] ?? key;
   if (params) for (const [k, v] of Object.entries(params)) s = s.split(`{${k}}`).join(String(v));
   return s;
 }
@@ -117,18 +168,18 @@ export function t(locale: Locale, key: string, params?: Record<string, string | 
 // 地形/资源：name 用于条件描述，label 用于格子内短标
 type TagMeta = { name: Record<Locale, string>; label: Record<Locale, string> };
 export const TAGS: Record<string, TagMeta> = {
-  plain: { name: { zh: '平原', en: 'Plain' }, label: { zh: '', en: '' } },
-  forest: { name: { zh: '森林', en: 'Forest' }, label: { zh: '林', en: 'F' } },
-  lake: { name: { zh: '湖泊', en: 'Lake' }, label: { zh: '湖', en: 'L' } },
-  mountain: { name: { zh: '山脉', en: 'Mountain' }, label: { zh: '山', en: 'M' } },
-  gold: { name: { zh: '金矿', en: 'Gold' }, label: { zh: '金', en: 'Au' } },
-  iron: { name: { zh: '铁矿', en: 'Iron' }, label: { zh: '铁', en: 'Fe' } },
-  farmland: { name: { zh: '耕地', en: 'Farmland' }, label: { zh: '田', en: 'Fm' } },
-  building: { name: { zh: '建筑', en: 'Building' }, label: { zh: '城', en: 'Bd' } },
-  coal: { name: { zh: '煤矿', en: 'Coal' }, label: { zh: '煤', en: 'C' } },
-  copper: { name: { zh: '铜矿', en: 'Copper' }, label: { zh: '铜', en: 'Cu' } },
-  cotton: { name: { zh: '棉花', en: 'Cotton' }, label: { zh: '棉', en: 'Ct' } },
-  pasture: { name: { zh: '牧草', en: 'Pasture' }, label: { zh: '草', en: 'P' } },
+  plain: { name: { zh: '平原', ja: '平地', en: 'Plain' }, label: { zh: '', ja: '', en: '' } },
+  forest: { name: { zh: '森林', ja: '森', en: 'Forest' }, label: { zh: '林', ja: '森', en: 'F' } },
+  lake: { name: { zh: '湖泊', ja: '湖', en: 'Lake' }, label: { zh: '湖', ja: '湖', en: 'L' } },
+  mountain: { name: { zh: '山脉', ja: '山', en: 'Mountain' }, label: { zh: '山', ja: '山', en: 'M' } },
+  gold: { name: { zh: '金矿', ja: '金鉱', en: 'Gold' }, label: { zh: '金', ja: '金', en: 'Au' } },
+  iron: { name: { zh: '铁矿', ja: '鉄鉱', en: 'Iron' }, label: { zh: '铁', ja: '鉄', en: 'Fe' } },
+  farmland: { name: { zh: '耕地', ja: '畑', en: 'Farmland' }, label: { zh: '田', ja: '畑', en: 'Fm' } },
+  building: { name: { zh: '建筑', ja: '建物', en: 'Building' }, label: { zh: '城', ja: '建', en: 'Bd' } },
+  coal: { name: { zh: '煤矿', ja: '炭鉱', en: 'Coal' }, label: { zh: '煤', ja: '炭', en: 'C' } },
+  copper: { name: { zh: '铜矿', ja: '銅鉱', en: 'Copper' }, label: { zh: '铜', ja: '銅', en: 'Cu' } },
+  cotton: { name: { zh: '棉花', ja: '綿花', en: 'Cotton' }, label: { zh: '棉', ja: '綿', en: 'Ct' } },
+  pasture: { name: { zh: '牧草', ja: '牧草地', en: 'Pasture' }, label: { zh: '草', ja: '草', en: 'P' } },
 };
 export const tagName = (tag: string, locale: Locale) => TAGS[tag]?.name[locale] ?? tag;
 export const tagLabel = (tag: string, locale: Locale) => TAGS[tag]?.label[locale] ?? '';
@@ -138,5 +189,6 @@ export type LocalizedString = string | Partial<Record<Locale, string>>;
 export function localized(v: LocalizedString | undefined, locale: Locale): string {
   if (v == null) return '';
   if (typeof v === 'string') return v;
+  if (locale === 'ja') return v.ja ?? (v.zh && JA_TEXT[v.zh]) ?? v.en ?? v.zh ?? '';
   return v[locale] ?? v[DEFAULT_LOCALE] ?? Object.values(v)[0] ?? '';
 }

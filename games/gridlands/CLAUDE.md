@@ -14,7 +14,7 @@
 - 每关有 `theme`（氛围色 + 故事卡插图）和 `story`（背景故事）。
 - 网址带 `?unlock=all`（如 `/gridlands/?unlock=all#/levels`，或 `#/levels?unlock=all`）时所有关卡可玩，不写入通关记录。
 - 三页路由（介绍 / 关卡列表 / 游玩）；进度与**顺序解锁**存 localStorage。
-- 中英双语 i18n；扁平 SVG 图标（地形 + 角色头像）；品牌 logo / favicon。
+- 中日英三语 i18n（日语 2026-10-04 加入）；扁平 SVG 图标（地形 + 角色头像）；品牌 logo / favicon。
 
 未做：后端 / 数据库 / 账号 / 订阅 / 自动关卡生成器 / 每日挑战。
 
@@ -30,6 +30,7 @@ web/        Vite + React + TS 前端
   src/components/      Board, Cell, RegionList, ConditionPanel, conditions, icons, Header, LanguageSelect
   src/state/store.ts   Zustand：level/assignment/selectedRegion/locale/passed + 动作
   src/i18n/index.ts    UI 文案 + 地形名(TAGS) + 本地化助手(localized/t/tagName)
+  src/i18n/ja-text.ts  关卡文字的日语对照表（以中文原文为键）
   src/levels.ts        关卡加载 + 解锁助手(isUnlocked/nextLevel)
 ```
 
@@ -55,7 +56,7 @@ node ../tools/generate-level.mjs factory pan 6 7 1 300 --maxshare=0.3   # 第 4 
 - **棋盘有内边距/缝隙（视觉上的「阡陌」）**，所以拖拽命中用 `document.elementFromPoint` 读 `.cell[data-id]`，**不要**用 rect 比例换算（会因 gap 错位）。terrain svg 设 `pointer-events:none` 以便命中到 `.cell`。
 - **区域=单个矩形**：同一区域再次拖拽时 `assignCells` 会**先清空该区域旧选择再赋新矩形**（替换语义，保证始终是矩形）；`fixedRegion` 预置线索不被清。
 - **地形图标按 tag + 语言派生**，不写死在关卡 JSON 的 `display.label` 里；`display.bg` 也被前端 `TERRAIN_STYLE` 覆盖。新增地形需同时改 `components/icons.tsx`(TERRAIN_STYLE+terrainGlyph) 和 `i18n/index.ts`(TAGS)。
-- **本地化**：关卡 `name` 与 `owner.name` 用 `LocalizedString`（字符串或 `{zh,en}`）；角色头像由 `owner.icon` 键映射（farmer/rancher/miner/forester/developer/crown/house，缺省通用剪影）。
+- **本地化**：关卡 `name` 与 `owner.name` 用 `LocalizedString`（字符串或 `{zh,en}`）。关卡 JSON 和生成脚本里只写 zh/en；日语译文放在 `i18n/ja-text.ts`，按中文原文查表，查不到时回退英文——新增或改动中文文案后记得补译文；角色头像由 `owner.icon` 键映射（farmer/rancher/miner/forester/developer/crown/house，缺省通用剪影）。
 - **进度/解锁**：localStorage key `rlp-progress`（已通关 id 数组）、`rlp-locale`（语言）。第 1 关默认解锁，第 N 关需第 N−1 关已通关；直接访问未解锁关卡会重定向回 `/levels`。
 - **答案不暴露给玩法**：通关判定靠前端对玩家局面跑 `validate`，不读 `solution`。
 

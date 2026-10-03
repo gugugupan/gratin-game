@@ -23,6 +23,7 @@ body {
   background: linear-gradient(160deg, var(--bg), var(--bg2));
   -webkit-tap-highlight-color: transparent;
 }
+:lang(ja) body { font-family: system-ui, -apple-system, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif; }
 
 .app { display: flex; flex-direction: column; min-height: 100dvh; }
 .app.themed { background: linear-gradient(160deg, var(--bg), var(--bg2)); transition: background .4s; }
