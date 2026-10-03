@@ -13,7 +13,7 @@ export const TERRAIN_STYLE: Record<string, { bg: string }> = {
 // 地形/资源与角色图像：Microsoft Fluent Emoji（Flat 风格，MIT），见 public/tiles/LICENSE.txt
 const TILE_BASE = `${import.meta.env.BASE_URL}tiles/`;
 const TERRAIN_IMAGES = new Set(['forest', 'mountain', 'lake', 'gold', 'iron', 'farmland', 'building']);
-const ROLE_IMAGES = new Set(['farmer', 'rancher', 'miner', 'forester', 'developer', 'crown', 'house', 'fisher', 'blacksmith']);
+const ROLE_IMAGES = new Set(['farmer', 'rancher', 'miner', 'forester', 'developer', 'crown', 'house', 'fisher', 'blacksmith', 'captain']);
 
 export function TerrainIcon({ tag }: { tag: string }) {
   if (!TERRAIN_IMAGES.has(tag)) return null; // plain 无图形

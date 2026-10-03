@@ -1,39 +1,7 @@
 // 生成第 2 章关卡 JSON 到 levels/（solution 由求解器算出）。用法：node tools/gen-chapter2.mjs
-import { writeFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { solve } from '../web/src/core/engine.js';
+import { C, L, level as write } from './level-kit.mjs';
 
-const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const L = (zh, en) => ({ zh, en });
-const C = (type, params) => (params ? { type, params } : { type });
-
-const TAG = { '.': 'plain', A: 'farmland', F: 'forest', L: 'lake', M: 'mountain', G: 'gold', I: 'iron', B: 'building' };
-const BG = { plain: '#cdebc0', forest: '#2e7d32', gold: '#ffd54f', iron: '#90a4ae', mountain: '#8d6e63', lake: '#4fc3f7', farmland: '#f4ecd4', building: '#cfd5dd' };
-
-// map：每行用空格分隔的地形字母；blocked：哪些字母是障碍
-function board(map, blocked) {
-  const rows = map.trim().split('\n').map((r) => r.trim().split(/\s+/));
-  const width = rows[0].length;
-  const cells = rows.flatMap((row, y) => row.map((ch, x) => {
-    const tag = TAG[ch];
-    return { id: y * width + x + 1, x, y, tags: [tag], assignable: !blocked.includes(ch), fixedRegion: null, display: { bg: BG[tag], sprite: null } };
-  }));
-  return { width, height: rows.length, cells };
-}
-
-function level({ file, map, blocked, ...rest }) {
-  const lv = {
-    schemaVersion: 1, shapeRule: 'RECT', adjacency: 4, coverage: 'FULL',
-    meta: { author: 'manual', verifiedUnique: true, verifiedHumanSolvable: true, createdAt: '2026-10-03' },
-    ...rest, board: board(map, blocked), globalConstraints: rest.globalConstraints || [],
-  };
-  const sols = solve(lv, { maxSolutions: 2 });
-  if (sols.length !== 1) throw new Error(`${lv.id}: ${sols.length} solutions`);
-  lv.solution = sols[0];
-  writeFileSync(join(root, 'levels', file), JSON.stringify(lv, null, 2) + '\n');
-  console.log(`wrote ${file}`);
-}
+const level = (spec) => write({ createdAt: '2026-10-03', ...spec });
 
 level({
   file: '2-1.json', id: '2-1', chapter: 2, difficulty: 7, theme: 'river',

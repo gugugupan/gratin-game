@@ -32,7 +32,7 @@ const MESSAGES: Record<Locale, Dict> = {
     cells: '{n} 格',
     globalConditions: '全局条件',
     story: '关卡背景',
-    chapter_1: '第一章 · 初来乍到', chapter_2: '第二章 · 开发商来了',
+    chapter_1: '第一章 · 初来乍到', chapter_2: '第二章 · 开发商来了', chapter_3: '第三章 · 海岛拓荒',
     // 条件描述
     AREA_EQ: '面积 = {value}', AREA_GE: '面积 ≥ {value}', AREA_LE: '面积 ≤ {value}',
     AREA_MAX: '面积最大', AREA_MIN: '面积最小',
@@ -70,7 +70,7 @@ const MESSAGES: Record<Locale, Dict> = {
     cells: '{n} cells',
     globalConditions: 'Global conditions',
     story: 'Story',
-    chapter_1: 'Chapter 1 · First Plots', chapter_2: 'Chapter 2 · The Developer Arrives',
+    chapter_1: 'Chapter 1 · First Plots', chapter_2: 'Chapter 2 · The Developer Arrives', chapter_3: 'Chapter 3 · New Shores',
     AREA_EQ: 'Area = {value}', AREA_GE: 'Area ≥ {value}', AREA_LE: 'Area ≤ {value}',
     AREA_MAX: 'Largest area', AREA_MIN: 'Smallest area',
     MUST_CONTAIN_CELL: 'Must contain cell #{cellId}', MUST_NOT_CONTAIN_CELL: 'Must not contain cell #{cellId}',

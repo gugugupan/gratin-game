@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useGame, useValidation } from '../state/store';
 import { Cell } from './Cell';
 import { TERRAIN_STYLE } from './icons';
+import { at, seaCoords } from './sea';
 
 interface Drag { ax: number; ay: number; cx: number; cy: number; }
 interface Stamp { ids: Set<number>; ax: number; ay: number; odd: boolean; }
@@ -114,6 +115,7 @@ export function Board() {
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
     >
+      {seaCoords(level).map(([x, y]) => <div key={`sea-${x}-${y}`} className="sea" style={at(x, y)} />)}
       {ordered.map((c) => {
         const rid = assignment[c.id];
         const mainTag = (c.tags || []).find((tg) => tg !== 'plain') ?? null;
@@ -129,6 +131,7 @@ export function Board() {
             highlight={highlight.get(c.id)}
             preview={previewSet.has(c.id)}
             conflict={conflictCells.has(c.id)}
+            fixed={!!c.fixedRegion}
             stamp={stamp?.ids.has(c.id) ? { odd: stamp.odd, delay: (Math.abs(c.x - stamp.ax) + Math.abs(c.y - stamp.ay)) * 35 } : undefined}
             celebrateDelay={won ? 250 + (c.x + c.y) * 70 : undefined}
           />

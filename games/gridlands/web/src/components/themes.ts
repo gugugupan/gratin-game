@@ -15,6 +15,13 @@ export const THEMES: Record<string, Theme> = {
   debate: { bg: '#f2f1f5', bg2: '#e0dde9', frame: '#9c93b5' },
   blueprint: { bg: '#eef2f8', bg2: '#d9e2ef', frame: '#7f97b8' },
   epilogue: { bg: '#f7f1ec', bg2: '#f0dfd2', frame: '#c99a7c' },
+  landing: { bg: '#eef5f7', bg2: '#d8ebf0', frame: '#7fb0bf' },
+  island: { bg: '#f6f3e6', bg2: '#e0eee4', frame: '#94b98f' },
+  compass: { bg: '#f3f2ec', bg2: '#e0e6ed', frame: '#8e9fb2' },
+  wind: { bg: '#eff3f5', bg2: '#dbe4ea', frame: '#8fa5b3' },
+  tide: { bg: '#ecf4f8', bg2: '#d0e4ef', frame: '#6fa3bf' },
+  harbor: { bg: '#f1f2f4', bg2: '#dbe2ea', frame: '#8597ab' },
+  bonfire: { bg: '#f8efe6', bg2: '#f0d7bf', frame: '#c98d5a' },
 };
 
 export const DEFAULT_THEME = 'meadow';

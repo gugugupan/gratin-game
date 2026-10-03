@@ -1,5 +1,6 @@
 import type { Cell as CellT } from '../core/engine';
 import { TerrainIcon } from './icons';
+import { at } from './sea';
 
 export interface CellView {
   cell: CellT;
@@ -10,13 +11,15 @@ export interface CellView {
   highlight?: 'pos' | 'neg';
   preview: boolean;
   conflict: boolean;
+  fixed?: boolean;
   stamp?: { odd: boolean; delay: number };
   celebrateDelay?: number;
 }
 
 const GRASS_BASE = `${import.meta.env.BASE_URL}tiles/grass-`;
+const FLAG = `${import.meta.env.BASE_URL}tiles/flag.svg`;
 
-export function Cell({ cell, tag, bg, fillColor, blocked, highlight, preview, conflict, stamp, celebrateDelay }: CellView) {
+export function Cell({ cell, tag, bg, fillColor, blocked, highlight, preview, conflict, fixed, stamp, celebrateDelay }: CellView) {
   const cls = ['cell'];
   if (blocked) cls.push('blocked');
   if (highlight) cls.push(highlight === 'pos' ? 'hl-pos' : 'hl-neg');
@@ -26,13 +29,14 @@ export function Cell({ cell, tag, bg, fillColor, blocked, highlight, preview, co
   if (stamp) cls.push(stamp.odd ? 'stamp-b' : 'stamp-a');
   if (celebrateDelay !== undefined) cls.push('celebrate');
 
-  const style = (fillColor ? { ['--region' as any]: fillColor } : { backgroundColor: bg }) as React.CSSProperties;
+  const style = { ...at(cell.x, cell.y), ...(fillColor ? { ['--region' as any]: fillColor } : { backgroundColor: bg }) } as React.CSSProperties;
   if (!tag && !blocked) style.backgroundImage = `url(${GRASS_BASE}${((cell.x * 7 + cell.y * 3) % 3) + 1}.svg)`;
   if (stamp) style.animationDelay = `${stamp.delay}ms`;
   if (celebrateDelay !== undefined) (style as any)['--celebrate-delay'] = `${celebrateDelay}ms`;
   return (
     <div className={cls.join(' ')} style={style} data-id={cell.id}>
       {tag ? <TerrainIcon tag={tag} /> : null}
+      {fixed ? <img className="flag" src={FLAG} alt="" draggable={false} /> : null}
     </div>
   );
 }

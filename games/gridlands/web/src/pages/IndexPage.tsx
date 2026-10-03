@@ -19,7 +19,7 @@ function SampleBoard() {
       {ordered.map((c) => {
         const tag = (c.tags || []).find((tg) => tg !== 'plain') || null;
         return (
-          <div key={c.id} className="cell assigned" style={{ ['--region' as any]: color[cellRegion[c.id]] }}>
+          <div key={c.id} className="cell assigned" style={{ gridColumn: c.x + 1, gridRow: c.y + 1, ['--region' as any]: color[cellRegion[c.id]] }}>
             {tag ? <TerrainIcon tag={tag} /> : null}
           </div>
         );

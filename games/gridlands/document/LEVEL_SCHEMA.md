@@ -56,6 +56,8 @@
 | `difficulty` | int | — | 难度（建议 1~10），由 `human-solver` 评估或人工填 |
 | `theme` | string | — | 关卡氛围键（页面底色、棋盘边框、故事卡插图），取值见 `web/src/components/themes.ts`；缺省 `meadow` |
 | `story` | LocalizedString | — | 关卡背景故事，游玩页棋盘上方的卡片显示 |
+
+> 不规则地图：`board.cells` 里缺失的 (x,y) 在界面上画成海。带 `fixedRegion` 的格子开局即归属该区域，界面上显示一面小旗。
 | `shapeRule` | enum | ✓ | `RECT`(MVP) / `ANY` / `SQUARE` / `L` |
 | `adjacency` | 4\|8 | — | 区域连通判定，默认 `4` |
 | `coverage` | enum | ✓ | `FULL`=所有可分配格必须归属；`PARTIAL`=允许中立空地 |

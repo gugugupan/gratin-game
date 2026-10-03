@@ -238,6 +238,9 @@ export function localCandidates(ix, region) {
 
 export function solve(level, opts = {}) {
   const maxSolutions = opts.maxSolutions ?? 2;
+  // maxNodes：搜索步数上限（生成器用来跳过太慢的候选）；超出时返回值带 aborted=true
+  const maxNodes = opts.maxNodes ?? Infinity;
+  let nodes = 0;
   const ix = buildIndex(level);
   // 候选少的区域先搜，剪枝更早生效
   const regions = level.regions
@@ -253,6 +256,7 @@ export function solve(level, opts = {}) {
 
   function backtrack(i) {
     if (solutions.length >= maxSolutions) return;
+    if (++nodes > maxNodes) { solutions.aborted = true; return; }
     if (i === regions.length) {
       if (level.coverage !== 'PARTIAL' && covered.size !== totalAssignable) return;
       if (checkSolution(ix, chosen)) {

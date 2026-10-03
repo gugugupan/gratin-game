@@ -9,12 +9,16 @@ const PAIR_REGION = new Set(['MUST_TOUCH_REGION', 'MUST_NOT_TOUCH_REGION']);
 const PAIR_GLOBAL = new Set(['AREA_LARGER_THAN', 'AREA_EQUAL_TO', 'DIRECTION_OF']);
 const ONLY_ONE = new Set(['ONLY_ONE_CONTAINS', 'ONLY_ONE_TOUCHES']);
 
-export function deduce(level) {
+// opts.maxWork：两两比较次数上限（生成器用来跳过太慢的候选）
+export function deduce(level, opts = {}) {
+  const maxWork = opts.maxWork ?? Infinity;
+  let work = 0;
   const ix = buildIndex(level);
   const cand = new Map(level.regions.map((r) => [r.id, localCandidates(ix, r)]));
   const overlap = (a, b) => a.some((x) => b.includes(x));
 
   const pairOk = (ra, a, rb, b) => {
+    if (++work > maxWork) throw new Error('deduce: work limit');
     if (overlap(a, b)) return false;
     const map = new Map([[ra, a], [rb, b]]);
     for (const [rid, other] of [[ra, rb], [rb, ra]]) {
@@ -42,6 +46,7 @@ export function deduce(level) {
   };
 
   let rounds = 0;
+  try {
   for (let changed = true; changed && rounds < 100; rounds++) {
     changed = false;
     const prune = (rid, keep) => {
@@ -61,6 +66,10 @@ export function deduce(level) {
         for (const [other, cs2] of cand) if (other !== rid) prune(other, cs2.filter((ids) => !ids.includes(cid)));
       }
     }
+  }
+  } catch (e) {
+    if (String(e.message).startsWith('deduce: work limit')) return { solved: false, aborted: true, rounds, solution: null, remaining: {} };
+    throw e;
   }
 
   const unique = [...cand.values()].every((cs) => cs.length === 1);
