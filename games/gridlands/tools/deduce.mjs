@@ -1,7 +1,7 @@
 // 「无猜测」检查：只用排除推理（不试错、不回溯）能否把每个区域缩到唯一矩形。
 // 推理规则（玩家可以凭肉眼做到的三类）：
 //   1. 单区域：违反本区域局部条件的矩形排除
-//   2. 两两相容：某矩形与另一区域的所有剩余矩形都冲突（重叠，或违反两区域之间的条件）→ 排除
+//   2. 两两相容：某矩形与另一区域的所有剩余矩形都冲突（重叠，或违反两区域之间的条件，含供料/独占供料）→ 排除
 //   3. 覆盖：某格只有一个区域还能盖到 → 该区域必须含它；某区域所有剩余矩形都含某格 → 其他区域不能含它
 import { buildIndex, evalConstraint, localCandidates, validate } from '../web/src/core/engine.js';
 
@@ -25,6 +25,14 @@ export function deduce(level, opts = {}) {
       const reg = level.regions.find((r) => r.id === rid);
       for (const c of reg.constraints || []) {
         if (PAIR_REGION.has(c.type) && c.params.region === other && !evalConstraint(ix, map, rid, c)) return false;
+        if (c.type === 'SUPPLIED_BY' && c.params.region === other && !evalConstraint(ix, map, rid, c)) return false;
+        // 独占供料 = 必须挨着目标设施 + 不能挨着其他制造设施，都可以两两判断
+        if (c.type === 'EXCLUSIVE_TO') {
+          const otherReg = level.regions.find((r) => r.id === other);
+          const touch = { type: 'MUST_TOUCH_REGION', params: { region: other } };
+          if (other === c.params.region && !evalConstraint(ix, map, rid, touch)) return false;
+          if (other !== c.params.region && otherReg?.facility === 'factory' && evalConstraint(ix, map, rid, touch)) return false;
+        }
         // 面积最大/最小 = 与每个其他区域两两比较
         if (c.type === 'AREA_MAX' && !(map.get(rid).length > map.get(other).length)) return false;
         if (c.type === 'AREA_MIN' && !(map.get(rid).length < map.get(other).length)) return false;

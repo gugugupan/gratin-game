@@ -32,7 +32,7 @@ const MESSAGES: Record<Locale, Dict> = {
     cells: '{n} 格',
     globalConditions: '全局条件',
     story: '关卡背景',
-    chapter_1: '第一章 · 初来乍到', chapter_2: '第二章 · 开发商来了', chapter_3: '第三章 · 海岛拓荒',
+    chapter_1: '第一章 · 初来乍到', chapter_2: '第二章 · 开发商来了', chapter_3: '第三章 · 海岛拓荒', chapter_4: '第四章 · 蒸汽时代',
     // 条件描述
     AREA_EQ: '面积 = {value}', AREA_GE: '面积 ≥ {value}', AREA_LE: '面积 ≤ {value}',
     AREA_MAX: '面积最大', AREA_MIN: '面积最小',
@@ -45,6 +45,9 @@ const MESSAGES: Record<Locale, Dict> = {
     AREA_LARGER_THAN: '{a} 比 {b} 大', AREA_EQUAL_TO: '{a} 与 {b} 面积相同',
     DIRECTION_OF: '{a} 在 {b} 的{dir}侧',
     ONLY_ONE_CONTAINS: '唯一拥有「{tag}」的区域', ONLY_ONE_TOUCHES: '唯一接触「{tag}」的区域',
+    SUPPLIED_BY: '由 {region} 供应 {value} 份「{tag}」', SUPPLIED_BY_ANY: '由 {region} 供料',
+    EXCLUSIVE_TO: '只供应 {region}', NO_TAG_WITHIN: '{dist} 格内不能有「{tag}」',
+    recipe: '配方', product: '成品',
     dir_north: '北', dir_south: '南', dir_east: '东', dir_west: '西',
   },
   en: {
@@ -70,7 +73,7 @@ const MESSAGES: Record<Locale, Dict> = {
     cells: '{n} cells',
     globalConditions: 'Global conditions',
     story: 'Story',
-    chapter_1: 'Chapter 1 · First Plots', chapter_2: 'Chapter 2 · The Developer Arrives', chapter_3: 'Chapter 3 · New Shores',
+    chapter_1: 'Chapter 1 · First Plots', chapter_2: 'Chapter 2 · The Developer Arrives', chapter_3: 'Chapter 3 · New Shores', chapter_4: 'Chapter 4 · The Age of Steam',
     AREA_EQ: 'Area = {value}', AREA_GE: 'Area ≥ {value}', AREA_LE: 'Area ≤ {value}',
     AREA_MAX: 'Largest area', AREA_MIN: 'Smallest area',
     MUST_CONTAIN_CELL: 'Must contain cell #{cellId}', MUST_NOT_CONTAIN_CELL: 'Must not contain cell #{cellId}',
@@ -82,6 +85,9 @@ const MESSAGES: Record<Locale, Dict> = {
     AREA_LARGER_THAN: '{a} is larger than {b}', AREA_EQUAL_TO: '{a} equals {b} in area',
     DIRECTION_OF: '{a} is to the {dir} of {b}',
     ONLY_ONE_CONTAINS: 'The only region containing {tag}', ONLY_ONE_TOUCHES: 'The only region touching {tag}',
+    SUPPLIED_BY: 'Supplied {value} {tag} by {region}', SUPPLIED_BY_ANY: 'Supplied by {region}',
+    EXCLUSIVE_TO: 'Supplies only {region}', NO_TAG_WITHIN: 'No {tag} within {dist} cells',
+    recipe: 'Recipe', product: 'Product',
     dir_north: 'north', dir_south: 'south', dir_east: 'east', dir_west: 'west',
   },
 };
@@ -103,6 +109,10 @@ export const TAGS: Record<string, TagMeta> = {
   iron: { name: { zh: '铁矿', en: 'Iron' }, label: { zh: '铁', en: 'Fe' } },
   farmland: { name: { zh: '耕地', en: 'Farmland' }, label: { zh: '田', en: 'Fm' } },
   building: { name: { zh: '建筑', en: 'Building' }, label: { zh: '城', en: 'Bd' } },
+  coal: { name: { zh: '煤矿', en: 'Coal' }, label: { zh: '煤', en: 'C' } },
+  copper: { name: { zh: '铜矿', en: 'Copper' }, label: { zh: '铜', en: 'Cu' } },
+  cotton: { name: { zh: '棉花', en: 'Cotton' }, label: { zh: '棉', en: 'Ct' } },
+  pasture: { name: { zh: '牧草', en: 'Pasture' }, label: { zh: '草', en: 'P' } },
 };
 export const tagName = (tag: string, locale: Locale) => TAGS[tag]?.name[locale] ?? tag;
 export const tagLabel = (tag: string, locale: Locale) => TAGS[tag]?.label[locale] ?? '';

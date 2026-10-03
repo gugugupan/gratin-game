@@ -22,6 +22,13 @@ export const THEMES: Record<string, Theme> = {
   tide: { bg: '#ecf4f8', bg2: '#d0e4ef', frame: '#6fa3bf' },
   harbor: { bg: '#f1f2f4', bg2: '#dbe2ea', frame: '#8597ab' },
   bonfire: { bg: '#f8efe6', bg2: '#f0d7bf', frame: '#c98d5a' },
+  scissors: { bg: '#f3f0ea', bg2: '#e3ddd2', frame: '#9a8f80' },
+  pan: { bg: '#f4efe8', bg2: '#e2d5c4', frame: '#8e7a64' },
+  yarn: { bg: '#f7f0f2', bg2: '#ead8de', frame: '#b48a99' },
+  candle: { bg: '#f8f2e6', bg2: '#efe0bf', frame: '#c4a15e' },
+  watch: { bg: '#f3f1ec', bg2: '#e2dccd', frame: '#a38f63' },
+  umbrella: { bg: '#eff2f5', bg2: '#d8e0e8', frame: '#7f93a8' },
+  coat: { bg: '#f5efe9', bg2: '#e6d6c8', frame: '#9c7b62' },
 };
 
 export const DEFAULT_THEME = 'meadow';

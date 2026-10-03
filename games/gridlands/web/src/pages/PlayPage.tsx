@@ -5,6 +5,7 @@ import { getLevel, isUnlocked, nextLevel } from '../levels';
 import { Board } from '../components/Board';
 import { RegionList } from '../components/RegionList';
 import { ConditionPanel } from '../components/ConditionPanel';
+import { RecipeTree } from '../components/RecipeTree';
 import { Header } from '../components/Header';
 import { LanguageSelect } from '../components/LanguageSelect';
 import { t } from '../i18n';
@@ -63,6 +64,7 @@ export function PlayPage() {
         <aside className="side">
           {ready && (
             <>
+              <RecipeTree />
               <RegionList />
               <ConditionPanel />
               <p className="rules">{t(locale, 'rules')}</p>

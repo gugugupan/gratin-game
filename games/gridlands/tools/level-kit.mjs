@@ -1,5 +1,5 @@
 // 手写关卡用的小工具：ASCII 地图 → 关卡 JSON（solution 由求解器算出，不唯一就报错）
-// 地图记号：. 平原  A 耕地  F 森林  L 湖  M 山  G 金矿  I 铁矿  B 建筑  ~ 海（该格不存在）
+// 地图记号：. 平原  A 耕地  F 森林  L 湖  M 山  G 金矿  I 铁矿  B 建筑  C 煤矿  U 铜矿  T 棉花  P 牧草  ~ 海（该格不存在）
 // 记号后跟数字表示开局插旗、锁定给第 N 个区域，例如 .2 = 属于 R2 的平原营地
 import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -10,8 +10,8 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 export const L = (zh, en) => ({ zh, en });
 export const C = (type, params) => (params ? { type, params } : { type });
 
-const TAG = { '.': 'plain', A: 'farmland', F: 'forest', L: 'lake', M: 'mountain', G: 'gold', I: 'iron', B: 'building' };
-const BG = { plain: '#cdebc0', forest: '#2e7d32', gold: '#ffd54f', iron: '#90a4ae', mountain: '#8d6e63', lake: '#4fc3f7', farmland: '#f4ecd4', building: '#cfd5dd' };
+const TAG = { '.': 'plain', A: 'farmland', F: 'forest', L: 'lake', M: 'mountain', G: 'gold', I: 'iron', B: 'building', C: 'coal', U: 'copper', T: 'cotton', P: 'pasture' };
+const BG = { plain: '#cdebc0', forest: '#2e7d32', gold: '#ffd54f', iron: '#90a4ae', mountain: '#8d6e63', lake: '#4fc3f7', farmland: '#f4ecd4', building: '#cfd5dd', coal: '#e2e1df', copper: '#f6e4d8', cotton: '#e8eedf', pasture: '#e3f1d6' };
 
 function board(map, blocked) {
   const rows = map.trim().split('\n').map((r) => r.trim().split(/\s+/));

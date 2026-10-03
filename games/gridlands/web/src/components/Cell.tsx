@@ -8,7 +8,7 @@ export interface CellView {
   bg: string;
   fillColor?: string;     // 已归属区域的填充色
   blocked: boolean;
-  highlight?: 'pos' | 'neg';
+  highlight?: 'pos' | 'neg' | 'zone';
   preview: boolean;
   conflict: boolean;
   fixed?: boolean;
@@ -22,7 +22,7 @@ const FLAG = `${import.meta.env.BASE_URL}tiles/flag.svg`;
 export function Cell({ cell, tag, bg, fillColor, blocked, highlight, preview, conflict, fixed, stamp, celebrateDelay }: CellView) {
   const cls = ['cell'];
   if (blocked) cls.push('blocked');
-  if (highlight) cls.push(highlight === 'pos' ? 'hl-pos' : 'hl-neg');
+  if (highlight) cls.push(`hl-${highlight}`);
   if (preview) cls.push('preview');
   if (conflict) cls.push('conflict');
   if (fillColor) cls.push('assigned');

@@ -16,7 +16,9 @@ export function describeConstraint(level: Level, locale: Locale, c: ConstraintRe
   if (p.a != null) params.a = rname(p.a);
   if (p.b != null) params.b = rname(p.b);
   if (p.dir != null) params.dir = t(locale, 'dir_' + p.dir);
-  return t(locale, c.type, params);
+  if (p.dist != null) params.dist = p.dist;
+  const key = c.type === 'SUPPLIED_BY' && (p.tag == null || p.value == null) ? 'SUPPLIED_BY_ANY' : c.type;
+  return t(locale, key, params);
 }
 
 // 一条条件行（✓/✗ + 文字）

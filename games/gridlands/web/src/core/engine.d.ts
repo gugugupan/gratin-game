@@ -29,14 +29,19 @@ export type ConstraintType =
   | 'MUST_TOUCH_REGION' | 'MUST_NOT_TOUCH_REGION'
   | 'MUST_ON_EDGE' | 'MUST_NOT_ON_CORNER'
   | 'AREA_LARGER_THAN' | 'AREA_EQUAL_TO' | 'DIRECTION_OF'
-  | 'ONLY_ONE_CONTAINS' | 'ONLY_ONE_TOUCHES';
+  | 'ONLY_ONE_CONTAINS' | 'ONLY_ONE_TOUCHES'
+  | 'SUPPLIED_BY' | 'EXCLUSIVE_TO' | 'NO_TAG_WITHIN';
 
 export interface Constraint {
   type: ConstraintType;
   params?: Record<string, any>;
 }
 
-export interface RegionDef { id: string; owner: Owner; constraints: Constraint[]; }
+export type Facility = 'gather' | 'factory';
+
+export interface RegionDef { id: string; owner: Owner; constraints: Constraint[]; facility?: Facility; }
+
+export interface Product { name: LocalizedString; icon: string; goal: string; }
 
 export interface Level {
   schemaVersion: number;
@@ -46,6 +51,7 @@ export interface Level {
   difficulty?: number;
   theme?: string;
   story?: LocalizedString;
+  product?: Product;
   shapeRule: 'RECT' | 'ANY' | 'SQUARE' | 'L';
   adjacency?: 4 | 8;
   coverage: 'FULL' | 'PARTIAL';

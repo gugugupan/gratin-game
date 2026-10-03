@@ -88,6 +88,7 @@ body {
 .board-area { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 12px; }
 
 .board {
+  position: relative;
   width: min(92vw, 66dvh, 540px);
   display: grid;
   grid-template-columns: repeat(var(--cols), 1fr);
@@ -289,3 +290,32 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .cell.stamp-a, .cell.stamp-b, .cell.celebrate .terrain, .cell.celebrate::before, .region-item.celebrate .avatar { animation: none; }
 }
+
+/* ── 配方树（第 4 章） ── */
+.recipe { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 10px 12px 12px; }
+.recipe-head { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: .06em; margin-bottom: 6px; }
+.recipe-body { position: relative; display: grid; gap: 22px; align-items: center; }
+.recipe-lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.recipe-lines path { fill: none; stroke-width: 2.5; transition: stroke .2s; }
+.recipe-lines text { font-size: 11px; font-weight: 800; fill: var(--text); }
+.recipe-col { display: flex; flex-direction: column; gap: 10px; justify-content: center; position: relative; }
+.recipe-node {
+  display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 2px; min-height: 44px;
+  background: #fff; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; font: inherit;
+  font-size: 11px; font-weight: 700; color: var(--text); line-height: 1.2; text-align: center;
+}
+.recipe-node.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+.recipe-product {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px;
+  border: 2px dashed var(--line-strong); border-radius: 12px; font-size: 12px; font-weight: 800; text-align: center;
+  filter: grayscale(.85); opacity: .7; transition: filter .3s, opacity .3s, border-color .3s;
+}
+.recipe-product img { width: 40px; height: 40px; }
+.recipe-product.done { filter: none; opacity: 1; border: 2px solid #c98d5a; background: #fff8ef; animation: pop .4s cubic-bezier(.2,1.3,.5,1); }
+
+.flow-overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 2; }
+.flow-path { fill: none; stroke: rgba(255,255,255,.85); stroke-width: 3; stroke-dasharray: 2 7; stroke-linecap: round; }
+.flow-product { opacity: 0; transform-box: fill-box; transform-origin: center; animation: product-pop .6s cubic-bezier(.2,1.5,.5,1) both; filter: drop-shadow(0 3px 4px rgba(0,0,0,.3)); }
+@keyframes product-pop { from { opacity: 0; transform: scale(.3); } to { opacity: 1; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .flow-overlay image { display: none; } .flow-product { display: inline; animation: none; opacity: 1; } }
+.cell.hl-zone { background-image: repeating-linear-gradient(135deg, rgba(220,38,38,.16) 0 4px, transparent 4px 10px) !important; }

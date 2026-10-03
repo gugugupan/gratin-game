@@ -8,12 +8,18 @@ export const TERRAIN_STYLE: Record<string, { bg: string }> = {
   iron: { bg: '#e4e8ea' },
   farmland: { bg: '#f4ecd4' },
   building: { bg: '#e6e9ee' },
+  coal: { bg: '#e2e1df' },
+  copper: { bg: '#f6e4d8' },
+  cotton: { bg: '#e8eedf' },
+  pasture: { bg: '#e3f1d6' },
 };
 
 // 地形/资源与角色图像：Microsoft Fluent Emoji（Flat 风格，MIT），见 public/tiles/LICENSE.txt
 const TILE_BASE = `${import.meta.env.BASE_URL}tiles/`;
-const TERRAIN_IMAGES = new Set(['forest', 'mountain', 'lake', 'gold', 'iron', 'farmland', 'building']);
-const ROLE_IMAGES = new Set(['farmer', 'rancher', 'miner', 'forester', 'developer', 'crown', 'house', 'fisher', 'blacksmith', 'captain']);
+const TERRAIN_IMAGES = new Set(['forest', 'mountain', 'lake', 'gold', 'iron', 'farmland', 'building', 'coal', 'copper', 'cotton', 'pasture']);
+const ROLE_IMAGES = new Set(['farmer', 'rancher', 'miner', 'forester', 'developer', 'crown', 'house', 'fisher', 'blacksmith', 'captain',
+  'collier', 'factory', 'spinner', 'dyer', 'tallow', 'threader', 'chandler', 'gearwright', 'brazier',
+  'clockmaker', 'weaver', 'toolmaker', 'carpenter', 'umbrella', 'tailor']);
 
 export function TerrainIcon({ tag }: { tag: string }) {
   if (!TERRAIN_IMAGES.has(tag)) return null; // plain 无图形

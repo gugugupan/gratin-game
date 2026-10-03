@@ -3,6 +3,7 @@ import { useGame, useValidation } from '../state/store';
 import { Cell } from './Cell';
 import { TERRAIN_STYLE } from './icons';
 import { at, seaCoords } from './sea';
+import { FlowOverlay } from './FlowOverlay';
 
 interface Drag { ax: number; ay: number; cx: number; cy: number; }
 interface Stamp { ids: Set<number>; ax: number; ay: number; odd: boolean; }
@@ -34,7 +35,7 @@ export function Board() {
 
   // 选中区域 → 相关格高亮（含/不含 cell、含/不含/接触 tag）
   const highlight = useMemo(() => {
-    const m = new Map<number, 'pos' | 'neg'>();
+    const m = new Map<number, 'pos' | 'neg' | 'zone'>();
     const region = level.regions.find((r) => r.id === selectedRegion);
     if (!region) return m;
     const tagCells = (tag: string) => level.board.cells.filter((c) => (c.tags || []).includes(tag));
@@ -46,6 +47,13 @@ export function Board() {
         tagCells(p.tag).forEach((cc) => m.set(cc.id, m.get(cc.id) ?? 'pos'));
       else if (c.type === 'MUST_NOT_CONTAIN_TAG' || c.type === 'MUST_NOT_TOUCH_TAG')
         tagCells(p.tag).forEach((cc) => m.set(cc.id, 'neg'));
+      else if (c.type === 'NO_TAG_WITHIN') {
+        // 污染范围：禁用地形本身标红，它周围 dist 格内（本区域不能伸进去的地方）画斜线
+        const bad = tagCells(p.tag);
+        bad.forEach((cc) => m.set(cc.id, 'neg'));
+        for (const cc of level.board.cells)
+          if (!m.has(cc.id) && bad.some((b) => Math.abs(b.x - cc.x) + Math.abs(b.y - cc.y) <= p.dist)) m.set(cc.id, 'zone');
+      }
     }
     return m;
   }, [level, selectedRegion]);
@@ -116,6 +124,7 @@ export function Board() {
       onPointerMove={onPointerMove}
     >
       {seaCoords(level).map(([x, y]) => <div key={`sea-${x}-${y}`} className="sea" style={at(x, y)} />)}
+      {won && level.product ? <FlowOverlay level={level} assignment={assignment} board={boardRef.current} /> : null}
       {ordered.map((c) => {
         const rid = assignment[c.id];
         const mainTag = (c.tags || []).find((tg) => tg !== 'plain') ?? null;

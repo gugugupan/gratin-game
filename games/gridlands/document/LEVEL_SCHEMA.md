@@ -57,6 +57,8 @@
 | `theme` | string | — | 关卡氛围键（页面底色、棋盘边框、故事卡插图），取值见 `web/src/components/themes.ts`；缺省 `meadow` |
 | `story` | LocalizedString | — | 关卡背景故事，游玩页棋盘上方的卡片显示 |
 
+> 第 4 章：region 可带 `facility`（`gather` 采集 / `factory` 制造），关卡可带 `product: { name, icon, goal }`（goal = 产出成品的区域）。新条件：`SUPPLIED_BY { region, tag?, value? }`（本设施挨着供料设施，且供料设施里正好 value 格 tag）、`EXCLUSIVE_TO { region }`（只挨着这一家制造设施）、`NO_TAG_WITHIN { tag, dist }`（曼哈顿距离 dist 内不能有该地形）。
+
 > 不规则地图：`board.cells` 里缺失的 (x,y) 在界面上画成海。带 `fixedRegion` 的格子开局即归属该区域，界面上显示一面小旗。
 | `shapeRule` | enum | ✓ | `RECT`(MVP) / `ANY` / `SQUARE` / `L` |
 | `adjacency` | 4\|8 | — | 区域连通判定，默认 `4` |

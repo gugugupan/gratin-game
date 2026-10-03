@@ -5,6 +5,9 @@
 //   node tools/generate-level.mjs show   W H K SEED       # 打印该种子的地图、答案和条件
 //   选项：--sea=N 切 N 块海做海岸线；--noblock 不放湖/山障碍；--dir 允许方位线索；--flags=N 至少保留 N 面营地旗；--mindir=N 至少保留 N 条方位线索；--maxshare=0.3 单个区域最多占地图的比例
 //   （地图里 ~ 是海，* 是营地旗所在格）
+//   node tools/generate-level.mjs factory RECIPE W H FROM TO   # 第 4 章：按 recipes-ch4.mjs 的配方树搜种子
+//   node tools/generate-level.mjs factoryshow RECIPE W H SEED
+//   node tools/generate-level.mjs factoryjs RECIPE W H SEED      # 输出可粘进 gen-chapter4.mjs 的代码
 import { solve, validate, buildIndex, localCandidates } from '../web/src/core/engine.js';
 import { deduce } from './deduce.mjs';
 
@@ -26,7 +29,7 @@ function partition(W, H, k) {
   return rects.every((r) => r.w * r.h >= 2) ? rects : null;
 }
 
-const RES = ['gold', 'iron', 'forest', 'farmland', 'building'];
+const RES = ['gold', 'iron', 'forest', 'farmland', 'building', 'coal', 'copper', 'cotton', 'pasture'];
 
 // sea：额外切出几块贴着地图边缘的矩形当作海（这些格子不存在），做出不规则海岸线
 export function generate({ W, H, k, blockedRect = true, sea = 0, maxShare = 1, res = { gold: 3, iron: 2, forest: 4, farmland: 3, building: 2 }, s }) {
@@ -124,12 +127,14 @@ const good = (lv) => { const s = solve(lv, { maxSolutions: 2, maxNodes: 200000 }
 
 // 贪心删条件：保持唯一解 + 可推理；优先保留权重高（数量类）的
 // opts.direction / opts.flags：加入方位、预置旗线索；opts.minFlags：至少保留几面旗
+// opts.extra：额外的候选线索（第 4 章的配方条件）；带 keep: true 的永远不删
 export function minimize(level, truth, opts = {}) {
-  let list = truths(level, truth, opts);
+  let list = [...truths(level, truth, opts), ...(opts.extra || [])];
   let lv = assemble(level, list);
   if (!good(lv)) return null;
   const order = shuffle(list).sort((a, b) => a.w - b.w + (rnd() - 0.5) * 1.5);
   for (const item of order) {
+    if (item.keep) continue;
     const trial = list.filter((x) => x !== item);
     const tl = assemble(level, trial);
     const flagged = new Set(trial.filter((x) => x.fix).map((x) => x.rid));
@@ -147,8 +152,87 @@ export function minimize(level, truth, opts = {}) {
 }
 
 const resFor = (W, H) => ({ gold: Math.round(W * H / 14), iron: Math.round(W * H / 18), forest: Math.round(W * H / 10), farmland: Math.round(W * H / 12), building: Math.round(W * H / 18) });
-const SYM = { plain: '.', forest: 'F', lake: 'L', mountain: 'M', gold: 'G', iron: 'I', farmland: 'A', building: 'B' };
+const SYM = { plain: '.', forest: 'F', lake: 'L', mountain: 'M', gold: 'G', iron: 'I', farmland: 'A', building: 'B', coal: 'C', copper: 'U', cotton: 'T', pasture: 'P' };
 const fmt = (c) => c.type + (c.params ? ' ' + Object.values(c.params).join(' ') : '');
+
+// ── 第 4 章：先定配方树，再找能装下它的切法 ─────────────────────────
+// recipe.nodes：{ id, name, icon, facility: 'gather'|'factory', tag?, count?: [min,max], inputs?: [nodeId] }
+// recipe.extras：普通区域（居民、农场…）；recipe.pollution：[{ node, tag, dist }]
+export function generateFactory({ W, H, recipe, s, scatter = {}, maxShare = 1 }) {
+  seed = s;
+  const nodes = recipe.nodes, extras = recipe.extras || [];
+  const parts = partition(W, H, nodes.length + extras.length);
+  if (!parts || parts.some((p) => p.w * p.h > maxShare * W * H)) return null;
+  const touch = (a, b) => (a.x + a.w === b.x || b.x + b.w === a.x) && a.y < b.y + b.h && b.y < a.y + a.h
+    || (a.y + a.h === b.y || b.y + b.h === a.y) && a.x < b.x + b.w && b.x < a.x + a.w;
+  const edges = nodes.flatMap((n) => (n.inputs || []).map((i) => [i, n.id]));
+  const factories = nodes.filter((n) => n.facility === 'factory').map((n) => n.id);
+  // 回溯：给每个配方节点挑一块矩形，配方连线必须相邻；采集设施不挨着别的工厂（这样独占供料成立）
+  const order = shuffle(parts.map((_, i) => i));
+  const pick = new Map();
+  const used = new Set();
+  const okSoFar = () => edges.every(([a, b]) => !pick.has(a) || !pick.has(b) || touch(parts[pick.get(a)], parts[pick.get(b)]))
+    && nodes.filter((n) => n.facility === 'gather' && pick.has(n.id)).every((n) => {
+      const mine = parts[pick.get(n.id)];
+      const consumers = edges.filter(([a]) => a === n.id).map(([, b]) => b);
+      return factories.every((f) => consumers.includes(f) || !pick.has(f) || !touch(mine, parts[pick.get(f)]));
+    });
+  const bt = (i) => {
+    if (i === nodes.length) return true;
+    for (const pi of order) {
+      if (used.has(pi)) continue;
+      const n = nodes[i];
+      if (n.facility === 'gather' && parts[pi].w * parts[pi].h < (n.count?.[0] ?? 1) + 1) continue;
+      pick.set(n.id, pi); used.add(pi);
+      if (okSoFar() && bt(i + 1)) return true;
+      pick.delete(n.id); used.delete(pi);
+    }
+    return false;
+  };
+  if (!bt(0)) return null;
+  const extraParts = parts.map((_, i) => i).filter((i) => !used.has(i));
+  const grid = Array.from({ length: H }, () => Array(W).fill('plain'));
+  const cellsIn = (p) => { const a = []; for (let y = p.y; y < p.y + p.h; y++) for (let x = p.x; x < p.x + p.w; x++) a.push([x, y]); return a; };
+  const counts = {};
+  // 采集设施里放对应资源
+  for (const n of nodes.filter((n) => n.facility === 'gather')) {
+    const free = shuffle(cellsIn(parts[pick.get(n.id)]));
+    const [lo, hi] = n.count || [1, 1];
+    const k = Math.min(free.length - 1, lo + Math.floor(rnd() * (hi - lo + 1)));
+    counts[n.id] = k;
+    for (let i = 0; i < k; i++) { const [x, y] = free.pop(); grid[y][x] = n.tag; }
+  }
+  // 其他资源随机撒在普通区域和工厂里（包括诱饵矿点）
+  const otherCells = shuffle([...extraParts.flatMap((i) => cellsIn(parts[i])), ...factories.flatMap((f) => cellsIn(parts[pick.get(f)]))]);
+  for (const [tag, k] of Object.entries(scatter)) for (let i = 0; i < k && otherCells.length; i++) { const [x, y] = otherCells.pop(); grid[y][x] = tag; }
+  const cells = []; let id = 1;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) cells.push({ id: id++, x, y, tags: [grid[y][x]], assignable: true, fixedRegion: null });
+  const nodeRid = new Map(nodes.map((n, i) => [n.id, 'R' + (i + 1)]));
+  const regions = [
+    ...nodes.map((n) => ({ id: nodeRid.get(n.id), rect: parts[pick.get(n.id)], facility: n.facility, owner: { name: n.name, color: n.color, icon: n.icon, avatar: null }, constraints: [] })),
+    ...extras.map((e, i) => ({ id: 'R' + (nodes.length + i + 1), rect: parts[extraParts[i]], owner: { name: e.name, color: e.color, icon: e.icon, avatar: null }, constraints: [] })),
+  ];
+  const level = { schemaVersion: 1, id: 'gen', shapeRule: 'RECT', adjacency: 4, coverage: 'FULL', board: { width: W, height: H, cells }, regions, globalConstraints: [] };
+  const truth = new Map(regions.map((r) => [r.id, cellsIn(r.rect).map(([x, y]) => y * W + x + 1)]));
+  // 配方条件：供料（含产量）必留；独占供料可删；污染范围必留（不成立就换种子）
+  const extra = [];
+  for (const [a, b] of edges) {
+    const from = nodes.find((n) => n.id === a);
+    const c = from.facility === 'gather'
+      ? { type: 'SUPPLIED_BY', params: { region: nodeRid.get(a), tag: from.tag, value: counts[a] } }
+      : { type: 'SUPPLIED_BY', params: { region: nodeRid.get(a) } };
+    extra.push({ rid: nodeRid.get(b), c, w: 9, keep: true });
+  }
+  for (const n of nodes.filter((n) => n.facility === 'gather')) {
+    const consumers = edges.filter(([x]) => x === n.id).map(([, y]) => y);
+    if (consumers.length === 1) extra.push({ rid: nodeRid.get(n.id), c: { type: 'EXCLUSIVE_TO', params: { region: nodeRid.get(consumers[0]) } }, w: 2 });
+  }
+  for (const pol of recipe.pollution || []) extra.push({ rid: nodeRid.get(pol.node), c: { type: 'NO_TAG_WITHIN', params: { tag: pol.tag, dist: pol.dist } }, w: 9, keep: true });
+  const lvCheck = structuredClone(level);
+  for (const e of extra) lvCheck.regions.find((r) => r.id === e.rid).constraints.push(e.c);
+  if (!validate(lvCheck, truth).constraints.every((c) => c.satisfied)) return null;
+  return { level, truth, extra, product: { ...recipe.product, goal: nodeRid.get(nodes.find((n) => n.goal).id) } };
+}
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const args = process.argv.slice(2);
@@ -158,7 +242,45 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const gopts = { sea: flag('sea', 0), blockedRect: !flag('noblock', false), maxShare: flag('maxshare', 1) };
   const mopts = { direction: flag('dir', false) || flag('mindir', 0) > 0, flags: flag('flags', 0) > 0, minFlags: flag('flags', 0), minDir: flag('mindir', 0) };
   const make = (s) => { const g = generate({ W, H, k, res: resFor(W, H), s, ...gopts }); return g && minimize(g.level, g.truth, mopts); };
-  if (cmd === 'search') {
+  if (cmd === 'factory' || cmd === 'factoryshow' || cmd === 'factoryjs') {
+    const { RECIPES } = await import('./recipes-ch4.mjs');
+    const recipe = RECIPES[args[1]];
+    const [FW, FH, fa, fb] = args.slice(2).filter((x) => !x.startsWith('--')).map(Number);
+    const makeF = (s) => { const g = generateFactory({ W: FW, H: FH, recipe, s, scatter: recipe.scatter, maxShare: flag('maxshare', 1) }); if (!g) return null; const m = minimize(g.level, g.truth, { extra: g.extra }); return m && { ...m, product: g.product }; };
+    if (cmd === 'factory') {
+      for (let s = fa; s < fb; s++) {
+        const m = makeF(s); if (!m || m.unarySolved) continue;
+        console.log(JSON.stringify({ seed: s, rounds: m.d.rounds, clues: m.n, maxPer: m.maxPer }));
+      }
+    } else if (cmd === 'factoryjs') {
+      // 输出 gen-chapter4.mjs 用的 level({...}) 代码块（id/名字/故事留给手写）
+      const m = makeF(fa);
+      if (!m) { console.log('该种子没有合格关卡'); process.exit(1); }
+      const js = (v) => JSON.stringify(v).replace(/"([a-zA-Z_]+)":/g, '$1: ').replace(/"/g, "'").replace(/,/g, ', ').replace(/:  /g, ': ');
+      const byXY = new Map(m.lv.board.cells.map((c) => [`${c.x},${c.y}`, c]));
+      const rows = [];
+      for (let y = 0; y < FH; y++) { const row = []; for (let x = 0; x < FW; x++) { const c = byXY.get(`${x},${y}`); row.push(c ? SYM[c.tags[0]] : '~'); } rows.push('    ' + row.join(' ')); }
+      console.log(`  // recipe ${args[1]}, ${FW}x${FH}, seed ${fa}, rounds ${m.d.rounds}`);
+      console.log(`  product: ${js(m.product)},`);
+      console.log('  map: `\n' + rows.join('\n') + '`,');
+      console.log('  regions: [');
+      for (const r of m.lv.regions) console.log(`    { id: '${r.id}', ${r.facility ? `facility: '${r.facility}', ` : ''}owner: ${js(r.owner)}, constraints: ${js(r.constraints)} },`);
+      console.log('  ],');
+      console.log(`  globalConstraints: ${js(m.lv.globalConstraints)},`);
+    } else {
+      const m = makeF(fa);
+      if (!m) { console.log('该种子没有合格关卡'); process.exit(1); }
+      const sol = solve(m.lv, { maxSolutions: 1 })[0]; const own = {};
+      sol.forEach((r) => r.cells.forEach((c) => (own[c] = r.region.slice(1))));
+      console.log(`seed ${fa} ${FW}x${FH} rounds=${m.d.rounds} clues=${m.n}`);
+      for (let y = 0; y < FH; y++) {
+        const row = m.lv.board.cells.filter((c) => c.y === y);
+        console.log('  ' + row.map((c) => SYM[c.tags[0]] ?? c.tags[0][0].toUpperCase()).join('') + '    ' + row.map((c) => own[c.id] || '-').join(''));
+      }
+      for (const r of m.lv.regions) console.log(`  ${r.id} ${r.owner.name.zh}${r.facility ? '[' + r.facility + ']' : ''}: ${r.constraints.map(fmt).join(' | ')}`);
+      console.log(`  global: ${m.lv.globalConstraints.map(fmt).join(' | ')}`);
+    }
+  } else if (cmd === 'search') {
     const found = [];
     for (let s = a; s < b; s++) {
       const m = make(s); if (!m || m.unarySolved || m.maxPer > 3) continue;

@@ -123,6 +123,25 @@ export function evalConstraint(ix, regionsMap, regionId, c) {
       if (p.dir === 'east') return ca.x > cb.x;
       return false;
     }
+    case 'SUPPLIED_BY': {
+      // 流水线：本设施必须挨着供料设施；给了 tag/value 时，供料设施里该资源的格数必须正好等于 value
+      const supplier = cellsOf(ix, p.region, regionsMap);
+      if (!regionsTouch(ix, myCells, new Set(regionsMap.get(p.region) || []))) return false;
+      if (!p.tag) return true;
+      const n = supplier.filter((c2) => (c2.tags || []).includes(p.tag)).length;
+      return p.value == null ? n > 0 : n === p.value;
+    }
+    case 'EXCLUSIVE_TO': {
+      // 独占供料：挨着指定的设施，且不挨着其他任何制造设施
+      if (!regionsTouch(ix, myCells, new Set(regionsMap.get(p.region) || []))) return false;
+      return ix.level.regions.every((r) => r.id === regionId || r.id === p.region || r.facility !== 'factory'
+        || !regionsTouch(ix, myCells, new Set(regionsMap.get(r.id) || [])));
+    }
+    case 'NO_TAG_WITHIN': {
+      // 污染范围：本区域任一格的曼哈顿距离 dist 以内（含自身）不能有该地形
+      const targets = ix.level.board.cells.filter((c2) => (c2.tags || []).includes(p.tag));
+      return !myCells.some((m) => targets.some((t) => Math.abs(t.x - m.x) + Math.abs(t.y - m.y) <= p.dist));
+    }
     case 'ONLY_ONE_CONTAINS':
       return all.filter((r) => cellsOf(ix, r, regionsMap).some((c2) => (c2.tags || []).includes(p.tag))).length === 1;
     case 'ONLY_ONE_TOUCHES':
@@ -224,7 +243,7 @@ function rectCandidates(ix, region) {
 const LOCAL_TYPES = new Set([
   'AREA_EQ', 'AREA_GE', 'AREA_LE', 'MUST_CONTAIN_CELL', 'MUST_NOT_CONTAIN_CELL',
   'MUST_CONTAIN_TAG', 'MUST_NOT_CONTAIN_TAG', 'TAG_COUNT_EQ', 'TAG_COUNT_GE', 'TAG_COUNT_LE',
-  'MUST_TOUCH_TAG', 'MUST_NOT_TOUCH_TAG', 'MUST_ON_EDGE', 'MUST_NOT_ON_CORNER',
+  'MUST_TOUCH_TAG', 'MUST_NOT_TOUCH_TAG', 'MUST_ON_EDGE', 'MUST_NOT_ON_CORNER', 'NO_TAG_WITHIN',
 ]);
 
 /** 区域的候选矩形，已剔除违反本区域局部条件的（不改变解集，只缩小搜索） */
