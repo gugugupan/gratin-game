@@ -161,44 +161,25 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px 24px; }
 .mail:active { transform: translateY(2px); box-shadow: 0 1px 0 #d99a1e; }
 .mail-address { font-weight: 700; color: var(--crust-soft); user-select: all; word-break: break-all; }
 
-.privacy {
-  max-width: 1120px;
-  margin: 40px auto 0;
-  padding: 0 24px;
-  scroll-margin-top: 16px;
-}
-.privacy details { max-width: 760px; }
-.privacy summary {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 44px;
-  cursor: pointer;
-  list-style: none;
-}
-.privacy summary::-webkit-details-marker { display: none; }
-.privacy summary::before {
-  content: "";
-  width: 10px;
-  height: 10px;
-  border-right: 3px solid var(--terracotta);
-  border-bottom: 3px solid var(--terracotta);
-  transform: rotate(-45deg);
-  transition: transform 0.15s;
-}
-.privacy details[open] summary::before { transform: rotate(45deg); }
-.privacy summary h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; line-height: 1.3; }
-.privacy-body { padding: 8px 0 0; font-size: 14px; color: var(--crust-soft); }
+.top.sub { grid-template-areas: "brand lang"; }
+.home img { width: min(280px, 100%); }
+
+.policy { padding-top: 24px; }
+.policy > * { max-width: 760px; }
+.back { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; font-weight: 700; }
+.back::before { content: "←"; margin-right: 6px; }
+.policy h1 { margin: 4px 0 16px; font-family: var(--display); font-weight: 400; font-size: 30px; line-height: 1.3; }
+.privacy-body { font-size: 15px; color: var(--crust-soft); }
 .privacy-body p { margin: 0 0 14px; }
-.privacy-body h3 { margin: 22px 0 6px; font-size: 15px; font-weight: 900; color: var(--crust); }
+.privacy-body h2 { margin: 28px 0 8px; font-size: 17px; font-weight: 900; color: var(--crust); }
 .privacy-body a { overflow-wrap: anywhere; }
-.table-wrap { overflow-x: auto; margin: 0 0 14px; }
-.privacy table { width: 100%; min-width: 480px; border-collapse: collapse; background: var(--milk); border-radius: 12px; overflow: hidden; }
-.privacy th, .privacy td { padding: 10px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
-.privacy thead th { background: var(--cheese-light); color: var(--crust); font-weight: 900; }
-.privacy tbody th { color: var(--crust); font-weight: 700; }
-.privacy tbody tr:last-child > * { border-bottom: none; }
-.privacy .enacted { margin-top: 20px; }
+.table-wrap { margin: 0 0 14px; }
+.privacy-body table { width: 100%; border-collapse: collapse; background: var(--milk); border-radius: 12px; overflow: hidden; }
+.privacy-body th, .privacy-body td { padding: 10px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+.privacy-body thead th { background: var(--cheese-light); color: var(--crust); font-weight: 900; }
+.privacy-body tbody th { color: var(--crust); font-weight: 700; }
+.privacy-body tbody tr:last-child > * { border-bottom: none; }
+.privacy-body .enacted { margin-top: 28px; }
 
 .foot {
   max-width: 1120px;
@@ -222,18 +203,19 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px 24px; }
   main { padding: 24px 16px; }
   .feedback { padding: 0 16px; }
   .feedback h2 { font-size: 22px; }
-  .privacy { padding: 0 16px; }
-  .privacy table { min-width: 0; }
-  .privacy thead { display: none; }
-  .privacy tr { display: block; padding: 10px 0; border-bottom: 1px solid var(--line); }
-  .privacy tbody tr:last-child { border-bottom: none; }
-  .privacy th, .privacy td { display: block; padding: 2px 14px; border-bottom: none; }
-  .privacy td { margin-top: 6px; }
-  .privacy td::before { content: attr(data-label); display: block; font-size: 12px; font-weight: 700; color: var(--crust); }
+  .top.sub { grid-template-areas: "brand lang"; grid-template-columns: 1fr auto; }
+  .top.sub .lang { justify-self: end; }
+  .policy h1 { font-size: 24px; }
+  .privacy-body thead { display: none; }
+  .privacy-body tr { display: block; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .privacy-body tbody tr:last-child { border-bottom: none; }
+  .privacy-body th, .privacy-body td { display: block; padding: 2px 14px; border-bottom: none; }
+  .privacy-body td { margin-top: 6px; }
+  .privacy-body td::before { content: attr(data-label); display: block; font-size: 12px; font-weight: 700; color: var(--crust); }
   .foot { padding: 24px 16px 40px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .card, .cover img, .privacy summary::before { transition: none; }
+  .card, .cover img { transition: none; }
   .card:hover, .card:hover .cover img { transform: none; }
 }

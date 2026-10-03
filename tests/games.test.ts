@@ -23,6 +23,11 @@ describe("games.json", () => {
     }
   });
 
+  it("keeps game build ids clear of site pages", () => {
+    const builds = JSON.parse(fs.readFileSync(path.join(import.meta.dirname, "../games/builds.json"), "utf8"));
+    expect(Object.keys(builds)).not.toContain("privacy");
+  });
+
   it("has a cover file for every game", () => {
     for (const g of GAMES) {
       expect(fs.existsSync(path.join(import.meta.dirname, "../public", g.cover)), g.cover).toBe(true);
