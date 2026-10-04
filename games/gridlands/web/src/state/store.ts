@@ -51,7 +51,7 @@ interface GameState {
   locale: Locale;
   passed: string[];
 
-  loadLevel: (level: Level) => void;
+  loadLevel: (level: Level, withSolution?: boolean) => void;
   markPassed: (id: string) => void;
   selectRegion: (regionId: string) => void;
   assignCells: (cellIds: number[]) => void; // 把这些格分配给当前选中区域
@@ -63,6 +63,12 @@ interface GameState {
 
 const blockedSet = (level: Level) =>
   new Set(level.board.cells.filter((c) => c.assignable === false).map((c) => c.id));
+
+function solutionAssignment(level: Level): Assignment {
+  const a: Assignment = {};
+  for (const s of level.solution ?? []) for (const id of s.cells) a[id] = s.region;
+  return a;
+}
 
 function freshAssignment(level: Level): Assignment {
   // 应用 fixedRegion 预置线索
@@ -79,8 +85,8 @@ export const useGame = create<GameState>((set, get) => ({
   locale: initialLocale,
   passed: initialPassed,
 
-  loadLevel: (level) =>
-    set({ level, assignment: freshAssignment(level), selectedRegion: level.regions[0]?.id ?? null, history: [] }),
+  loadLevel: (level, withSolution = false) =>
+    set({ level, assignment: withSolution && level.solution ? solutionAssignment(level) : freshAssignment(level), selectedRegion: level.regions[0]?.id ?? null, history: [] }),
 
   markPassed: (id) => {
     const { passed } = get();

@@ -18,12 +18,14 @@ export function levelIndex(id: string): number {
 }
 
 // 网址带 ?unlock=all（放在 # 之前，或写在 #/levels?unlock=all 里）时全部关卡可玩；不改动通关记录
-export const UNLOCK_ALL = [location.search, location.hash.split('?')[1] ?? '']
-  .some((q) => new URLSearchParams(q).get('unlock') === 'all');
+const QUERIES = [location.search, location.hash.split('?')[1] ?? ''].map((q) => new URLSearchParams(q));
+export const UNLOCK_ALL = QUERIES.some((q) => q.get('unlock') === 'all');
+// 网址带 ?answer=1：打开关卡时直接填好标准答案（也会解锁该关）；答案模式下不记录通关
+export const SHOW_ANSWER = QUERIES.some((q) => ['1', 'true', 'yes'].includes(q.get('answer') ?? ''));
 
 // 顺序解锁：第 1 关默认解锁；其余需上一关已通关
 export function isUnlocked(id: string, passed: string[]): boolean {
-  if (UNLOCK_ALL) return true;
+  if (UNLOCK_ALL || SHOW_ANSWER) return true;
   const i = levelIndex(id);
   if (i <= 0) return true;
   return passed.includes(LEVELS[i - 1].id);

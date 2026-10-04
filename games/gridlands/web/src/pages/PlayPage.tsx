@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Navigate, useParams, Link } from 'react-router-dom';
 import { useGame, useValidation } from '../state/store';
-import { getLevel, isUnlocked, nextLevel } from '../levels';
+import { SHOW_ANSWER, getLevel, isUnlocked, nextLevel } from '../levels';
 import { Board } from '../components/Board';
 import { RegionList } from '../components/RegionList';
 import { ConditionPanel } from '../components/ConditionPanel';
@@ -29,12 +29,12 @@ export function PlayPage() {
   const won = ready && (validation?.ok ?? false);
 
   useEffect(() => {
-    if (level && unlocked) loadLevel(level);
+    if (level && unlocked) loadLevel(level, SHOW_ANSWER);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, unlocked]);
 
   useEffect(() => {
-    if (won && level) markPassed(level.id);
+    if (won && level && !SHOW_ANSWER) markPassed(level.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [won]);
 
@@ -52,6 +52,7 @@ export function PlayPage() {
 
       <main className="layout">
         <section className="board-area">
+          {SHOW_ANSWER && <div className="answer-banner" role="status">{t(locale, 'answerMode')}</div>}
           <StoryCard key={level.id} level={level} locale={locale} />
           {ready ? <Board /> : null}
           {won && (

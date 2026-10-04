@@ -364,3 +364,4 @@ body {
 .basics-how { margin: 8px 0 0; font-size: 12px; line-height: 1.6; color: var(--muted); }
 .condition-panel.basics { border-color: #bcdcb9; }
 .cell.hl-reach { background-image: repeating-linear-gradient(135deg, rgba(46,158,79,.18) 0 4px, transparent 4px 10px) !important; }
+.answer-banner { width: min(92vw, 540px); padding: 10px 14px; border-radius: 12px; background: #fff4d6; border: 1px solid #f0c75e; color: #7a5a12; font-size: 13px; font-weight: 700; }

@@ -14,6 +14,7 @@
 - 关卡编号 2026-10-03 改过：旧 2-1/2-2/3-1/4-1 → 1-3/1-4/1-5/1-6；`state/store.ts` 里有一次性的通关进度迁移（`rlp-progress-version`）。
 - 每关有 `theme`（氛围色 + 故事卡插图）和 `story`（背景故事）。
 - 网址带 `?unlock=all`（如 `/gridlands/?unlock=all#/levels`，或 `#/levels?unlock=all`）时所有关卡可玩，不写入通关记录。
+- 网址带 `?answer=1`（如 `/gridlands/?answer=1#/levels/3-5`）时打开关卡直接填好标准答案，同时解锁该关；答案模式下不记录通关，顶部显示提示条。
 - 三页路由（介绍 / 关卡列表 / 游玩）；进度与**顺序解锁**存 localStorage。
 - 中日英三语 i18n（日语 2026-10-04 加入）；扁平 SVG 图标（地形 + 角色头像）；品牌 logo / favicon。
 
