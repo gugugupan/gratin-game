@@ -19,7 +19,8 @@ const TILE_BASE = `${import.meta.env.BASE_URL}tiles/`;
 const TERRAIN_IMAGES = new Set(['forest', 'mountain', 'lake', 'gold', 'iron', 'farmland', 'building', 'coal', 'copper', 'cotton', 'pasture']);
 const ROLE_IMAGES = new Set(['farmer', 'rancher', 'miner', 'forester', 'developer', 'crown', 'house', 'fisher', 'blacksmith', 'captain',
   'collier', 'factory', 'spinner', 'dyer', 'tallow', 'threader', 'chandler', 'gearwright', 'brazier',
-  'clockmaker', 'weaver', 'toolmaker', 'carpenter', 'umbrella', 'tailor']);
+  'clockmaker', 'weaver', 'toolmaker', 'carpenter', 'umbrella', 'tailor',
+  'power', 'substation', 'station', 'track', 'freight']);
 
 export function TerrainIcon({ tag }: { tag: string }) {
   if (!TERRAIN_IMAGES.has(tag)) return null; // plain 无图形

@@ -5,7 +5,7 @@
 //   3. 覆盖：某格只有一个区域还能盖到 → 该区域必须含它；某区域所有剩余矩形都含某格 → 其他区域不能含它
 import { buildIndex, evalConstraint, localCandidates, validate } from '../web/src/core/engine.js';
 
-const PAIR_REGION = new Set(['MUST_TOUCH_REGION', 'MUST_NOT_TOUCH_REGION']);
+const PAIR_REGION = new Set(['MUST_TOUCH_REGION', 'MUST_NOT_TOUCH_REGION', 'WITHIN_REGION', 'FAR_FROM_REGION']);
 const PAIR_GLOBAL = new Set(['AREA_LARGER_THAN', 'AREA_EQUAL_TO', 'DIRECTION_OF']);
 const ONLY_ONE = new Set(['ONLY_ONE_CONTAINS', 'ONLY_ONE_TOUCHES']);
 

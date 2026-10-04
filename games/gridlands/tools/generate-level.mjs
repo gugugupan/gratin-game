@@ -4,7 +4,7 @@
 //   node tools/generate-level.mjs search W H K FROM TO   # 搜种子，按推理轮数排序输出
 //   node tools/generate-level.mjs show   W H K SEED       # 打印该种子的地图、答案和条件
 //   node tools/generate-level.mjs js     W H K SEED       # 输出可粘进 gen-chapterN.mjs 的代码（OWNER 替换成角色）
-//   选项：--sea=N 切 N 块海做海岸线；--noblock 不放湖/山障碍；--dir 允许方位线索；--flags=N 至少保留 N 面营地旗；--mindir=N 至少保留 N 条方位线索；--maxshare=0.3 单个区域最多占地图的比例；--budget=N 计算量上限放大 N 倍；--keep=TYPE,... 这些条件类型尽量保留
+//   选项：--sea=N 切 N 块海做海岸线；--noblock 不放湖/山障碍；--dir 允许方位线索；--flags=N 至少保留 N 面营地旗；--mindir=N 至少保留 N 条方位线索；--maxshare=0.3 单个区域最多占地图的比例；--budget=N 计算量上限放大 N 倍；--keep=TYPE,... 这些条件类型尽量保留；--shapes 形状线索（长条/正方形）；--thin 多切出一格宽的长条；--distance 区域间距离线索；--hub 距离线索只指向最小的两个区域（电站/变电站）
 //   第 4 章额外选项：--loose 不强求采集设施只挨着自己的工厂；--nodecoy 不在别处撒配方资源当诱饵
 //   （地图里 ~ 是海，* 是营地旗所在格）
 //   node tools/generate-level.mjs factory RECIPE W H FROM TO   # 第 4 章：按 recipes-ch4.mjs 的配方树搜种子
@@ -19,14 +19,17 @@ const pick = (a) => a[Math.floor(rnd() * a.length)];
 const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
 // 随机「切蛋糕」：把 W×H 切成 k 个矩形
+// thin：切分时一半概率贴边切出一格宽的长条（铁路关用）
+let THIN = false;
 function partition(W, H, k) {
   let rects = [{ x: 0, y: 0, w: W, h: H }];
   let guard = 0;
   while (rects.length < k && guard++ < 200) {
     const i = Math.floor(rnd() * rects.length); const r = rects[i];
     const vert = r.w > r.h ? rnd() < 0.75 : rnd() < 0.25;
-    if (vert && r.w >= 2) { const c = 1 + Math.floor(rnd() * (r.w - 1)); rects.splice(i, 1, { ...r, w: c }, { ...r, x: r.x + c, w: r.w - c }); }
-    else if (!vert && r.h >= 2) { const c = 1 + Math.floor(rnd() * (r.h - 1)); rects.splice(i, 1, { ...r, h: c }, { ...r, y: r.y + c, h: r.h - c }); }
+    const cut = (n) => (THIN && rnd() < 0.5 ? (rnd() < 0.5 ? 1 : n - 1) : 1 + Math.floor(rnd() * (n - 1)));
+    if (vert && r.w >= 2) { const c = cut(r.w); rects.splice(i, 1, { ...r, w: c }, { ...r, x: r.x + c, w: r.w - c }); }
+    else if (!vert && r.h >= 2) { const c = cut(r.h); rects.splice(i, 1, { ...r, h: c }, { ...r, y: r.y + c, h: r.h - c }); }
   }
   return rects.every((r) => r.w * r.h >= 2) ? rects : null;
 }
@@ -110,6 +113,22 @@ export function truths(level, truth, opts = {}) {
   if (opts.flags) {
     // 预置营地旗：每个区域随机一格作为候选线索
     for (const r of level.regions) { const ids = truth.get(r.id); out.push({ rid: r.id, fix: ids[Math.floor(rnd() * ids.length)], w: 0 }); }
+  }
+  if (opts.shapes) for (const r of level.regions) for (const type of ['SHAPE_LINE', 'SHAPE_SQUARE']) {
+    const c = { type }; if (holds(level, truth, r.id, c)) out.push({ rid: r.id, c, w: 3 });
+  }
+  if (opts.distance) {
+    // 距离：两区域最小曼哈顿距离 d，给出「不超过 d 格」和（d≥2 时）「超过 d-1 格」
+    const ix3 = buildIndex(level);
+    const cellsOf = (rid) => truth.get(rid).map((id) => ix3.byId.get(id));
+    // opts.hub：「不超过 N 格」只指向两个最小的区域（发电站、变电站），做出供电网的结构
+    const hubs = opts.hub ? [...level.regions].sort((x, y) => truth.get(x.id).length - truth.get(y.id).length).slice(0, 2).map((r) => r.id) : null;
+    for (const a of level.regions) for (const b of level.regions) if (a.id !== b.id) {
+      let d = Infinity;
+      for (const m of cellsOf(a.id)) for (const o of cellsOf(b.id)) d = Math.min(d, Math.abs(m.x - o.x) + Math.abs(m.y - o.y));
+      if (d >= 2 && d <= 4 && (!hubs || hubs.includes(b.id))) out.push({ rid: a.id, c: { type: 'WITHIN_REGION', params: { region: b.id, dist: d } }, w: hubs ? 9 : 3 });
+      if (d >= 2) out.push({ rid: a.id, c: { type: 'FAR_FROM_REGION', params: { region: b.id, dist: d - 1 } }, w: 3 });
+    }
   }
   // opts.keepTypes：这些条件类型最后才删（想让某关突出某种规则时用）
   if (opts.keepTypes) for (const x of out) if (opts.keepTypes.includes(x.c?.type)) x.w = 9;
@@ -250,9 +269,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const [W, H, k, a, b] = args.slice(1).filter((x) => !x.startsWith('--')).map(Number);
   const flag = (name, dflt) => { const f = args.find((x) => x.startsWith(`--${name}`)); return f ? (f.includes('=') ? Number(f.split('=')[1]) : true) : dflt; };
   const gopts = { sea: flag('sea', 0), blockedRect: !flag('noblock', false), maxShare: flag('maxshare', 1) };
+  THIN = !!flag('thin', false);
   const keepArg = args.find((x) => x.startsWith('--keep='));
   const keepTypes = keepArg ? keepArg.split('=')[1].split(',') : undefined;
-  const mopts = { direction: flag('dir', false) || flag('mindir', 0) > 0, flags: flag('flags', 0) > 0, minFlags: flag('flags', 0), minDir: flag('mindir', 0), keepTypes, touchRegion: !!keepTypes?.includes('MUST_TOUCH_REGION') };
+  const mopts = { direction: flag('dir', false) || flag('mindir', 0) > 0, flags: flag('flags', 0) > 0, minFlags: flag('flags', 0), minDir: flag('mindir', 0), keepTypes, touchRegion: !!keepTypes?.includes('MUST_TOUCH_REGION'), shapes: flag('shapes', false), distance: flag('distance', false) || flag('hub', false), hub: flag('hub', false) };
   const make = (s) => { const g = generate({ W, H, k, res: resFor(W, H), s, ...gopts }); return g && minimize(g.level, g.truth, mopts); };
   if (cmd === 'factory' || cmd === 'factoryshow' || cmd === 'factoryjs') {
     const { RECIPES } = await import('./recipes-ch4.mjs');

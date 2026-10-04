@@ -34,6 +34,8 @@ export const THEMES: Record<string, Theme> = {
   lastnight: { bg: '#eeeef5', bg2: '#d9d9ea', frame: '#8e8fb5' },
   storm: { bg: '#e9eef2', bg2: '#cdd7e0', frame: '#6f8597' },
   clock: { bg: '#f4efe6', bg2: '#e5d9c3', frame: '#a08660' },
+  electric: { bg: '#f7f5e8', bg2: '#ece6c3', frame: '#c2a94a' },
+  railway: { bg: '#f1efec', bg2: '#ded8d0', frame: '#8a7a6a' },
 };
 
 export const DEFAULT_THEME = 'meadow';

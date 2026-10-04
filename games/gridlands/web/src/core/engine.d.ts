@@ -30,7 +30,8 @@ export type ConstraintType =
   | 'MUST_ON_EDGE' | 'MUST_NOT_ON_CORNER'
   | 'AREA_LARGER_THAN' | 'AREA_EQUAL_TO' | 'DIRECTION_OF'
   | 'ONLY_ONE_CONTAINS' | 'ONLY_ONE_TOUCHES'
-  | 'SUPPLIED_BY' | 'EXCLUSIVE_TO' | 'NO_TAG_WITHIN';
+  | 'SUPPLIED_BY' | 'EXCLUSIVE_TO' | 'NO_TAG_WITHIN'
+  | 'WITHIN_REGION' | 'FAR_FROM_REGION' | 'SHAPE_LINE' | 'SHAPE_SQUARE';
 
 export interface Constraint {
   type: ConstraintType;

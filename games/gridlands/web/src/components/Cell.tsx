@@ -8,7 +8,7 @@ export interface CellView {
   bg: string;
   fillColor?: string;     // 已归属区域的填充色
   blocked: boolean;
-  highlight?: 'pos' | 'neg' | 'zone';
+  highlight?: 'pos' | 'neg' | 'zone' | 'reach';
   preview: boolean;
   conflict: boolean;
   fixed?: boolean;

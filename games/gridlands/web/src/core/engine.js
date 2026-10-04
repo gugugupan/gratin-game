@@ -142,6 +142,20 @@ export function evalConstraint(ix, regionsMap, regionId, c) {
       const targets = ix.level.board.cells.filter((c2) => (c2.tags || []).includes(p.tag));
       return !myCells.some((m) => targets.some((t) => Math.abs(t.x - m.x) + Math.abs(t.y - m.y) <= p.dist));
     }
+    case 'WITHIN_REGION': case 'FAR_FROM_REGION': {
+      // 区域间距离 = 两区域格子之间最小的曼哈顿距离（挨着 = 1）
+      const other = cellsOf(ix, p.region, regionsMap);
+      if (!myCells.length || !other.length) return c.type === 'FAR_FROM_REGION';
+      let d = Infinity;
+      for (const m of myCells) for (const o of other) d = Math.min(d, Math.abs(m.x - o.x) + Math.abs(m.y - o.y));
+      return c.type === 'WITHIN_REGION' ? d <= p.dist : d > p.dist;
+    }
+    case 'SHAPE_LINE': case 'SHAPE_SQUARE': {
+      if (!myCells.length) return false;
+      const xs = myCells.map((m) => m.x), ys = myCells.map((m) => m.y);
+      const w = Math.max(...xs) - Math.min(...xs) + 1, h = Math.max(...ys) - Math.min(...ys) + 1;
+      return c.type === 'SHAPE_SQUARE' ? w === h : (w === 1 || h === 1) && myCells.length >= 2;
+    }
     case 'ONLY_ONE_CONTAINS':
       return all.filter((r) => cellsOf(ix, r, regionsMap).some((c2) => (c2.tags || []).includes(p.tag))).length === 1;
     case 'ONLY_ONE_TOUCHES':
@@ -243,7 +257,7 @@ function rectCandidates(ix, region) {
 const LOCAL_TYPES = new Set([
   'AREA_EQ', 'AREA_GE', 'AREA_LE', 'MUST_CONTAIN_CELL', 'MUST_NOT_CONTAIN_CELL',
   'MUST_CONTAIN_TAG', 'MUST_NOT_CONTAIN_TAG', 'TAG_COUNT_EQ', 'TAG_COUNT_GE', 'TAG_COUNT_LE',
-  'MUST_TOUCH_TAG', 'MUST_NOT_TOUCH_TAG', 'MUST_ON_EDGE', 'MUST_NOT_ON_CORNER', 'NO_TAG_WITHIN',
+  'MUST_TOUCH_TAG', 'MUST_NOT_TOUCH_TAG', 'MUST_ON_EDGE', 'MUST_NOT_ON_CORNER', 'NO_TAG_WITHIN', 'SHAPE_LINE', 'SHAPE_SQUARE',
 ]);
 
 /** 区域的候选矩形，已剔除违反本区域局部条件的（不改变解集，只缩小搜索） */

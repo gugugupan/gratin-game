@@ -37,7 +37,7 @@ export function Board() {
 
   // 选中区域 → 相关格高亮（含/不含 cell、含/不含/接触 tag）
   const highlight = useMemo(() => {
-    const m = new Map<number, 'pos' | 'neg' | 'zone'>();
+    const m = new Map<number, 'pos' | 'neg' | 'zone' | 'reach'>();
     const region = level.regions.find((r) => r.id === selectedRegion);
     if (!region) return m;
     const tagCells = (tag: string) => level.board.cells.filter((c) => (c.tags || []).includes(tag));
@@ -49,6 +49,16 @@ export function Board() {
         tagCells(p.tag).forEach((cc) => m.set(cc.id, m.get(cc.id) ?? 'pos'));
       else if (c.type === 'MUST_NOT_CONTAIN_TAG' || c.type === 'MUST_NOT_TOUCH_TAG')
         tagCells(p.tag).forEach((cc) => m.set(cc.id, 'neg'));
+      else if (c.type === 'WITHIN_REGION' || c.type === 'FAR_FROM_REGION') {
+        // 距离规则：按目标区域当前已分配的格子，标出够得着（绿）或必须避开（红）的范围
+        const target = Object.entries(assignment).filter(([, rid]) => rid === p.region).map(([cid]) => level.board.cells.find((cc) => cc.id === Number(cid))!);
+        for (const cc of level.board.cells) {
+          if (m.has(cc.id) || !target.length) continue;
+          const near = target.some((t) => Math.abs(t.x - cc.x) + Math.abs(t.y - cc.y) <= p.dist);
+          if (c.type === 'WITHIN_REGION' && near) m.set(cc.id, 'reach');
+          if (c.type === 'FAR_FROM_REGION' && near) m.set(cc.id, 'zone');
+        }
+      }
       else if (c.type === 'NO_TAG_WITHIN') {
         // 污染范围：禁用地形本身标红，它周围 dist 格内（本区域不能伸进去的地方）画斜线
         const bad = tagCells(p.tag);
@@ -58,7 +68,7 @@ export function Board() {
       }
     }
     return m;
-  }, [level, selectedRegion]);
+  }, [level, selectedRegion, assignment]);
 
   // 矩形硬规则不满足的区域 → 其格子标红
   const conflictCells = useMemo(() => {
