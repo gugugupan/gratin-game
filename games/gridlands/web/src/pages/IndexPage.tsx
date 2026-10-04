@@ -1,29 +1,52 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useGame } from '../state/store';
-import { getLevel } from '../levels';
+import { LEVELS, isUnlocked } from '../levels';
+import { Cell } from '../components/Cell';
+import { at, seaCoords } from '../components/sea';
+import { themeVars } from '../components/themes';
 import { Header } from '../components/Header';
 import { LanguageSelect } from '../components/LanguageSelect';
 import { TERRAIN_STYLE, TerrainIcon, RoleAvatar } from '../components/icons';
-import { t, tagName, type Locale } from '../i18n';
+import { localized, t, tagName, type Locale } from '../i18n';
 
-// 用 1-1 的标准解渲染一个静态「已解好」的小棋盘，当作示意图
-function SampleBoard() {
-  const level = getLevel('1-1');
-  if (!level || !level.solution) return null;
-  const color: Record<string, string> = Object.fromEntries(level.regions.map((r) => [r.id, r.owner.color]));
-  const cellRegion: Record<number, string> = {};
-  level.solution.forEach((s) => s.cells.forEach((c) => { cellRegion[c] = s.region; }));
-  const ordered = [...level.board.cells].sort((a, b) => (a.y - b.y) || (a.x - b.x));
+// 首页示意图：每次打开随机抽一关。没通关只画地图（不剧透），通关过的画出答案配色
+function SampleBoard({ locale }: { locale: Locale }) {
+  const passed = useGame((s) => s.passed);
+  const pick = () => LEVELS[Math.floor(Math.random() * LEVELS.length)];
+  const [level, setLevel] = useState(pick);
+  const reroll = () => { let next = pick(); for (let i = 0; i < 5 && next.id === level.id; i++) next = pick(); setLevel(next); };
+  const solved = passed.includes(level.id) && !!level.solution;
+  const owner: Record<number, string> = {};
+  if (solved) level.solution!.forEach((s) => s.cells.forEach((c) => { owner[c] = s.region; }));
+  const color = (rid?: string) => level.regions.find((r) => r.id === rid)?.owner.color;
+  const { width, height } = level.board;
+  const to = isUnlocked(level.id, passed) ? `/levels/${level.id}` : '/levels';
   return (
-    <div className="board sample" style={{ ['--cols' as any]: level.board.width, ['--rows' as any]: level.board.height, aspectRatio: `${level.board.width} / ${level.board.height}` }}>
-      {ordered.map((c) => {
-        const tag = (c.tags || []).find((tg) => tg !== 'plain') || null;
-        return (
-          <div key={c.id} className="cell assigned" style={{ gridColumn: c.x + 1, gridRow: c.y + 1, ['--region' as any]: color[cellRegion[c.id]] }}>
-            {tag ? <TerrainIcon tag={tag} /> : null}
-          </div>
-        );
-      })}
+    <div className="sample-wrap" style={themeVars(level.theme)}>
+      <Link to={to} className="sample-link" aria-label={`${level.id} ${localized(level.name, locale)}`}>
+        <div className="board sample" style={{ ['--cols' as any]: width, ['--rows' as any]: height, aspectRatio: `${width} / ${height}` }}>
+          {seaCoords(level).map(([x, y]) => <div key={`sea-${x}-${y}`} className="sea" style={at(x, y)} />)}
+          {level.board.cells.map((c) => {
+            const tag = (c.tags || []).find((tg) => tg !== 'plain') ?? null;
+            return (
+              <Cell key={c.id} cell={c} tag={tag} bg={(TERRAIN_STYLE[tag ?? 'plain'] ?? TERRAIN_STYLE.plain).bg}
+                fillColor={solved ? color(owner[c.id]) : undefined} blocked={c.assignable === false}
+                preview={false} conflict={false} fixed={!!c.fixedRegion} />
+            );
+          })}
+        </div>
+      </Link>
+      <div className="sample-caption">
+        <Link to={to} className="sample-title">{level.id} · {localized(level.name, locale)}</Link>
+        <div className="sample-roles">
+          {level.regions.map((r) => <RoleAvatar key={r.id} icon={r.owner.icon} color={r.owner.color} size={20} />)}
+        </div>
+        <div className="sample-actions">
+          <span className="sample-note">{t(locale, solved ? 'sampleSolved' : 'samplePlay')}</span>
+          <button type="button" className="sample-shuffle" onClick={reroll}>{t(locale, 'sampleShuffle')}</button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -48,7 +71,7 @@ export function IndexPage() {
         </section>
 
         <section className="hero-sample">
-          <SampleBoard />
+          <SampleBoard locale={locale} />
         </section>
 
         <section className="info-card">
