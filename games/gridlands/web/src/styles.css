@@ -98,7 +98,7 @@ body {
   padding: 3px; gap: 3px;
   border: 3px solid var(--frame, #b8b09c);
   border-radius: 14px; box-shadow: var(--shadow);
-  touch-action: none; user-select: none;
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
 }
 
 .cell {
@@ -345,3 +345,11 @@ body {
 .recipe-example { display: block !important; padding: 8px 10px; background: var(--accent-soft); border-radius: 8px; color: #2f5a31; }
 .tag-chip { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
 .tag-chip img { width: 1.25em; height: 1.25em; vertical-align: -0.25em; }
+.region-chip {
+  display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; vertical-align: -0.2em;
+  padding: 0 5px 0 2px; border-radius: 6px; font-weight: 700;
+  background: color-mix(in srgb, var(--region) 16%, #fff); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--region) 45%, #fff);
+}
+.region-chip .avatar { box-shadow: none; border-radius: 4px; }
+.basics-how { margin: 8px 0 0; font-size: 12px; line-height: 1.6; color: var(--muted); }
+.condition-panel.basics { border-color: #bcdcb9; }

@@ -13,6 +13,8 @@ export function Board() {
   const assignment = useGame((s) => s.assignment);
   const selectedRegion = useGame((s) => s.selectedRegion);
   const assignCells = useGame((s) => s.assignCells);
+  const selectRegion = useGame((s) => s.selectRegion);
+  const pressTimer = useRef<number | null>(null);
   const validation = useValidation();
   const boardRef = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<Drag | null>(null);
@@ -87,18 +89,42 @@ export function Board() {
     return c ? { x: c.x, y: c.y } : null;
   }
 
+  // 右键 / 长按：直接选中格子所属的区域（不开始拖选）
+  function pickRegionAt(clientX: number, clientY: number) {
+    const el = (document.elementFromPoint(clientX, clientY) as HTMLElement | null)?.closest('.cell') as HTMLElement | null;
+    if (!el || !boardRef.current?.contains(el)) return;
+    const rid = assignment[Number(el.dataset.id)];
+    if (rid) selectRegion(rid);
+  }
+  const clearPress = () => {
+    if (pressTimer.current != null) { window.clearTimeout(pressTimer.current); pressTimer.current = null; }
+  };
+
   function onPointerDown(e: React.PointerEvent) {
+    if (e.button === 2) return;
     const p = cellAt(e.clientX, e.clientY);
     if (!p) return;
+    if (e.pointerType !== 'mouse') {
+      const { clientX, clientY } = e;
+      clearPress();
+      pressTimer.current = window.setTimeout(() => {
+        pressTimer.current = null;
+        setDrag(null);
+        pickRegionAt(clientX, clientY);
+        navigator.vibrate?.(12);
+      }, 450);
+    }
     try { boardRef.current?.setPointerCapture(e.pointerId); } catch { /* 合成事件/无活动指针时忽略 */ }
     setDrag({ ax: p.x, ay: p.y, cx: p.x, cy: p.y });
   }
   function onPointerMove(e: React.PointerEvent) {
     if (!drag) return;
     const p = cellAt(e.clientX, e.clientY);
+    if (p && (p.x !== drag.cx || p.y !== drag.cy)) clearPress();
     if (p) setDrag((d) => (d ? { ...d, cx: p.x, cy: p.y } : d));
   }
   function commit() {
+    clearPress();
     if (drag) {
       assignCells([...previewSet]);
       if (selectedRegion && previewSet.size) {
@@ -122,6 +148,7 @@ export function Board() {
       style={{ ['--cols' as any]: width, ['--rows' as any]: height, aspectRatio: `${width} / ${height}` }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
+      onContextMenu={(e) => { e.preventDefault(); setDrag(null); pickRegionAt(e.clientX, e.clientY); }}
     >
       {seaCoords(level).map(([x, y]) => <div key={`sea-${x}-${y}`} className="sea" style={at(x, y)} />)}
       {won && level.product ? <FlowOverlay level={level} assignment={assignment} board={boardRef.current} /> : null}

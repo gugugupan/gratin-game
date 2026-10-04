@@ -52,6 +52,7 @@ export interface Level {
   theme?: string;
   story?: LocalizedString;
   product?: Product;
+  basics?: boolean;
   shapeRule: 'RECT' | 'ANY' | 'SQUARE' | 'L';
   adjacency?: 4 | 8;
   coverage: 'FULL' | 'PARTIAL';

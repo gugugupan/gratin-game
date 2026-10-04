@@ -6,6 +6,7 @@ import { Board } from '../components/Board';
 import { RegionList } from '../components/RegionList';
 import { ConditionPanel } from '../components/ConditionPanel';
 import { RecipeTree } from '../components/RecipeTree';
+import { BasicRules } from '../components/BasicRules';
 import { Header } from '../components/Header';
 import { LanguageSelect } from '../components/LanguageSelect';
 import { t } from '../i18n';
@@ -64,6 +65,7 @@ export function PlayPage() {
         <aside className="side">
           {ready && (
             <>
+              <BasicRules />
               <RecipeTree />
               <RegionList />
               <ConditionPanel />
