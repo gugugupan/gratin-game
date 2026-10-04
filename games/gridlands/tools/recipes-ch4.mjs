@@ -63,6 +63,16 @@ export const RECIPES = {
     pollution: [{ node: 'steel', tag: 'building', dist: 1 }],
     scatter: { building: 2, farmland: 2, forest: 1, cotton: 1, iron: 1, coal: 1 },
   },
+  clock: {
+    product: { name: L('座钟', 'Mantel Clock'), icon: 'clock' },
+    nodes: [N.wood, F('carpenter', '木工坊', 'Carpentry', 'carpenter', '#a1887f', ['wood']), N.iron, N.coal,
+      F('steel', '钢厂', 'Steelworks', 'factory', '#8d6e63', ['iron', 'coal']), F('gear', '齿轮厂', 'Gear Works', 'gearwright', '#607d8b', ['steel']),
+      N.copper, F('brass', '铜件厂', 'Brass Works', 'brazier', '#ffb74d', ['copper']),
+      F('clock', '钟表坊', 'Clockmaker', 'clockmaker', '#5c6bc0', ['carpenter', 'gear', 'brass'], true)],
+    extras: [X.house],
+    pollution: [{ node: 'steel', tag: 'building', dist: 1 }],
+    scatter: { building: 2, farmland: 2, forest: 1, iron: 1, coal: 1, copper: 1 },
+  },
   coat: {
     product: { name: L('大衣', 'Overcoat'), icon: 'coat' },
     nodes: [N.cotton, F('weaver', '织布厂', 'Weaving Mill', 'weaver', '#ec407a', ['cotton']), N.pasture, F('spinner', '纺纱厂', 'Spinning Mill', 'spinner', '#ab47bc', ['pasture']),
@@ -75,5 +85,5 @@ export const RECIPES = {
 };
 
 // 设施多的大配方去掉普通区域，减少区域数量（线索更少、更好读）
-for (const key of ['watch', 'umbrella', 'coat']) RECIPES[`${key}-lean`] = { ...RECIPES[key], extras: [] };
+for (const key of ['watch', 'umbrella', 'clock', 'coat']) RECIPES[`${key}-lean`] = { ...RECIPES[key], extras: [] };
 

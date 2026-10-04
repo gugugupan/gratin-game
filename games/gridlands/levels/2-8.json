@@ -9,21 +9,62 @@
     "verifiedHumanSolvable": true,
     "createdAt": "2026-10-03"
   },
-  "id": "2-7",
+  "id": "2-8",
   "chapter": 2,
   "difficulty": 10,
-  "theme": "lastnight",
+  "theme": "epilogue",
   "name": {
-    "zh": "签约前夜",
-    "en": "The Night Before Signing"
+    "zh": "尾声：握手",
+    "en": "Epilogue: The Handshake"
   },
   "story": {
-    "zh": "握手的前一晚，开发商又改了主意：要两处金矿，还要两块耕地。大家只好连夜把地重新算一遍。",
-    "en": "On the night before the handshake, the developer changes its mind again: two gold veins and two fields this time. Everyone stays up recalculating the plots."
+    "zh": "吵了这么久，开发商终于让步了：不再要最大的地，只要一块和铁匠、伐木工一样大的。大家握了手，签下最后一份协议。",
+    "en": "After all the arguing, the developer finally gives ground: no more demands for the biggest plot, just one the same size as the blacksmith’s and the woodcutter’s. Hands are shaken and the last agreement is signed."
   },
   "regions": [
     {
       "id": "R1",
+      "owner": {
+        "name": {
+          "zh": "铁匠",
+          "en": "Blacksmith"
+        },
+        "color": "#546e7a",
+        "icon": "blacksmith",
+        "avatar": null
+      },
+      "constraints": [
+        {
+          "type": "TAG_COUNT_EQ",
+          "params": {
+            "tag": "iron",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "owner": {
+        "name": {
+          "zh": "牧羊人",
+          "en": "Shepherd"
+        },
+        "color": "#a1887f",
+        "icon": "rancher",
+        "avatar": null
+      },
+      "constraints": [
+        {
+          "type": "MUST_NOT_CONTAIN_TAG",
+          "params": {
+            "tag": "iron"
+          }
+        }
+      ]
+    },
+    {
+      "id": "R3",
       "owner": {
         "name": {
           "zh": "伐木工",
@@ -40,21 +81,70 @@
             "tag": "forest",
             "value": 3
           }
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "owner": {
+        "name": {
+          "zh": "居民",
+          "en": "Residents"
+        },
+        "color": "#ef5350",
+        "icon": "house",
+        "avatar": null
+      },
+      "constraints": [
+        {
+          "type": "TAG_COUNT_EQ",
+          "params": {
+            "tag": "farmland",
+            "value": 2
+          }
         },
         {
           "type": "TAG_COUNT_EQ",
           "params": {
-            "tag": "iron",
+            "tag": "building",
             "value": 2
           }
         }
       ]
     },
     {
-      "id": "R2",
+      "id": "R5",
       "owner": {
         "name": {
-          "zh": "农夫",
+          "zh": "开发商",
+          "en": "Developer"
+        },
+        "color": "#8d6e63",
+        "icon": "developer",
+        "avatar": null
+      },
+      "constraints": [
+        {
+          "type": "TAG_COUNT_EQ",
+          "params": {
+            "tag": "building",
+            "value": 1
+          }
+        },
+        {
+          "type": "TAG_COUNT_EQ",
+          "params": {
+            "tag": "gold",
+            "value": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "R6",
+      "owner": {
+        "name": {
+          "zh": "农场主",
           "en": "Farmer"
         },
         "color": "#66bb6a",
@@ -70,104 +160,6 @@
           }
         }
       ]
-    },
-    {
-      "id": "R3",
-      "owner": {
-        "name": {
-          "zh": "开发商",
-          "en": "Developer"
-        },
-        "color": "#8d6e63",
-        "icon": "developer",
-        "avatar": null
-      },
-      "constraints": [
-        {
-          "type": "TAG_COUNT_EQ",
-          "params": {
-            "tag": "farmland",
-            "value": 2
-          }
-        },
-        {
-          "type": "TAG_COUNT_EQ",
-          "params": {
-            "tag": "gold",
-            "value": 2
-          }
-        }
-      ]
-    },
-    {
-      "id": "R4",
-      "owner": {
-        "name": {
-          "zh": "矿业公司",
-          "en": "Mining Co."
-        },
-        "color": "#ffb300",
-        "icon": "miner",
-        "avatar": null
-      },
-      "constraints": [
-        {
-          "type": "TAG_COUNT_EQ",
-          "params": {
-            "tag": "gold",
-            "value": 2
-          }
-        }
-      ]
-    },
-    {
-      "id": "R5",
-      "owner": {
-        "name": {
-          "zh": "牧羊人",
-          "en": "Shepherd"
-        },
-        "color": "#a1887f",
-        "icon": "rancher",
-        "avatar": null
-      },
-      "constraints": [
-        {
-          "type": "TAG_COUNT_EQ",
-          "params": {
-            "tag": "farmland",
-            "value": 1
-          }
-        }
-      ]
-    },
-    {
-      "id": "R6",
-      "owner": {
-        "name": {
-          "zh": "居民",
-          "en": "Residents"
-        },
-        "color": "#ef5350",
-        "icon": "house",
-        "avatar": null
-      },
-      "constraints": [
-        {
-          "type": "TAG_COUNT_EQ",
-          "params": {
-            "tag": "farmland",
-            "value": 1
-          }
-        },
-        {
-          "type": "TAG_COUNT_EQ",
-          "params": {
-            "tag": "gold",
-            "value": 1
-          }
-        }
-      ]
     }
   ],
   "globalConstraints": [
@@ -175,7 +167,7 @@
       "type": "AREA_EQUAL_TO",
       "params": {
         "a": "R1",
-        "b": "R6"
+        "b": "R5"
       }
     },
     {
@@ -186,10 +178,10 @@
       }
     },
     {
-      "type": "AREA_LARGER_THAN",
+      "type": "AREA_EQUAL_TO",
       "params": {
-        "a": "R5",
-        "b": "R2"
+        "a": "R3",
+        "b": "R5"
       }
     }
   ],
@@ -244,12 +236,12 @@
         "x": 3,
         "y": 0,
         "tags": [
-          "building"
+          "farmland"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cfd5dd",
+          "bg": "#f4ecd4",
           "sprite": null
         }
       },
@@ -258,12 +250,12 @@
         "x": 4,
         "y": 0,
         "tags": [
-          "building"
+          "farmland"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cfd5dd",
+          "bg": "#f4ecd4",
           "sprite": null
         }
       },
@@ -272,12 +264,12 @@
         "x": 5,
         "y": 0,
         "tags": [
-          "plain"
+          "iron"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#90a4ae",
           "sprite": null
         }
       },
@@ -300,12 +292,12 @@
         "x": 7,
         "y": 0,
         "tags": [
-          "plain"
+          "building"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#cfd5dd",
           "sprite": null
         }
       },
@@ -314,12 +306,12 @@
         "x": 0,
         "y": 1,
         "tags": [
-          "plain"
+          "forest"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#2e7d32",
           "sprite": null
         }
       },
@@ -328,12 +320,12 @@
         "x": 1,
         "y": 1,
         "tags": [
-          "forest"
+          "iron"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#2e7d32",
+          "bg": "#90a4ae",
           "sprite": null
         }
       },
@@ -342,12 +334,12 @@
         "x": 2,
         "y": 1,
         "tags": [
-          "plain"
+          "forest"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#2e7d32",
           "sprite": null
         }
       },
@@ -356,46 +348,18 @@
         "x": 3,
         "y": 1,
         "tags": [
-          "forest"
+          "plain"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#2e7d32",
+          "bg": "#cdebc0",
           "sprite": null
         }
       },
       {
         "id": 13,
         "x": 4,
-        "y": 1,
-        "tags": [
-          "iron"
-        ],
-        "assignable": true,
-        "fixedRegion": null,
-        "display": {
-          "bg": "#90a4ae",
-          "sprite": null
-        }
-      },
-      {
-        "id": 14,
-        "x": 5,
-        "y": 1,
-        "tags": [
-          "forest"
-        ],
-        "assignable": true,
-        "fixedRegion": null,
-        "display": {
-          "bg": "#2e7d32",
-          "sprite": null
-        }
-      },
-      {
-        "id": 15,
-        "x": 6,
         "y": 1,
         "tags": [
           "plain"
@@ -408,23 +372,37 @@
         }
       },
       {
-        "id": 16,
-        "x": 7,
+        "id": 14,
+        "x": 5,
         "y": 1,
         "tags": [
-          "iron"
+          "plain"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#90a4ae",
+          "bg": "#cdebc0",
           "sprite": null
         }
       },
       {
-        "id": 17,
-        "x": 0,
-        "y": 2,
+        "id": 15,
+        "x": 6,
+        "y": 1,
+        "tags": [
+          "gold"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#ffd54f",
+          "sprite": null
+        }
+      },
+      {
+        "id": 16,
+        "x": 7,
+        "y": 1,
         "tags": [
           "farmland"
         ],
@@ -436,16 +414,30 @@
         }
       },
       {
+        "id": 17,
+        "x": 0,
+        "y": 2,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
         "id": 18,
         "x": 1,
         "y": 2,
         "tags": [
-          "mountain"
+          "plain"
         ],
-        "assignable": false,
+        "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#8d6e63",
+          "bg": "#cdebc0",
           "sprite": null
         }
       },
@@ -454,12 +446,12 @@
         "x": 2,
         "y": 2,
         "tags": [
-          "mountain"
+          "plain"
         ],
-        "assignable": false,
+        "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#8d6e63",
+          "bg": "#cdebc0",
           "sprite": null
         }
       },
@@ -496,12 +488,12 @@
         "x": 5,
         "y": 2,
         "tags": [
-          "farmland"
+          "building"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#f4ecd4",
+          "bg": "#cfd5dd",
           "sprite": null
         }
       },
@@ -524,12 +516,12 @@
         "x": 7,
         "y": 2,
         "tags": [
-          "plain"
+          "forest"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#2e7d32",
           "sprite": null
         }
       },
@@ -552,12 +544,12 @@
         "x": 1,
         "y": 3,
         "tags": [
-          "farmland"
+          "plain"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#f4ecd4",
+          "bg": "#cdebc0",
           "sprite": null
         }
       },
@@ -566,12 +558,12 @@
         "x": 2,
         "y": 3,
         "tags": [
-          "farmland"
+          "plain"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#f4ecd4",
+          "bg": "#cdebc0",
           "sprite": null
         }
       },
@@ -608,12 +600,12 @@
         "x": 5,
         "y": 3,
         "tags": [
-          "iron"
+          "plain"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#90a4ae",
+          "bg": "#cdebc0",
           "sprite": null
         }
       },
@@ -622,12 +614,12 @@
         "x": 6,
         "y": 3,
         "tags": [
-          "plain"
+          "gold"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#ffd54f",
           "sprite": null
         }
       },
@@ -636,12 +628,12 @@
         "x": 7,
         "y": 3,
         "tags": [
-          "plain"
+          "gold"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#ffd54f",
           "sprite": null
         }
       },
@@ -678,12 +670,12 @@
         "x": 2,
         "y": 4,
         "tags": [
-          "gold"
+          "plain"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#ffd54f",
+          "bg": "#cdebc0",
           "sprite": null
         }
       },
@@ -720,12 +712,12 @@
         "x": 5,
         "y": 4,
         "tags": [
-          "farmland"
+          "plain"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#f4ecd4",
+          "bg": "#cdebc0",
           "sprite": null
         }
       },
@@ -734,12 +726,12 @@
         "x": 6,
         "y": 4,
         "tags": [
-          "plain"
+          "iron"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#90a4ae",
           "sprite": null
         }
       },
@@ -748,12 +740,12 @@
         "x": 7,
         "y": 4,
         "tags": [
-          "forest"
+          "plain"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#2e7d32",
+          "bg": "#cdebc0",
           "sprite": null
         }
       },
@@ -762,12 +754,12 @@
         "x": 0,
         "y": 5,
         "tags": [
-          "plain"
+          "gold"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#ffd54f",
           "sprite": null
         }
       },
@@ -804,12 +796,12 @@
         "x": 3,
         "y": 5,
         "tags": [
-          "plain"
+          "forest"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#2e7d32",
           "sprite": null
         }
       },
@@ -818,12 +810,12 @@
         "x": 4,
         "y": 5,
         "tags": [
-          "plain"
+          "iron"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#90a4ae",
           "sprite": null
         }
       },
@@ -860,6 +852,20 @@
         "x": 7,
         "y": 5,
         "tags": [
+          "farmland"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#f4ecd4",
+          "sprite": null
+        }
+      },
+      {
+        "id": 49,
+        "x": 0,
+        "y": 6,
+        "tags": [
           "forest"
         ],
         "assignable": true,
@@ -870,8 +876,8 @@
         }
       },
       {
-        "id": 49,
-        "x": 0,
+        "id": 50,
+        "x": 1,
         "y": 6,
         "tags": [
           "plain"
@@ -880,20 +886,6 @@
         "fixedRegion": null,
         "display": {
           "bg": "#cdebc0",
-          "sprite": null
-        }
-      },
-      {
-        "id": 50,
-        "x": 1,
-        "y": 6,
-        "tags": [
-          "gold"
-        ],
-        "assignable": true,
-        "fixedRegion": null,
-        "display": {
-          "bg": "#ffd54f",
           "sprite": null
         }
       },
@@ -902,12 +894,12 @@
         "x": 2,
         "y": 6,
         "tags": [
-          "plain"
+          "farmland"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#f4ecd4",
           "sprite": null
         }
       },
@@ -916,12 +908,12 @@
         "x": 3,
         "y": 6,
         "tags": [
-          "gold"
+          "plain"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#ffd54f",
+          "bg": "#cdebc0",
           "sprite": null
         }
       },
@@ -986,60 +978,18 @@
         "x": 0,
         "y": 7,
         "tags": [
-          "forest"
+          "plain"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#2e7d32",
+          "bg": "#cdebc0",
           "sprite": null
         }
       },
       {
         "id": 58,
         "x": 1,
-        "y": 7,
-        "tags": [
-          "plain"
-        ],
-        "assignable": true,
-        "fixedRegion": null,
-        "display": {
-          "bg": "#cdebc0",
-          "sprite": null
-        }
-      },
-      {
-        "id": 59,
-        "x": 2,
-        "y": 7,
-        "tags": [
-          "plain"
-        ],
-        "assignable": true,
-        "fixedRegion": null,
-        "display": {
-          "bg": "#cdebc0",
-          "sprite": null
-        }
-      },
-      {
-        "id": 60,
-        "x": 3,
-        "y": 7,
-        "tags": [
-          "gold"
-        ],
-        "assignable": true,
-        "fixedRegion": null,
-        "display": {
-          "bg": "#ffd54f",
-          "sprite": null
-        }
-      },
-      {
-        "id": 61,
-        "x": 4,
         "y": 7,
         "tags": [
           "building"
@@ -1052,16 +1002,58 @@
         }
       },
       {
-        "id": 62,
-        "x": 5,
+        "id": 59,
+        "x": 2,
         "y": 7,
         "tags": [
-          "iron"
+          "forest"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#90a4ae",
+          "bg": "#2e7d32",
+          "sprite": null
+        }
+      },
+      {
+        "id": 60,
+        "x": 3,
+        "y": 7,
+        "tags": [
+          "plain"
+        ],
+        "assignable": true,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#cdebc0",
+          "sprite": null
+        }
+      },
+      {
+        "id": 61,
+        "x": 4,
+        "y": 7,
+        "tags": [
+          "lake"
+        ],
+        "assignable": false,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#4fc3f7",
+          "sprite": null
+        }
+      },
+      {
+        "id": 62,
+        "x": 5,
+        "y": 7,
+        "tags": [
+          "lake"
+        ],
+        "assignable": false,
+        "fixedRegion": null,
+        "display": {
+          "bg": "#4fc3f7",
           "sprite": null
         }
       },
@@ -1070,12 +1062,12 @@
         "x": 6,
         "y": 7,
         "tags": [
-          "plain"
+          "lake"
         ],
-        "assignable": true,
+        "assignable": false,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#4fc3f7",
           "sprite": null
         }
       },
@@ -1084,12 +1076,12 @@
         "x": 7,
         "y": 7,
         "tags": [
-          "plain"
+          "lake"
         ],
-        "assignable": true,
+        "assignable": false,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#4fc3f7",
           "sprite": null
         }
       }
@@ -1103,55 +1095,57 @@
         2,
         3,
         4,
-        5,
-        6,
-        7,
-        8,
         9,
         10,
         11,
         12,
-        13,
-        14,
-        15,
-        16
+        17,
+        18,
+        19,
+        20
       ]
     },
     {
       "region": "R2",
       "cells": [
-        17,
         25,
+        26,
+        27,
+        28,
         33,
-        41,
-        49,
-        57
+        34,
+        35,
+        36
       ]
     },
     {
       "region": "R3",
       "cells": [
-        26,
-        27,
-        34,
-        35,
+        41,
         42,
         43,
+        44,
+        49,
         50,
         51,
+        52,
+        57,
         58,
-        59
+        59,
+        60
       ]
     },
     {
       "region": "R4",
       "cells": [
-        20,
-        28,
-        36,
-        44,
-        52,
-        60
+        5,
+        6,
+        7,
+        8,
+        13,
+        14,
+        15,
+        16
       ]
     },
     {
@@ -1164,16 +1158,16 @@
         29,
         30,
         31,
-        32
+        32,
+        37,
+        38,
+        39,
+        40
       ]
     },
     {
       "region": "R6",
       "cells": [
-        37,
-        38,
-        39,
-        40,
         45,
         46,
         47,
@@ -1181,11 +1175,7 @@
         53,
         54,
         55,
-        56,
-        61,
-        62,
-        63,
-        64
+        56
       ]
     }
   ]

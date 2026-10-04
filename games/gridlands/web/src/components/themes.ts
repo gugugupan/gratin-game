@@ -29,6 +29,11 @@ export const THEMES: Record<string, Theme> = {
   watch: { bg: '#f3f1ec', bg2: '#e2dccd', frame: '#a38f63' },
   umbrella: { bg: '#eff2f5', bg2: '#d8e0e8', frame: '#7f93a8' },
   coat: { bg: '#f5efe9', bg2: '#e6d6c8', frame: '#9c7b62' },
+  neighbors: { bg: '#f6f1ea', bg2: '#e9e2d4', frame: '#b49b7c' },
+  edge: { bg: '#eef2ea', bg2: '#dde6d3', frame: '#93a982' },
+  lastnight: { bg: '#eeeef5', bg2: '#d9d9ea', frame: '#8e8fb5' },
+  storm: { bg: '#e9eef2', bg2: '#cdd7e0', frame: '#6f8597' },
+  clock: { bg: '#f4efe6', bg2: '#e5d9c3', frame: '#a08660' },
 };
 
 export const DEFAULT_THEME = 'meadow';

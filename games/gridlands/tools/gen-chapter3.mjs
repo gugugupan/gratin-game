@@ -204,7 +204,7 @@ level({
 });
 
 level({
-  file: '3-7.json', id: '3-7', chapter: 3, difficulty: 12, theme: 'bonfire',
+  file: '3-8.json', id: '3-8', chapter: 3, difficulty: 12, theme: 'bonfire',
   name: L('尾声：篝火', 'Epilogue: The Bonfire'),
   story: L(
     '第一次丰收的夜晚，大家在海边点起篝火。从河湾到海岛，每一块地终于都有了主人。',
@@ -235,4 +235,36 @@ level({
     C('DIRECTION_OF', { a: 'R1', b: 'R3', dir: 'north' }),
     C('DIRECTION_OF', { a: 'R5', b: 'R2', dir: 'east' }),
   ],
+});
+
+level({
+  file: '3-7.json', id: '3-7', chapter: 3, difficulty: 12, theme: 'storm', createdAt: '2026-10-04',
+  name: L('暴风雨之夜', 'The Storm'),
+  story: L(
+    '一场暴风雨扑向海岛。船长和伐木工冒雨插下营地旗，大家要赶在风雨停歇前把最后几块地分清楚。',
+    'A storm sweeps over the islands. The captain and the woodcutter plant their camp flags in the rain, and everyone must settle the last plots before it passes.',
+  ),
+  // 11x10, k=8, seed 221, rounds 7
+  map: `
+    ~  ~  .  .  A  B  .  .  .  A  ~
+    ~  ~  B  I  .  F  .  G  A  G  ~
+    ~  ~  F  .  .  F  F  .  .  B  ~
+    ~  ~  F  .  G  .  .  .  .  .  ~
+    ~  ~  .2 .  A  .  I  G  A  A  ~
+    ~  ~  .  .  .  .  .  .  I  A  ~
+    ~  ~  .  I  F  A  G  F  .  F  ~
+    ~  ~  G  .  F  .4 F  .  .  F  ~
+    ~  ~  G  ~  ~  ~  ~  ~  ~  ~  ~
+    ~  ~  B  .  A  B  G  B  I  .  I`,
+  regions: [
+    { id: 'R1', owner: { name: L('居民', 'Residents'), color: '#ef5350', icon: 'house', avatar: null }, constraints: [{type: 'TAG_COUNT_EQ', params: {tag: 'building', value: 1}}] },
+    { id: 'R2', owner: { name: L('船长', 'Captain'), color: '#1e88e5', icon: 'captain', avatar: null }, constraints: [] },
+    { id: 'R3', owner: { name: L('渔夫', 'Fisher'), color: '#29b6f6', icon: 'fisher', avatar: null }, constraints: [{type: 'TAG_COUNT_EQ', params: {tag: 'forest', value: 1}}] },
+    { id: 'R4', owner: { name: L('伐木工', 'Woodcutter'), color: '#2e7d32', icon: 'forester', avatar: null }, constraints: [{type: 'TAG_COUNT_EQ', params: {tag: 'iron', value: 1}}, {type: 'TAG_COUNT_EQ', params: {tag: 'forest', value: 3}}] },
+    { id: 'R5', owner: { name: L('矿业公司', 'Mining Co.'), color: '#ffb300', icon: 'miner', avatar: null }, constraints: [{type: 'TAG_COUNT_EQ', params: {tag: 'forest', value: 1}}, {type: 'TAG_COUNT_EQ', params: {tag: 'gold', value: 3}}] },
+    { id: 'R6', owner: { name: L('农夫', 'Farmer'), color: '#66bb6a', icon: 'farmer', avatar: null }, constraints: [{type: 'TAG_COUNT_EQ', params: {tag: 'farmland', value: 1}}, {type: 'TAG_COUNT_EQ', params: {tag: 'forest', value: 4}}] },
+    { id: 'R7', owner: { name: L('铁匠', 'Blacksmith'), color: '#546e7a', icon: 'blacksmith', avatar: null }, constraints: [{type: 'TAG_COUNT_EQ', params: {tag: 'gold', value: 1}}] },
+    { id: 'R8', owner: { name: L('开发商', 'Developer'), color: '#8d6e63', icon: 'developer', avatar: null }, constraints: [{type: 'TAG_COUNT_EQ', params: {tag: 'building', value: 2}}, {type: 'TAG_COUNT_EQ', params: {tag: 'iron', value: 2}}] },
+  ],
+  globalConstraints: [{type: 'AREA_EQUAL_TO', params: {a: 'R1', b: 'R2'}}, {type: 'AREA_LARGER_THAN', params: {a: 'R2', b: 'R7'}}, {type: 'DIRECTION_OF', params: {a: 'R3', b: 'R1', dir: 'north'}}, {type: 'DIRECTION_OF', params: {a: 'R3', b: 'R6', dir: 'north'}}],
 });

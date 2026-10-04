@@ -171,7 +171,7 @@ level({
 });
 
 level({
-  file: '4-7.json', id: '4-7', difficulty: 12, theme: 'coat',
+  file: '4-8.json', id: '4-8', difficulty: 12, theme: 'coat',
   name: L('尾声：大衣', 'Epilogue: The Overcoat'),
   story: L(
     '冬天来了。机器织的布、机器纺的毛线，再加上钢厂打出的钢针，一起送进裁缝铺。镇上的人第一次穿上了机器做的大衣。',
@@ -203,4 +203,37 @@ level({
     { id: 'R11', owner: {name: {zh: '客栈', en: 'Inn'}, color: '#7e57c2', icon: 'crown', avatar: null}, constraints: [{type: 'AREA_EQ', params: {value: 16}}, {type: 'TAG_COUNT_EQ', params: {tag: 'building', value: 1}}] },
   ],
   globalConstraints: [{type: 'AREA_EQUAL_TO', params: {a: 'R5', b: 'R8'}}, {type: 'AREA_EQUAL_TO', params: {a: 'R10', b: 'R7'}}],
+});
+
+level({
+  file: '4-7.json', id: '4-7', difficulty: 12, theme: 'clock',
+  name: L('客厅里的座钟', 'A Clock for the Parlor'),
+  story: L(
+    '日子好起来了，家家户户都想在客厅摆一座钟。木工坊做钟壳，齿轮厂做机芯，铜件厂打钟摆，三路零件最后在钟表坊会合。',
+    'Times are good, and every family wants a clock in the parlor. The carpentry makes the case, the gear works builds the movement, the brass works casts the pendulum, and all three meet at the clockmaker.',
+  ),
+  product: {name: {zh: '座钟', en: 'Mantel Clock'}, icon: 'clock', goal: 'R9'},
+  map: `
+    . . F . . . . . I .
+    . F . . . . . . . .
+    . . . . . . B . . .
+    . . . U . . . . . .
+    . . . . . . . . . .
+    . F . . . . . . . I
+    . . . . B . . A I .
+    . . . . . . . . . .
+    . . . . . . A . . .
+    C . C . . C . . . .`,
+  regions: [
+    { id: 'R1', facility: 'gather', owner: {name: {zh: '伐木场', en: 'Lumber Camp'}, color: '#2e7d32', icon: 'forester', avatar: null}, constraints: [{type: 'AREA_EQ', params: {value: 12}}, {type: 'TAG_COUNT_EQ', params: {tag: 'forest', value: 2}}] },
+    { id: 'R2', facility: 'factory', owner: {name: {zh: '木工坊', en: 'Carpentry'}, color: '#a1887f', icon: 'carpenter', avatar: null}, constraints: [{type: 'AREA_EQ', params: {value: 12}}, {type: 'SUPPLIED_BY', params: {region: 'R1', tag: 'forest', value: 2}}] },
+    { id: 'R3', facility: 'gather', owner: {name: {zh: '铁矿场', en: 'Iron Mine'}, color: '#78909c', icon: 'miner', avatar: null}, constraints: [{type: 'AREA_EQ', params: {value: 20}}, {type: 'TAG_COUNT_EQ', params: {tag: 'iron', value: 3}}] },
+    { id: 'R4', facility: 'gather', owner: {name: {zh: '煤矿场', en: 'Coal Mine'}, color: '#5d5d5d', icon: 'collier', avatar: null}, constraints: [{type: 'AREA_EQ', params: {value: 18}}, {type: 'TAG_COUNT_EQ', params: {tag: 'coal', value: 3}}] },
+    { id: 'R5', facility: 'factory', owner: {name: {zh: '钢厂', en: 'Steelworks'}, color: '#8d6e63', icon: 'factory', avatar: null}, constraints: [{type: 'AREA_EQ', params: {value: 2}}, {type: 'SUPPLIED_BY', params: {region: 'R3', tag: 'iron', value: 3}}, {type: 'SUPPLIED_BY', params: {region: 'R4', tag: 'coal', value: 3}}, {type: 'NO_TAG_WITHIN', params: {tag: 'building', dist: 1}}] },
+    { id: 'R6', facility: 'factory', owner: {name: {zh: '齿轮厂', en: 'Gear Works'}, color: '#607d8b', icon: 'gearwright', avatar: null}, constraints: [{type: 'TAG_COUNT_EQ', params: {tag: 'farmland', value: 1}}, {type: 'SUPPLIED_BY', params: {region: 'R5'}}] },
+    { id: 'R7', facility: 'gather', owner: {name: {zh: '铜矿场', en: 'Copper Mine'}, color: '#d4834f', icon: 'miner', avatar: null}, constraints: [{type: 'AREA_EQ', params: {value: 12}}, {type: 'TAG_COUNT_EQ', params: {tag: 'copper', value: 1}}] },
+    { id: 'R8', facility: 'factory', owner: {name: {zh: '铜件厂', en: 'Brass Works'}, color: '#ffb74d', icon: 'brazier', avatar: null}, constraints: [{type: 'TAG_COUNT_EQ', params: {tag: 'forest', value: 1}}, {type: 'TAG_COUNT_EQ', params: {tag: 'building', value: 1}}, {type: 'SUPPLIED_BY', params: {region: 'R7', tag: 'copper', value: 1}}] },
+    { id: 'R9', facility: 'factory', owner: {name: {zh: '钟表坊', en: 'Clockmaker'}, color: '#5c6bc0', icon: 'clockmaker', avatar: null}, constraints: [{type: 'TAG_COUNT_EQ', params: {tag: 'farmland', value: 1}}, {type: 'SUPPLIED_BY', params: {region: 'R2'}}, {type: 'SUPPLIED_BY', params: {region: 'R6'}}, {type: 'SUPPLIED_BY', params: {region: 'R8'}}] },
+  ],
+  globalConstraints: [{type: 'AREA_LARGER_THAN', params: {a: 'R1', b: 'R9'}}, {type: 'AREA_EQUAL_TO', params: {a: 'R4', b: 'R8'}}, {type: 'AREA_LARGER_THAN', params: {a: 'R9', b: 'R6'}}],
 });

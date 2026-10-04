@@ -10,23 +10,23 @@
     "createdAt": "2026-10-04"
   },
   "chapter": 4,
-  "id": "4-7",
+  "id": "4-8",
   "difficulty": 12,
-  "theme": "clock",
+  "theme": "coat",
   "name": {
-    "zh": "客厅里的座钟",
-    "en": "A Clock for the Parlor"
+    "zh": "尾声：大衣",
+    "en": "Epilogue: The Overcoat"
   },
   "story": {
-    "zh": "日子好起来了，家家户户都想在客厅摆一座钟。木工坊做钟壳，齿轮厂做机芯，铜件厂打钟摆，三路零件最后在钟表坊会合。",
-    "en": "Times are good, and every family wants a clock in the parlor. The carpentry makes the case, the gear works builds the movement, the brass works casts the pendulum, and all three meet at the clockmaker."
+    "zh": "冬天来了。机器织的布、机器纺的毛线，再加上钢厂打出的钢针，一起送进裁缝铺。镇上的人第一次穿上了机器做的大衣。",
+    "en": "Winter arrives. Machine-woven cloth, machine-spun yarn and steel needles from the works all reach the tailor, and for the first time the townsfolk wear coats made by machines."
   },
   "product": {
     "name": {
-      "zh": "座钟",
-      "en": "Mantel Clock"
+      "zh": "大衣",
+      "en": "Overcoat"
     },
-    "icon": "clock",
+    "icon": "coat",
     "goal": "R9"
   },
   "regions": [
@@ -35,11 +35,39 @@
       "facility": "gather",
       "owner": {
         "name": {
-          "zh": "伐木场",
-          "en": "Lumber Camp"
+          "zh": "棉田",
+          "en": "Cotton Field"
         },
-        "color": "#2e7d32",
-        "icon": "forester",
+        "color": "#9ccc65",
+        "icon": "farmer",
+        "avatar": null
+      },
+      "constraints": [
+        {
+          "type": "AREA_EQ",
+          "params": {
+            "value": 4
+          }
+        },
+        {
+          "type": "TAG_COUNT_EQ",
+          "params": {
+            "tag": "cotton",
+            "value": 3
+          }
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "facility": "factory",
+      "owner": {
+        "name": {
+          "zh": "织布厂",
+          "en": "Weaving Mill"
+        },
+        "color": "#ec407a",
+        "icon": "weaver",
         "avatar": null
       },
       "constraints": [
@@ -52,43 +80,80 @@
         {
           "type": "TAG_COUNT_EQ",
           "params": {
-            "tag": "forest",
-            "value": 2
-          }
-        }
-      ]
-    },
-    {
-      "id": "R2",
-      "facility": "factory",
-      "owner": {
-        "name": {
-          "zh": "木工坊",
-          "en": "Carpentry"
-        },
-        "color": "#a1887f",
-        "icon": "carpenter",
-        "avatar": null
-      },
-      "constraints": [
-        {
-          "type": "AREA_EQ",
-          "params": {
-            "value": 12
+            "tag": "farmland",
+            "value": 1
           }
         },
         {
           "type": "SUPPLIED_BY",
           "params": {
             "region": "R1",
-            "tag": "forest",
-            "value": 2
+            "tag": "cotton",
+            "value": 3
+          }
+        },
+        {
+          "type": "NO_TAG_WITHIN",
+          "params": {
+            "tag": "coal",
+            "dist": 1
           }
         }
       ]
     },
     {
       "id": "R3",
+      "facility": "gather",
+      "owner": {
+        "name": {
+          "zh": "牧场",
+          "en": "Pasture"
+        },
+        "color": "#a1887f",
+        "icon": "rancher",
+        "avatar": null
+      },
+      "constraints": [
+        {
+          "type": "TAG_COUNT_EQ",
+          "params": {
+            "tag": "pasture",
+            "value": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "facility": "factory",
+      "owner": {
+        "name": {
+          "zh": "纺纱厂",
+          "en": "Spinning Mill"
+        },
+        "color": "#ab47bc",
+        "icon": "spinner",
+        "avatar": null
+      },
+      "constraints": [
+        {
+          "type": "AREA_EQ",
+          "params": {
+            "value": 20
+          }
+        },
+        {
+          "type": "SUPPLIED_BY",
+          "params": {
+            "region": "R3",
+            "tag": "pasture",
+            "value": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "R5",
       "facility": "gather",
       "owner": {
         "name": {
@@ -101,12 +166,6 @@
       },
       "constraints": [
         {
-          "type": "AREA_EQ",
-          "params": {
-            "value": 20
-          }
-        },
-        {
           "type": "TAG_COUNT_EQ",
           "params": {
             "tag": "iron",
@@ -116,7 +175,7 @@
       ]
     },
     {
-      "id": "R4",
+      "id": "R6",
       "facility": "gather",
       "owner": {
         "name": {
@@ -131,7 +190,7 @@
         {
           "type": "AREA_EQ",
           "params": {
-            "value": 18
+            "value": 24
           }
         },
         {
@@ -144,7 +203,7 @@
       ]
     },
     {
-      "id": "R5",
+      "id": "R7",
       "facility": "factory",
       "owner": {
         "name": {
@@ -157,15 +216,9 @@
       },
       "constraints": [
         {
-          "type": "AREA_EQ",
-          "params": {
-            "value": 2
-          }
-        },
-        {
           "type": "SUPPLIED_BY",
           "params": {
-            "region": "R3",
+            "region": "R5",
             "tag": "iron",
             "value": 3
           }
@@ -173,7 +226,7 @@
         {
           "type": "SUPPLIED_BY",
           "params": {
-            "region": "R4",
+            "region": "R6",
             "tag": "coal",
             "value": 3
           }
@@ -188,94 +241,22 @@
       ]
     },
     {
-      "id": "R6",
-      "facility": "factory",
-      "owner": {
-        "name": {
-          "zh": "齿轮厂",
-          "en": "Gear Works"
-        },
-        "color": "#607d8b",
-        "icon": "gearwright",
-        "avatar": null
-      },
-      "constraints": [
-        {
-          "type": "TAG_COUNT_EQ",
-          "params": {
-            "tag": "farmland",
-            "value": 1
-          }
-        },
-        {
-          "type": "SUPPLIED_BY",
-          "params": {
-            "region": "R5"
-          }
-        }
-      ]
-    },
-    {
-      "id": "R7",
-      "facility": "gather",
-      "owner": {
-        "name": {
-          "zh": "铜矿场",
-          "en": "Copper Mine"
-        },
-        "color": "#d4834f",
-        "icon": "miner",
-        "avatar": null
-      },
-      "constraints": [
-        {
-          "type": "AREA_EQ",
-          "params": {
-            "value": 12
-          }
-        },
-        {
-          "type": "TAG_COUNT_EQ",
-          "params": {
-            "tag": "copper",
-            "value": 1
-          }
-        }
-      ]
-    },
-    {
       "id": "R8",
       "facility": "factory",
       "owner": {
         "name": {
-          "zh": "铜件厂",
-          "en": "Brass Works"
+          "zh": "制针厂",
+          "en": "Needle Works"
         },
-        "color": "#ffb74d",
-        "icon": "brazier",
+        "color": "#607d8b",
+        "icon": "toolmaker",
         "avatar": null
       },
       "constraints": [
         {
-          "type": "TAG_COUNT_EQ",
-          "params": {
-            "tag": "forest",
-            "value": 1
-          }
-        },
-        {
-          "type": "TAG_COUNT_EQ",
-          "params": {
-            "tag": "building",
-            "value": 1
-          }
-        },
-        {
           "type": "SUPPLIED_BY",
           "params": {
-            "region": "R7",
-            "tag": "copper",
-            "value": 1
+            "region": "R7"
           }
         }
       ]
@@ -285,19 +266,18 @@
       "facility": "factory",
       "owner": {
         "name": {
-          "zh": "钟表坊",
-          "en": "Clockmaker"
+          "zh": "裁缝铺",
+          "en": "Tailor"
         },
-        "color": "#5c6bc0",
-        "icon": "clockmaker",
+        "color": "#8e24aa",
+        "icon": "tailor",
         "avatar": null
       },
       "constraints": [
         {
-          "type": "TAG_COUNT_EQ",
+          "type": "AREA_EQ",
           "params": {
-            "tag": "farmland",
-            "value": 1
+            "value": 2
           }
         },
         {
@@ -309,7 +289,7 @@
         {
           "type": "SUPPLIED_BY",
           "params": {
-            "region": "R6"
+            "region": "R4"
           }
         },
         {
@@ -319,28 +299,76 @@
           }
         }
       ]
+    },
+    {
+      "id": "R10",
+      "owner": {
+        "name": {
+          "zh": "居民区",
+          "en": "Homes"
+        },
+        "color": "#ef5350",
+        "icon": "house",
+        "avatar": null
+      },
+      "constraints": [
+        {
+          "type": "TAG_COUNT_EQ",
+          "params": {
+            "tag": "farmland",
+            "value": 1
+          }
+        },
+        {
+          "type": "TAG_COUNT_EQ",
+          "params": {
+            "tag": "forest",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "R11",
+      "owner": {
+        "name": {
+          "zh": "客栈",
+          "en": "Inn"
+        },
+        "color": "#7e57c2",
+        "icon": "crown",
+        "avatar": null
+      },
+      "constraints": [
+        {
+          "type": "AREA_EQ",
+          "params": {
+            "value": 16
+          }
+        },
+        {
+          "type": "TAG_COUNT_EQ",
+          "params": {
+            "tag": "building",
+            "value": 1
+          }
+        }
+      ]
     }
   ],
   "globalConstraints": [
     {
-      "type": "AREA_LARGER_THAN",
+      "type": "AREA_EQUAL_TO",
       "params": {
-        "a": "R1",
-        "b": "R9"
+        "a": "R5",
+        "b": "R8"
       }
     },
     {
       "type": "AREA_EQUAL_TO",
       "params": {
-        "a": "R4",
-        "b": "R8"
-      }
-    },
-    {
-      "type": "AREA_LARGER_THAN",
-      "params": {
-        "a": "R9",
-        "b": "R6"
+        "a": "R10",
+        "b": "R7"
       }
     }
   ],
@@ -353,12 +381,12 @@
         "x": 0,
         "y": 0,
         "tags": [
-          "plain"
+          "farmland"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#f4ecd4",
           "sprite": null
         }
       },
@@ -381,12 +409,12 @@
         "x": 2,
         "y": 0,
         "tags": [
-          "forest"
+          "plain"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#2e7d32",
+          "bg": "#cdebc0",
           "sprite": null
         }
       },
@@ -465,12 +493,12 @@
         "x": 8,
         "y": 0,
         "tags": [
-          "iron"
+          "coal"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#90a4ae",
+          "bg": "#e2e1df",
           "sprite": null
         }
       },
@@ -507,12 +535,12 @@
         "x": 1,
         "y": 1,
         "tags": [
-          "forest"
+          "plain"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#2e7d32",
+          "bg": "#cdebc0",
           "sprite": null
         }
       },
@@ -521,12 +549,12 @@
         "x": 2,
         "y": 1,
         "tags": [
-          "plain"
+          "forest"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#2e7d32",
           "sprite": null
         }
       },
@@ -563,12 +591,12 @@
         "x": 5,
         "y": 1,
         "tags": [
-          "plain"
+          "cotton"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#e8eedf",
           "sprite": null
         }
       },
@@ -703,12 +731,12 @@
         "x": 5,
         "y": 2,
         "tags": [
-          "plain"
+          "cotton"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#e8eedf",
           "sprite": null
         }
       },
@@ -717,12 +745,12 @@
         "x": 6,
         "y": 2,
         "tags": [
-          "building"
+          "coal"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cfd5dd",
+          "bg": "#e2e1df",
           "sprite": null
         }
       },
@@ -773,12 +801,12 @@
         "x": 0,
         "y": 3,
         "tags": [
-          "plain"
+          "forest"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#2e7d32",
           "sprite": null
         }
       },
@@ -787,12 +815,12 @@
         "x": 1,
         "y": 3,
         "tags": [
-          "plain"
+          "building"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#cfd5dd",
           "sprite": null
         }
       },
@@ -815,12 +843,12 @@
         "x": 3,
         "y": 3,
         "tags": [
-          "copper"
+          "plain"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#f6e4d8",
+          "bg": "#cdebc0",
           "sprite": null
         }
       },
@@ -843,12 +871,12 @@
         "x": 5,
         "y": 3,
         "tags": [
-          "plain"
+          "cotton"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#e8eedf",
           "sprite": null
         }
       },
@@ -899,12 +927,12 @@
         "x": 9,
         "y": 3,
         "tags": [
-          "plain"
+          "coal"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#e2e1df",
           "sprite": null
         }
       },
@@ -927,12 +955,12 @@
         "x": 1,
         "y": 4,
         "tags": [
-          "plain"
+          "farmland"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#f4ecd4",
           "sprite": null
         }
       },
@@ -1067,12 +1095,12 @@
         "x": 1,
         "y": 5,
         "tags": [
-          "forest"
+          "plain"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#2e7d32",
+          "bg": "#cdebc0",
           "sprite": null
         }
       },
@@ -1179,12 +1207,12 @@
         "x": 9,
         "y": 5,
         "tags": [
-          "iron"
+          "plain"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#90a4ae",
+          "bg": "#cdebc0",
           "sprite": null
         }
       },
@@ -1193,12 +1221,12 @@
         "x": 0,
         "y": 6,
         "tags": [
-          "plain"
+          "pasture"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#e3f1d6",
           "sprite": null
         }
       },
@@ -1221,12 +1249,12 @@
         "x": 2,
         "y": 6,
         "tags": [
-          "plain"
+          "pasture"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#e3f1d6",
           "sprite": null
         }
       },
@@ -1249,12 +1277,12 @@
         "x": 4,
         "y": 6,
         "tags": [
-          "building"
+          "plain"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cfd5dd",
+          "bg": "#cdebc0",
           "sprite": null
         }
       },
@@ -1291,12 +1319,12 @@
         "x": 7,
         "y": 6,
         "tags": [
-          "farmland"
+          "plain"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#f4ecd4",
+          "bg": "#cdebc0",
           "sprite": null
         }
       },
@@ -1305,12 +1333,12 @@
         "x": 8,
         "y": 6,
         "tags": [
-          "iron"
+          "plain"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#90a4ae",
+          "bg": "#cdebc0",
           "sprite": null
         }
       },
@@ -1431,12 +1459,12 @@
         "x": 7,
         "y": 7,
         "tags": [
-          "plain"
+          "iron"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#90a4ae",
           "sprite": null
         }
       },
@@ -1445,12 +1473,12 @@
         "x": 8,
         "y": 7,
         "tags": [
-          "plain"
+          "iron"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#90a4ae",
           "sprite": null
         }
       },
@@ -1459,12 +1487,12 @@
         "x": 9,
         "y": 7,
         "tags": [
-          "plain"
+          "iron"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#90a4ae",
           "sprite": null
         }
       },
@@ -1515,12 +1543,12 @@
         "x": 3,
         "y": 8,
         "tags": [
-          "plain"
+          "building"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#cfd5dd",
           "sprite": null
         }
       },
@@ -1557,12 +1585,12 @@
         "x": 6,
         "y": 8,
         "tags": [
-          "farmland"
+          "plain"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#f4ecd4",
+          "bg": "#cdebc0",
           "sprite": null
         }
       },
@@ -1585,12 +1613,12 @@
         "x": 8,
         "y": 8,
         "tags": [
-          "plain"
+          "building"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#cdebc0",
+          "bg": "#cfd5dd",
           "sprite": null
         }
       },
@@ -1613,12 +1641,12 @@
         "x": 0,
         "y": 9,
         "tags": [
-          "coal"
+          "plain"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#e2e1df",
+          "bg": "#cdebc0",
           "sprite": null
         }
       },
@@ -1641,12 +1669,12 @@
         "x": 2,
         "y": 9,
         "tags": [
-          "coal"
+          "plain"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#e2e1df",
+          "bg": "#cdebc0",
           "sprite": null
         }
       },
@@ -1683,12 +1711,12 @@
         "x": 5,
         "y": 9,
         "tags": [
-          "coal"
+          "plain"
         ],
         "assignable": true,
         "fixedRegion": null,
         "display": {
-          "bg": "#e2e1df",
+          "bg": "#cdebc0",
           "sprite": null
         }
       },
@@ -1754,118 +1782,14 @@
     {
       "region": "R1",
       "cells": [
-        1,
-        2,
-        3,
-        4,
-        5,
         6,
-        11,
-        12,
-        13,
-        14,
-        15,
-        16
-      ]
-    },
-    {
-      "region": "R2",
-      "cells": [
-        7,
-        8,
-        17,
-        18,
-        27,
-        28,
-        37,
-        38,
-        47,
-        48,
-        57,
-        58
-      ]
-    },
-    {
-      "region": "R3",
-      "cells": [
-        9,
-        10,
-        19,
-        20,
-        29,
-        30,
-        39,
-        40,
-        49,
-        50,
-        59,
-        60,
-        69,
-        70,
-        79,
-        80,
-        89,
-        90,
-        99,
-        100
-      ]
-    },
-    {
-      "region": "R4",
-      "cells": [
-        71,
-        72,
-        73,
-        74,
-        75,
-        76,
-        81,
-        82,
-        83,
-        84,
-        85,
-        86,
-        91,
-        92,
-        93,
-        94,
-        95,
-        96
-      ]
-    },
-    {
-      "region": "R5",
-      "cells": [
-        97,
-        98
-      ]
-    },
-    {
-      "region": "R6",
-      "cells": [
-        87,
-        88
-      ]
-    },
-    {
-      "region": "R7",
-      "cells": [
-        21,
-        22,
-        23,
-        24,
-        25,
+        16,
         26,
-        31,
-        32,
-        33,
-        34,
-        35,
         36
       ]
     },
     {
-      "region": "R8",
+      "region": "R2",
       "cells": [
         41,
         42,
@@ -1878,22 +1802,136 @@
         53,
         54,
         55,
-        56,
+        56
+      ]
+    },
+    {
+      "region": "R3",
+      "cells": [
         61,
         62,
         63,
-        64,
+        71,
+        72,
+        73
+      ]
+    },
+    {
+      "region": "R4",
+      "cells": [
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100
+      ]
+    },
+    {
+      "region": "R5",
+      "cells": [
+        77,
+        78,
+        79,
+        80
+      ]
+    },
+    {
+      "region": "R6",
+      "cells": [
+        7,
+        8,
+        9,
+        10,
+        17,
+        18,
+        19,
+        20,
+        27,
+        28,
+        29,
+        30,
+        37,
+        38,
+        39,
+        40,
+        47,
+        48,
+        49,
+        50,
+        57,
+        58,
+        59,
+        60
+      ]
+    },
+    {
+      "region": "R7",
+      "cells": [
+        67,
+        68,
+        69,
+        70
+      ]
+    },
+    {
+      "region": "R8",
+      "cells": [
         65,
-        66
+        66,
+        75,
+        76
       ]
     },
     {
       "region": "R9",
       "cells": [
-        67,
-        68,
-        77,
-        78
+        64,
+        74
+      ]
+    },
+    {
+      "region": "R10",
+      "cells": [
+        1,
+        11,
+        21,
+        31
+      ]
+    },
+    {
+      "region": "R11",
+      "cells": [
+        2,
+        3,
+        4,
+        5,
+        12,
+        13,
+        14,
+        15,
+        22,
+        23,
+        24,
+        25,
+        32,
+        33,
+        34,
+        35
       ]
     }
   ]

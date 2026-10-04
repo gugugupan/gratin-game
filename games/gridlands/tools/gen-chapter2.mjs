@@ -193,7 +193,7 @@ level({
 });
 
 level({
-  file: '2-7.json', id: '2-7', chapter: 2, difficulty: 10, theme: 'epilogue',
+  file: '2-8.json', id: '2-8', chapter: 2, difficulty: 10, theme: 'epilogue',
   name: L('尾声：握手', 'Epilogue: The Handshake'),
   story: L(
     '吵了这么久，开发商终于让步了：不再要最大的地，只要一块和铁匠、伐木工一样大的。大家握了手，签下最后一份协议。',
@@ -228,4 +228,33 @@ level({
     C('AREA_EQUAL_TO', { a: 'R2', b: 'R4' }),
     C('AREA_EQUAL_TO', { a: 'R3', b: 'R5' }),
   ],
+});
+
+level({
+  file: '2-7.json', id: '2-7', chapter: 2, difficulty: 10, theme: 'lastnight',
+  name: L('签约前夜', 'The Night Before Signing'),
+  story: L(
+    '握手的前一晚，开发商又改了主意：要两处金矿，还要两块耕地。大家只好连夜把地重新算一遍。',
+    'On the night before the handshake, the developer changes its mind again: two gold veins and two fields this time. Everyone stays up recalculating the plots.',
+  ),
+  // 8x8, k=6, seed 5, rounds 6
+  blocked: 'M',
+  map: `
+    .  .  .  B  B  .  B  .
+    .  F  .  F  I  F  .  I
+    A  M  M  .  .  A  .  .
+    .  A  A  .  .  I  .  .
+    .  .  G  .  .  A  .  F
+    .  .  .  .  .  .  .  F
+    .  G  .  G  .  .  .  G
+    F  .  .  G  B  I  .  .`,
+  regions: [
+    { id: 'R1', owner: { name: L('伐木工', 'Woodcutter'), color: '#2e7d32', icon: 'forester', avatar: null }, constraints: [{type: 'TAG_COUNT_EQ', params: {tag: 'forest', value: 3}}, {type: 'TAG_COUNT_EQ', params: {tag: 'iron', value: 2}}] },
+    { id: 'R2', owner: { name: L('农夫', 'Farmer'), color: '#66bb6a', icon: 'farmer', avatar: null }, constraints: [{type: 'TAG_COUNT_EQ', params: {tag: 'farmland', value: 1}}] },
+    { id: 'R3', owner: { name: L('开发商', 'Developer'), color: '#8d6e63', icon: 'developer', avatar: null }, constraints: [{type: 'TAG_COUNT_EQ', params: {tag: 'farmland', value: 2}}, {type: 'TAG_COUNT_EQ', params: {tag: 'gold', value: 2}}] },
+    { id: 'R4', owner: { name: L('矿业公司', 'Mining Co.'), color: '#ffb300', icon: 'miner', avatar: null }, constraints: [{type: 'TAG_COUNT_EQ', params: {tag: 'gold', value: 2}}] },
+    { id: 'R5', owner: { name: L('牧羊人', 'Shepherd'), color: '#a1887f', icon: 'rancher', avatar: null }, constraints: [{type: 'TAG_COUNT_EQ', params: {tag: 'farmland', value: 1}}] },
+    { id: 'R6', owner: { name: L('居民', 'Residents'), color: '#ef5350', icon: 'house', avatar: null }, constraints: [{type: 'TAG_COUNT_EQ', params: {tag: 'farmland', value: 1}}, {type: 'TAG_COUNT_EQ', params: {tag: 'gold', value: 1}}] },
+  ],
+  globalConstraints: [{type: 'AREA_EQUAL_TO', params: {a: 'R1', b: 'R6'}}, {type: 'AREA_EQUAL_TO', params: {a: 'R2', b: 'R4'}}, {type: 'AREA_LARGER_THAN', params: {a: 'R5', b: 'R2'}}],
 });

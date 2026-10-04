@@ -7,7 +7,8 @@
 ## 现状（as-built）
 
 纯前端 MVP，可玩，无后端。已完成：
-- 规则引擎 + 唯一解校验器 + 「无猜测」推理检查（`tools/deduce.mjs`）；第 1 章 `levels/1-1.json` … `1-6.json`，第 2 章「开发商来了」`2-1.json` … `2-7.json`（地图从 6×5 逐关长到 8×8，2-7 是尾声），第 3 章「海岛拓荒」`3-1.json` … `3-7.json`（8×8 → 11×10，不规则海岸线 + 开局营地旗 + 方位条件，3-7 是尾声），第 4 章「蒸汽时代」`4-1.json` … `4-7.json`（6×6 → 10×10，剪刀 → 铁锅 → 毛线 → 蜡烛 → 怀表 → 雨伞 → 大衣，4-7 是尾声），全部通过。
+- 规则引擎 + 唯一解校验器 + 「无猜测」推理检查（`tools/deduce.mjs`）；4 章 × 8 关，每章第 8 关是尾声：第 1 章 `1-1…1-8`（入门，1-7 相邻、1-8 边缘/角落），第 2 章「开发商来了」`2-1…2-8`（6×5 → 8×8），第 3 章「海岛拓荒」`3-1…3-8`（8×8 → 11×10，海岸线 + 营地旗 + 方位），第 4 章「蒸汽时代」`4-1…4-8`（6×6 → 10×10，剪刀 → 铁锅 → 毛线 → 蜡烛 → 怀表 → 雨伞 → 座钟 → 大衣），全部通过。
+- 2026-10-04 每章补到 8 关时，原尾声 2-7/3-7/4-7 改名为 2-8/3-8/4-8；`state/store.ts` 的进度迁移升到 v3。
 - 第 4 章机制：区域可标 `facility: gather|factory`，关卡带 `product`；新条件 SUPPLIED_BY（流水线供料 + 产量）、EXCLUSIVE_TO（独占供料）、NO_TAG_WITHIN（污染范围）；侧边栏 RecipeTree 画配方树，通关时 FlowOverlay 播放物资流动。
 - `web/public/tiles/terrain-{coal,copper,cotton}.svg` 是本项目自绘（仿 Fluent Flat 风格），其余图标来自 Fluent Emoji（MIT）。
 - 关卡编号 2026-10-03 改过：旧 2-1/2-2/3-1/4-1 → 1-3/1-4/1-5/1-6；`state/store.ts` 里有一次性的通关进度迁移（`rlp-progress-version`）。
@@ -23,7 +24,7 @@
 ```
 document/   设计文档：PRD.md、LEVEL_SCHEMA.md（关卡 JSON 权威定义）、TECH_DESIGN.md、README.md
 levels/     关卡 JSON（权威数据；结构见 LEVEL_SCHEMA.md）
-tools/      gen-samples.mjs（生成 1-2…1-6）、level-kit.mjs（ASCII 地图 → 关卡 JSON；`~` 海，记号后跟数字 = 开局插旗给该区域）、gen-chapter2.mjs（生成 2-1…2-7）、gen-chapter3.mjs（生成 3-1…3-7）、gen-chapter4.mjs（生成 4-x）、recipes-ch4.mjs（第 4 章配方树）、generate-level.mjs（随机生成候选关卡：最小条件集 + 唯一解 + 推理可解）、verify-levels.mjs（唯一解 + 比对内置答案 + 推理可解）、deduce.mjs（排除推理求解器）
+tools/      gen-samples.mjs（生成 1-2…1-6）、gen-chapter1.mjs（生成 1-7、1-8）、level-kit.mjs（ASCII 地图 → 关卡 JSON；`~` 海，记号后跟数字 = 开局插旗给该区域）、gen-chapter2.mjs（生成 2-1…2-8）、gen-chapter3.mjs（生成 3-1…3-8）、gen-chapter4.mjs（生成 4-x）、recipes-ch4.mjs（第 4 章配方树）、generate-level.mjs（随机生成候选关卡：最小条件集 + 唯一解 + 推理可解）、verify-levels.mjs（唯一解 + 比对内置答案 + 推理可解）、deduce.mjs（排除推理求解器）
 web/        Vite + React + TS 前端
   src/core/engine.js   规则引擎（纯 ESM JS，前端与 node 校验脚本共用；类型在 engine.d.ts）
   src/pages/           IndexPage / LevelsPage / PlayPage

@@ -3,7 +3,8 @@
 // 用法：
 //   node tools/generate-level.mjs search W H K FROM TO   # 搜种子，按推理轮数排序输出
 //   node tools/generate-level.mjs show   W H K SEED       # 打印该种子的地图、答案和条件
-//   选项：--sea=N 切 N 块海做海岸线；--noblock 不放湖/山障碍；--dir 允许方位线索；--flags=N 至少保留 N 面营地旗；--mindir=N 至少保留 N 条方位线索；--maxshare=0.3 单个区域最多占地图的比例；--budget=N 计算量上限放大 N 倍
+//   node tools/generate-level.mjs js     W H K SEED       # 输出可粘进 gen-chapterN.mjs 的代码（OWNER 替换成角色）
+//   选项：--sea=N 切 N 块海做海岸线；--noblock 不放湖/山障碍；--dir 允许方位线索；--flags=N 至少保留 N 面营地旗；--mindir=N 至少保留 N 条方位线索；--maxshare=0.3 单个区域最多占地图的比例；--budget=N 计算量上限放大 N 倍；--keep=TYPE,... 这些条件类型尽量保留
 //   第 4 章额外选项：--loose 不强求采集设施只挨着自己的工厂；--nodecoy 不在别处撒配方资源当诱饵
 //   （地图里 ~ 是海，* 是营地旗所在格）
 //   node tools/generate-level.mjs factory RECIPE W H FROM TO   # 第 4 章：按 recipes-ch4.mjs 的配方树搜种子
@@ -89,7 +90,7 @@ export function truths(level, truth, opts = {}) {
     }
     if (level.board.cells.length === level.board.width * level.board.height) { add('MUST_ON_EDGE'); add('MUST_NOT_ON_CORNER'); }
     add('AREA_MAX', null, 2); add('AREA_MIN', null, 2);
-    for (const o of level.regions) if (o.id !== r.id) { add('MUST_NOT_TOUCH_REGION', { region: o.id }); }
+    for (const o of level.regions) if (o.id !== r.id) { add('MUST_NOT_TOUCH_REGION', { region: o.id }); if (opts.touchRegion) add('MUST_TOUCH_REGION', { region: o.id }); }
   }
   for (const a of level.regions) for (const b of level.regions) if (a.id < b.id) {
     for (const c of [{ type: 'AREA_LARGER_THAN', params: { a: a.id, b: b.id } }, { type: 'AREA_LARGER_THAN', params: { a: b.id, b: a.id } }, { type: 'AREA_EQUAL_TO', params: { a: a.id, b: b.id } }])
@@ -110,6 +111,8 @@ export function truths(level, truth, opts = {}) {
     // 预置营地旗：每个区域随机一格作为候选线索
     for (const r of level.regions) { const ids = truth.get(r.id); out.push({ rid: r.id, fix: ids[Math.floor(rnd() * ids.length)], w: 0 }); }
   }
+  // opts.keepTypes：这些条件类型最后才删（想让某关突出某种规则时用）
+  if (opts.keepTypes) for (const x of out) if (opts.keepTypes.includes(x.c?.type)) x.w = 9;
   return out;
 }
 
@@ -247,7 +250,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const [W, H, k, a, b] = args.slice(1).filter((x) => !x.startsWith('--')).map(Number);
   const flag = (name, dflt) => { const f = args.find((x) => x.startsWith(`--${name}`)); return f ? (f.includes('=') ? Number(f.split('=')[1]) : true) : dflt; };
   const gopts = { sea: flag('sea', 0), blockedRect: !flag('noblock', false), maxShare: flag('maxshare', 1) };
-  const mopts = { direction: flag('dir', false) || flag('mindir', 0) > 0, flags: flag('flags', 0) > 0, minFlags: flag('flags', 0), minDir: flag('mindir', 0) };
+  const keepArg = args.find((x) => x.startsWith('--keep='));
+  const keepTypes = keepArg ? keepArg.split('=')[1].split(',') : undefined;
+  const mopts = { direction: flag('dir', false) || flag('mindir', 0) > 0, flags: flag('flags', 0) > 0, minFlags: flag('flags', 0), minDir: flag('mindir', 0), keepTypes, touchRegion: !!keepTypes?.includes('MUST_TOUCH_REGION') };
   const make = (s) => { const g = generate({ W, H, k, res: resFor(W, H), s, ...gopts }); return g && minimize(g.level, g.truth, mopts); };
   if (cmd === 'factory' || cmd === 'factoryshow' || cmd === 'factoryjs') {
     const { RECIPES } = await import('./recipes-ch4.mjs');
@@ -297,6 +302,22 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     }
     found.sort((x, y) => y.rounds - x.rounds || x.clues - y.clues);
     console.log('best ' + JSON.stringify(found.slice(0, 10)));
+  } else if (cmd === 'js') {
+    // 输出 gen-chapterN.mjs 用的代码块：地图（~ 海、记号后的数字 = 营地旗）+ 区域条件（角色名字留给手写）
+    const m = make(a);
+    if (!m) { console.log('该种子没有合格关卡'); process.exit(1); }
+    const js = (v) => JSON.stringify(v).replace(/"([a-zA-Z_]+)":/g, '$1: ').replace(/"/g, "'").replace(/,/g, ', ');
+    const byXY = new Map(m.lv.board.cells.map((c) => [`${c.x},${c.y}`, c]));
+    const blockedTags = [...new Set(m.lv.board.cells.filter((c) => c.assignable === false).map((c) => SYM[c.tags[0]]))].join('');
+    const rows = [];
+    for (let y = 0; y < H; y++) { const row = []; for (let x = 0; x < W; x++) { const c = byXY.get(`${x},${y}`); row.push(c ? SYM[c.tags[0]] + (c.fixedRegion ? c.fixedRegion.slice(1) : '') : '~'); } rows.push('    ' + row.map((t) => t.padEnd(2)).join(' ').trimEnd()); }
+    console.log(`  // ${W}x${H}, k=${k}, seed ${a}, rounds ${m.d.rounds}`);
+    if (blockedTags) console.log(`  blocked: '${blockedTags}',`);
+    console.log('  map: `\n' + rows.join('\n') + '`,');
+    console.log('  regions: [');
+    for (const r of m.lv.regions) console.log(`    { id: '${r.id}', owner: OWNER, constraints: ${js(r.constraints)} },`);
+    console.log('  ],');
+    console.log(`  globalConstraints: ${js(m.lv.globalConstraints)},`);
   } else if (cmd === 'show') {
     const m = make(a);
     if (!m) { console.log('该种子没有合格关卡'); process.exit(1); }

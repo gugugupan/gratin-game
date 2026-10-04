@@ -25,14 +25,18 @@ const setDocumentLang = (locale: Locale) => {
 setDocumentLang(initialLocale);
 
 // v1 的关卡编号是 1-1,1-2,2-1,2-2,3-1,4-1；v2 起它们统一为第 1 章 1-1…1-6，2-x 留给新关卡
-const PROGRESS_VERSION = '2';
+// v3：每章补到 8 关，原来的尾声 2-7/3-7/4-7 改为 2-8/3-8/4-8
+const PROGRESS_VERSION = '3';
 const V1_TO_V2: Record<string, string> = { '1-1': '1-1', '1-2': '1-2', '2-1': '1-3', '2-2': '1-4', '3-1': '1-5', '4-1': '1-6' };
+const V2_TO_V3: Record<string, string> = { '2-7': '2-8', '3-7': '3-8', '4-7': '4-8' };
 
 const initialPassed: string[] = (() => {
   try {
     const saved: string[] = JSON.parse(localStorage.getItem('rlp-progress') || '[]');
-    if (localStorage.getItem('rlp-progress-version') === PROGRESS_VERSION) return saved;
-    const migrated = [...new Set(saved.map((id) => V1_TO_V2[id]).filter(Boolean))];
+    const version = localStorage.getItem('rlp-progress-version');
+    if (version === PROGRESS_VERSION) return saved;
+    const v2 = version ? saved : saved.map((id) => V1_TO_V2[id]).filter(Boolean);
+    const migrated = [...new Set(v2.map((id) => V2_TO_V3[id] ?? id))];
     localStorage.setItem('rlp-progress', JSON.stringify(migrated));
     localStorage.setItem('rlp-progress-version', PROGRESS_VERSION);
     return migrated;
