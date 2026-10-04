@@ -223,7 +223,6 @@ body {
 }
 .board.sample { width: min(78vw, 300px); max-height: 300px; cursor: default; border-color: var(--frame, #b8b09c); }
 .board.sample .cell { transition: none; }
-.sample-roles { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; max-width: 300px; }
 
 
 .info-card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; box-shadow: var(--shadow); }

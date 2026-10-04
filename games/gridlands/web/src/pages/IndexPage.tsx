@@ -32,9 +32,6 @@ function SampleBoard() {
           );
         })}
       </div>
-      <div className="sample-roles">
-        {level.regions.map((r) => <RoleAvatar key={r.id} icon={r.owner.icon} color={r.owner.color} size={20} />)}
-      </div>
     </div>
   );
 }
