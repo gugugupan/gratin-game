@@ -31,7 +31,8 @@ export type ConstraintType =
   | 'AREA_LARGER_THAN' | 'AREA_EQUAL_TO' | 'DIRECTION_OF'
   | 'ONLY_ONE_CONTAINS' | 'ONLY_ONE_TOUCHES'
   | 'SUPPLIED_BY' | 'EXCLUSIVE_TO' | 'NO_TAG_WITHIN'
-  | 'WITHIN_REGION' | 'FAR_FROM_REGION' | 'SHAPE_LINE' | 'SHAPE_SQUARE';
+  | 'WITHIN_REGION' | 'FAR_FROM_REGION' | 'SHAPE_LINE' | 'SHAPE_SQUARE'
+  | 'SHAPE_HLINE' | 'SHAPE_VLINE' | 'RAIL_ONLY_TAG';
 
 export interface Constraint {
   type: ConstraintType;
@@ -40,7 +41,7 @@ export interface Constraint {
 
 export type Facility = 'gather' | 'factory';
 
-export interface RegionDef { id: string; owner: Owner; constraints: Constraint[]; facility?: Facility; }
+export interface RegionDef { id: string; owner: Owner; constraints: Constraint[]; facility?: Facility; kind?: 'rail' | 'station'; }
 
 export interface Product { name: LocalizedString; icon: string; goal: string; }
 

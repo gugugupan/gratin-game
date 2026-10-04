@@ -14,6 +14,7 @@ import { solve, validate, buildIndex, localCandidates } from '../web/src/core/en
 import { deduce } from './deduce.mjs';
 
 let seed = 1;
+export const setSeed = (s) => { seed = s; };
 const rnd = () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; };
 const pick = (a) => a[Math.floor(rnd() * a.length)];
 const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };

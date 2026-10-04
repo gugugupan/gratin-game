@@ -7,9 +7,10 @@
 ## 现状（as-built）
 
 纯前端 MVP，可玩，无后端。已完成：
-- 规则引擎 + 唯一解校验器 + 「无猜测」推理检查（`tools/deduce.mjs`）；4 章 × 8 关，每章第 8 关是尾声：第 1 章 `1-1…1-8`（入门，1-7 相邻、1-8 边缘/角落），第 2 章「开发商来了」`2-1…2-8`（6×5 → 8×8），第 3 章「海岛拓荒」`3-1…3-8`（8×8 → 11×10，海岸线 + 营地旗 + 方位），第 4 章「蒸汽时代」`4-1…4-8`（6×6 → 10×10，剪刀 → 铁锅 → 毛线 → 蜡烛 → 怀表 → 雨伞 → 座钟 → 大衣），全部通过。
+- 规则引擎 + 唯一解校验器 + 「无猜测」推理检查（`tools/deduce.mjs`）；4 章 × 8 关，每章第 8 关是尾声：第 1 章 `1-1…1-8`（入门，1-7 相邻、1-8 边缘/角落），第 2 章「开发商来了」`2-1…2-8`（6×5 → 8×8），第 3 章「海岛拓荒」`3-1…3-8`（8×8 → 11×10，海岸线 + 营地旗 + 方位），第 4 章「蒸汽时代」`4-1…4-8`（6×6 → 10×10，剪刀 → 铁锅 → 毛线 → 蜡烛 → 怀表 → 雨伞 → 座钟 → 大衣），第 5 章「铁路通车」`5-1…5-8`（6×6 → 10×10），全部通过。
 - 2026-10-04 每章补到 8 关时，原尾声 2-7/3-7/4-7 改名为 2-8/3-8/4-8；`state/store.ts` 的进度迁移升到 v3。
 - 第 4 章机制：区域可标 `facility: gather|factory`，关卡带 `product`；新条件 SUPPLIED_BY（流水线供料 + 产量）、EXCLUSIVE_TO（独占供料）、NO_TAG_WITHIN（污染范围）；侧边栏 RecipeTree 画配方树，通关时 FlowOverlay 播放物资流动。
+- 第 5 章机制：区域可标 `kind: station|rail`；铁轨用 SHAPE_LINE / SHAPE_HLINE / SHAPE_VLINE + MUST_TOUCH_REGION 首尾相接，车站 SHAPE_SQUARE；5-6 起「隧道与桥梁」——不可通行的山脉 / 河流（地图小写 m / l）+ 全局 RAIL_ONLY_TAG（可通行的山 / 湖格只能归铁轨）。Board 给铁轨格画枕木（按分配格子的走向）、车站画站台纹，通关时 TrainOverlay 让火车沿铁轨从第一座车站开到第二座。电力试做关（WITHIN_REGION / FAR_FROM_REGION）已移出，留给第 6 章，设计见提交 fdff693。
 - `web/public/tiles/terrain-{coal,copper,cotton}.svg` 是本项目自绘（仿 Fluent Flat 风格），其余图标来自 Fluent Emoji（MIT）。
 - 关卡编号 2026-10-03 改过：旧 2-1/2-2/3-1/4-1 → 1-3/1-4/1-5/1-6；`state/store.ts` 里有一次性的通关进度迁移（`rlp-progress-version`）。
 - 每关有 `theme`（氛围色 + 故事卡插图）和 `story`（背景故事）。
@@ -25,7 +26,7 @@
 ```
 document/   设计文档：PRD.md、LEVEL_SCHEMA.md（关卡 JSON 权威定义）、TECH_DESIGN.md、README.md
 levels/     关卡 JSON（权威数据；结构见 LEVEL_SCHEMA.md）
-tools/      gen-samples.mjs（生成 1-2…1-6）、gen-chapter1.mjs（生成 1-7、1-8）、level-kit.mjs（ASCII 地图 → 关卡 JSON；`~` 海，记号后跟数字 = 开局插旗给该区域）、gen-chapter2.mjs（生成 2-1…2-8）、gen-chapter3.mjs（生成 3-1…3-8）、gen-chapter4.mjs（生成 4-x）、recipes-ch4.mjs（第 4 章配方树）、generate-level.mjs（随机生成候选关卡：最小条件集 + 唯一解 + 推理可解）、verify-levels.mjs（唯一解 + 比对内置答案 + 推理可解）、deduce.mjs（排除推理求解器）
+tools/      gen-samples.mjs（生成 1-2…1-6）、gen-chapter1.mjs（生成 1-7、1-8）、level-kit.mjs（ASCII 地图 → 关卡 JSON；`~` 海，记号后跟数字 = 开局插旗给该区域）、gen-chapter2.mjs（生成 2-1…2-8）、gen-chapter3.mjs（生成 3-1…3-8）、gen-chapter4.mjs（生成 4-x）、gen-chapter5.mjs（生成 5-x）、generate-rail.mjs（第 5 章铁路关候选：先铺车站和铁轨、再切地块、最后精简条件）、recipes-ch4.mjs（第 4 章配方树）、generate-level.mjs（随机生成候选关卡：最小条件集 + 唯一解 + 推理可解）、verify-levels.mjs（唯一解 + 比对内置答案 + 推理可解）、deduce.mjs（排除推理求解器）
 web/        Vite + React + TS 前端
   src/core/engine.js   规则引擎（纯 ESM JS，前端与 node 校验脚本共用；类型在 engine.d.ts）
   src/pages/           IndexPage / LevelsPage / PlayPage
@@ -50,6 +51,8 @@ node ../tools/generate-level.mjs search 7 7 5 1 60   # 找候选；再用 show W
 # 海岛关：加 --sea=3 --noblock --dir --flags=2 [--mindir=3] [--maxshare=0.25]；大地图搜得慢，放后台跑，结果逐行输出
 node ../tools/generate-level.mjs factory pan 6 7 1 300 --maxshare=0.3   # 第 4 章：按配方树搜；factoryshow 查看、factoryjs 导出代码块
 # 设施多的大配方（怀表/雨伞/大衣）加 --loose --nodecoy，并可用 recipes-ch4.mjs 里的 *-lean（去掉普通区域）；候选每家常有 4 条条件
+node ../tools/generate-rail.mjs search 8 7 1 800 --runs=3 --plots=3   # 第 5 章；show / js 同参数查看、导出（OWNER_ 占位换成角色）
+# 选项 --spur 支线+货场、--tunnel / --bridge 山脉隧道 / 河流桥梁、--orient 横纵线索、--edge 起点站贴边；带支线的大图地块多，--plots 设 5–6，放后台跑
 ```
 
 ## 架构与关键决策

@@ -4,6 +4,7 @@ import { Cell } from './Cell';
 import { TERRAIN_STYLE } from './icons';
 import { at, seaCoords } from './sea';
 import { FlowOverlay } from './FlowOverlay';
+import { TrainOverlay } from './TrainOverlay';
 
 interface Drag { ax: number; ay: number; cx: number; cy: number; }
 interface Stamp { ids: Set<number>; ax: number; ay: number; odd: boolean; }
@@ -28,6 +29,20 @@ export function Board() {
     () => [...level.board.cells].sort((a, b) => (a.y - b.y) || (a.x - b.x)),
     [level],
   );
+
+  // 铁轨区域按已分配格子的走向画枕木：同一行 = 横向，同一列 = 纵向，只有一格 = 交叉
+  const railOrient = useMemo(() => {
+    const m = new Map<number, 'h' | 'v' | 'x'>();
+    for (const r of level.regions) {
+      if (r.kind !== 'rail') continue;
+      const cells = level.board.cells.filter((c) => assignment[c.id] === r.id);
+      if (!cells.length) continue;
+      const o = cells.length === 1 ? 'x' : cells.every((c) => c.y === cells[0].y) ? 'h' : cells.every((c) => c.x === cells[0].x) ? 'v' : null;
+      if (o) cells.forEach((c) => m.set(c.id, o));
+    }
+    return m;
+  }, [level, assignment]);
+  const stationIds = useMemo(() => new Set(level.regions.filter((r) => r.kind === 'station').map((r) => r.id)), [level]);
 
   const ownerColor = useMemo(() => {
     const m = new Map<string, string>();
@@ -161,7 +176,8 @@ export function Board() {
       onContextMenu={(e) => { e.preventDefault(); setDrag(null); pickRegionAt(e.clientX, e.clientY); }}
     >
       {seaCoords(level).map(([x, y]) => <div key={`sea-${x}-${y}`} className="sea" style={at(x, y)} />)}
-      {won && level.product ? <FlowOverlay level={level} assignment={assignment} board={boardRef.current} /> : null}
+      {won && level.product ? <FlowOverlay level={level} assignment={assignment} boardRef={boardRef} /> : null}
+      {won && level.regions.some((r) => r.kind === 'station') ? <TrainOverlay level={level} assignment={assignment} boardRef={boardRef} /> : null}
       {ordered.map((c) => {
         const rid = assignment[c.id];
         const mainTag = (c.tags || []).find((tg) => tg !== 'plain') ?? null;
@@ -178,6 +194,8 @@ export function Board() {
             preview={previewSet.has(c.id)}
             conflict={conflictCells.has(c.id)}
             fixed={!!c.fixedRegion}
+            rail={railOrient.get(c.id)}
+            station={!!rid && stationIds.has(rid)}
             stamp={stamp?.ids.has(c.id) ? { odd: stamp.odd, delay: (Math.abs(c.x - stamp.ax) + Math.abs(c.y - stamp.ay)) * 35 } : undefined}
             celebrateDelay={won ? 250 + (c.x + c.y) * 70 : undefined}
           />

@@ -365,3 +365,27 @@ body {
 .condition-panel.basics { border-color: #bcdcb9; }
 .cell.hl-reach { background-image: repeating-linear-gradient(135deg, rgba(46,158,79,.18) 0 4px, transparent 4px 10px) !important; }
 .answer-banner { width: min(92vw, 540px); padding: 10px 14px; border-radius: 12px; background: #fff4d6; border: 1px solid #f0c75e; color: #7a5a12; font-size: 13px; font-weight: 700; }
+
+/* ── 铁路（第 5 章）：枕木 + 两条钢轨，按方向画；车站画站台纹 ── */
+.cell.rail { background-image: none !important; }
+.cell .track { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; }
+.cell.rail-h .track {
+  background:
+    linear-gradient(to bottom, transparent 30%, #6d6058 30%, #6d6058 36%, transparent 36%, transparent 64%, #6d6058 64%, #6d6058 70%, transparent 70%),
+    repeating-linear-gradient(to right, transparent 0 9%, rgba(120, 82, 52, .55) 9% 21%, transparent 21% 33.3%);
+  background-size: 100% 100%, 100% 70%; background-position: 0 0, 0 50%; background-repeat: no-repeat;
+}
+.cell.rail-v .track {
+  background:
+    linear-gradient(to right, transparent 30%, #6d6058 30%, #6d6058 36%, transparent 36%, transparent 64%, #6d6058 64%, #6d6058 70%, transparent 70%),
+    repeating-linear-gradient(to bottom, transparent 0 9%, rgba(120, 82, 52, .55) 9% 21%, transparent 21% 33.3%);
+  background-size: 100% 100%, 70% 100%; background-position: 0 0, 50% 0; background-repeat: no-repeat;
+}
+.cell.rail .terrain { opacity: .55; }
+.cell.station { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.35) 0 6px, transparent 6px 12px) !important; }
+@media (prefers-reduced-motion: reduce) { .train-overlay { display: none; } }
+.cell.rail-x .track {
+  background:
+    linear-gradient(to bottom, transparent 30%, #6d6058 30%, #6d6058 36%, transparent 36%, transparent 64%, #6d6058 64%, #6d6058 70%, transparent 70%),
+    linear-gradient(to right, transparent 30%, #6d6058 30%, #6d6058 36%, transparent 36%, transparent 64%, #6d6058 64%, #6d6058 70%, transparent 70%);
+}

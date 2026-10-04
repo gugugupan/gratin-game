@@ -12,6 +12,8 @@ export interface CellView {
   preview: boolean;
   conflict: boolean;
   fixed?: boolean;
+  rail?: 'h' | 'v' | 'x';
+  station?: boolean;
   stamp?: { odd: boolean; delay: number };
   celebrateDelay?: number;
 }
@@ -19,13 +21,15 @@ export interface CellView {
 const GRASS_BASE = `${import.meta.env.BASE_URL}tiles/grass-`;
 const FLAG = `${import.meta.env.BASE_URL}tiles/flag.svg`;
 
-export function Cell({ cell, tag, bg, fillColor, blocked, highlight, preview, conflict, fixed, stamp, celebrateDelay }: CellView) {
+export function Cell({ cell, tag, bg, fillColor, blocked, highlight, preview, conflict, fixed, rail, station, stamp, celebrateDelay }: CellView) {
   const cls = ['cell'];
   if (blocked) cls.push('blocked');
   if (highlight) cls.push(`hl-${highlight}`);
   if (preview) cls.push('preview');
   if (conflict) cls.push('conflict');
   if (fillColor) cls.push('assigned');
+  if (rail) cls.push(`rail rail-${rail}`);
+  if (station) cls.push('station');
   if (stamp) cls.push(stamp.odd ? 'stamp-b' : 'stamp-a');
   if (celebrateDelay !== undefined) cls.push('celebrate');
 
@@ -35,6 +39,7 @@ export function Cell({ cell, tag, bg, fillColor, blocked, highlight, preview, co
   if (celebrateDelay !== undefined) (style as any)['--celebrate-delay'] = `${celebrateDelay}ms`;
   return (
     <div className={cls.join(' ')} style={style} data-id={cell.id}>
+      {rail ? <span className="track" aria-hidden="true" /> : null}
       {tag ? <TerrainIcon tag={tag} /> : null}
       {fixed ? <img className="flag" src={FLAG} alt="" draggable={false} /> : null}
     </div>

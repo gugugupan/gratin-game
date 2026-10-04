@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Level } from '../core/engine';
 import { recipeGraph } from './recipe';
 
@@ -9,10 +9,11 @@ const TRAVEL = 1.4; // 物资走完一段流水线的时间（秒）
 interface Flow { path: string; icon: string; delay: number }
 
 /** 通关后，物资沿流水线从供料设施流向制造设施，最后在成品设施上冒出成品；循环播放，表示流水线一直在运转 */
-export function FlowOverlay({ level, assignment, board }: { level: Level; assignment: Record<number, string>; board: HTMLDivElement | null }) {
+export function FlowOverlay({ level, assignment, boardRef }: { level: Level; assignment: Record<number, string>; boardRef: React.RefObject<HTMLDivElement> }) {
   const [state, setState] = useState<{ w: number; h: number; flows: Flow[]; goal?: { x: number; y: number; delay: number } } | null>(null);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
+    const board = boardRef.current;
     if (!board) return;
     const base = board.getBoundingClientRect();
     const center = (el: Element) => { const r = el.getBoundingClientRect(); return { x: r.left - base.left + r.width / 2, y: r.top - base.top + r.height / 2 }; };
@@ -43,7 +44,7 @@ export function FlowOverlay({ level, assignment, board }: { level: Level; assign
       if (g.length) goal = { ...mid(g), delay: Math.max(0, ...[...depth.values()]) * HOP + TRAVEL };
     }
     setState({ w: base.width, h: base.height, flows, goal });
-  }, [level, assignment, board]);
+  }, [level, assignment, boardRef]);
 
   if (!state) return null;
   const size = Math.min(state.w, state.h) / 10;

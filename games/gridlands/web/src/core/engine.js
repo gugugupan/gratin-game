@@ -150,11 +150,21 @@ export function evalConstraint(ix, regionsMap, regionId, c) {
       for (const m of myCells) for (const o of other) d = Math.min(d, Math.abs(m.x - o.x) + Math.abs(m.y - o.y));
       return c.type === 'WITHIN_REGION' ? d <= p.dist : d > p.dist;
     }
-    case 'SHAPE_LINE': case 'SHAPE_SQUARE': {
+    case 'SHAPE_LINE': case 'SHAPE_SQUARE': case 'SHAPE_HLINE': case 'SHAPE_VLINE': {
       if (!myCells.length) return false;
       const xs = myCells.map((m) => m.x), ys = myCells.map((m) => m.y);
       const w = Math.max(...xs) - Math.min(...xs) + 1, h = Math.max(...ys) - Math.min(...ys) + 1;
-      return c.type === 'SHAPE_SQUARE' ? w === h : (w === 1 || h === 1) && myCells.length >= 2;
+      if (c.type === 'SHAPE_SQUARE') return w === h;
+      if (c.type === 'SHAPE_HLINE') return h === 1 && w >= 2;
+      if (c.type === 'SHAPE_VLINE') return w === 1 && h >= 2;
+      return (w === 1 || h === 1) && myCells.length >= 2;
+    }
+    case 'RAIL_ONLY_TAG': {
+      // 隧道 / 桥梁：可通行的这种地形格只能归铁轨（kind: 'rail'）所有；不可通行的山脉、河流不算
+      const owner = new Map();
+      for (const [rid, ids] of regionsMap) for (const id of ids) owner.set(id, rid);
+      return ix.level.board.cells.filter((c2) => c2.assignable !== false && (c2.tags || []).includes(p.tag))
+        .every((c2) => ix.level.regions.find((r) => r.id === owner.get(c2.id))?.kind === 'rail');
     }
     case 'ONLY_ONE_CONTAINS':
       return all.filter((r) => cellsOf(ix, r, regionsMap).some((c2) => (c2.tags || []).includes(p.tag))).length === 1;
@@ -257,12 +267,16 @@ function rectCandidates(ix, region) {
 const LOCAL_TYPES = new Set([
   'AREA_EQ', 'AREA_GE', 'AREA_LE', 'MUST_CONTAIN_CELL', 'MUST_NOT_CONTAIN_CELL',
   'MUST_CONTAIN_TAG', 'MUST_NOT_CONTAIN_TAG', 'TAG_COUNT_EQ', 'TAG_COUNT_GE', 'TAG_COUNT_LE',
-  'MUST_TOUCH_TAG', 'MUST_NOT_TOUCH_TAG', 'MUST_ON_EDGE', 'MUST_NOT_ON_CORNER', 'NO_TAG_WITHIN', 'SHAPE_LINE', 'SHAPE_SQUARE',
+  'MUST_TOUCH_TAG', 'MUST_NOT_TOUCH_TAG', 'MUST_ON_EDGE', 'MUST_NOT_ON_CORNER', 'NO_TAG_WITHIN', 'SHAPE_LINE', 'SHAPE_SQUARE', 'SHAPE_HLINE', 'SHAPE_VLINE',
 ]);
 
 /** 区域的候选矩形，已剔除违反本区域局部条件的（不改变解集，只缩小搜索） */
 export function localCandidates(ix, region) {
   const local = (region.constraints || []).filter((c) => LOCAL_TYPES.has(c.type));
+  // 「只有铁轨能占用某地形」对非铁轨区域等价于局部条件「不能包含该地形」
+  if (region.kind !== 'rail') {
+    for (const g of ix.level.globalConstraints || []) if (g.type === 'RAIL_ONLY_TAG') local.push({ type: 'MUST_NOT_CONTAIN_TAG', params: { tag: g.params.tag } });
+  }
   return rectCandidates(ix, region).filter((ids) => {
     const map = new Map([[region.id, ids]]);
     return local.every((c) => evalConstraint(ix, map, region.id, c));

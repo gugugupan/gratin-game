@@ -59,6 +59,8 @@
 
 > 第 4 章：region 可带 `facility`（`gather` 采集 / `factory` 制造），关卡可带 `product: { name, icon, goal }`（goal = 产出成品的区域）。新条件：`SUPPLIED_BY { region, tag?, value? }`（本设施挨着供料设施，且供料设施里正好 value 格 tag）、`EXCLUSIVE_TO { region }`（只挨着这一家制造设施）、`NO_TAG_WITHIN { tag, dist }`（曼哈顿距离 dist 内不能有该地形）。
 
+> 第 5 章：region 可带 `kind`（`station` 车站 / `rail` 铁轨，前端据此画站台纹、枕木和通关列车）；cell 的 `assignable: false` 加上 mountain / lake 标签 = 不可通行的山脉 / 河流。新条件：`SHAPE_LINE`（一格宽、长度 ≥2 的长条）、`SHAPE_HLINE` / `SHAPE_VLINE`（横向 / 纵向长条）、`SHAPE_SQUARE`（正方形）、全局 `RAIL_ONLY_TAG { tag }`（可通行的该地形格只能归 `kind: 'rail'` 的区域）。`WITHIN_REGION` / `FAR_FROM_REGION { region, dist }`（区域间最短曼哈顿距离）已在引擎里，留给第 6 章电力关。
+
 > 不规则地图：`board.cells` 里缺失的 (x,y) 在界面上画成海。带 `fixedRegion` 的格子开局即归属该区域，界面上显示一面小旗。
 | `shapeRule` | enum | ✓ | `RECT`(MVP) / `ANY` / `SQUARE` / `L` |
 | `adjacency` | 4\|8 | — | 区域连通判定，默认 `4` |
