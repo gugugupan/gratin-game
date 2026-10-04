@@ -110,7 +110,7 @@ const MESSAGES: Record<Locale, Dict> = {
     ONLY_ONE_CONTAINS: '「{tag}」を含む唯一のエリア', ONLY_ONE_TOUCHES: '「{tag}」に接する唯一のエリア',
     SUPPLIED_BY: '{region}から「{tag}」を{value}個受け取る', SUPPLIED_BY_ANY: '{region}から材料を受け取る',
     EXCLUSIVE_TO: '{region}にだけ供給する', NO_TAG_WITHIN: '{dist}マス以内に「{tag}」がない',
-    WITHIN_REGION: '{region}から{dist}マス以内', FAR_FROM_REGION: '{region}から{dist}マスより離れる',
+    WITHIN_REGION: '{region}から{dist}マス以内', FAR_FROM_REGION: '{region}から{dist}マスより遠い',
     SHAPE_LINE: '幅1マスの細長い形にする', SHAPE_SQUARE: '正方形にする',
     recipe: 'レシピ', product: '完成品',
     legendToggle: '記号の説明',
