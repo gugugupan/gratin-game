@@ -159,8 +159,12 @@ body {
   border-radius: 14px; cursor: pointer; box-shadow: var(--shadow);
   transition: border-color .12s, box-shadow .12s, transform .06s;
 }
-.region-item:hover { border-color: var(--line-strong); }
-.region-item.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft), var(--shadow); }
+.region-item.status-empty { border-color: transparent; }
+.region-item.status-done { border: 2px solid var(--ok); padding: 10px 11px; }
+.region-item.status-bad { border: 2px solid var(--bad); padding: 10px 11px; }
+.region-item.status-empty:hover { border-color: var(--line-strong); }
+/* 选中状态用蓝色光圈，和完成状况的红/绿边框区分开 */
+.region-item.active { box-shadow: 0 0 0 4px rgba(59, 130, 246, .28), var(--shadow); transform: translateY(-1px); }
 .region-head { display: flex; align-items: center; gap: 10px; }
 .avatar {
   display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto;

@@ -21,10 +21,13 @@ export function RegionList() {
         const conds = validation
           ? validation.constraints.filter((c) => c.scope === 'region' && c.regionId === r.id)
           : [];
+        // 完成状况：没放格子 = 无边框；放了且全部满足（含矩形规则）= 绿；放了但还有不满足 = 红
+        const rectOk = validation?.hard.find((h) => h.regionId === r.id)?.ok ?? false;
+        const status = count === 0 ? 'empty' : rectOk && conds.every((c) => c.satisfied) ? 'done' : 'bad';
         return (
           <div
             key={r.id}
-            className={'region-item' + (active ? ' active' : '') + (validation?.ok ? ' celebrate' : '')}
+            className={`region-item status-${status}` + (active ? ' active' : '') + (validation?.ok ? ' celebrate' : '')}
             onClick={() => selectRegion(r.id)}
           >
             <div className="region-head">
