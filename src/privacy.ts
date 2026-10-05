@@ -16,6 +16,7 @@ const GOOGLE_PARTNER = "https://policies.google.com/technologies/partner-sites";
 const GA_OPTOUT = "https://tools.google.com/dlpage/gaoptout";
 const GOOGLE_PRIVACY = "https://policies.google.com/privacy";
 const WEB3FORMS_PRIVACY = "https://web3forms.com/privacy";
+const CLOUDFLARE_PRIVACY = "https://www.cloudflare.com/privacypolicy/";
 
 // Bodies are trusted static HTML; `{email}` is replaced with the contact link at render time.
 export const PRIVACY: Record<Locale, PrivacyPolicy> = {
@@ -38,8 +39,8 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
         body: "表示言語やゲームの進行状況は、お使いのブラウザのローカルストレージに保存されます。表示言語の設定は、gratin-game.com とそのサブドメインで公開している各ゲームで共通して使えるよう、Cookie（gratin_lang）にも保存します。この Cookie はページを読み込む際に当サイトのサーバーへ送信されますが、当サイトが記録・利用することはなく、第三者に送信されることもありません。いずれもブラウザのサイトデータを削除すると消去されます。",
       },
       {
-        heading: "4. アクセス解析ツール（Google Analytics）",
-        body: `当サイトは、サイトの改善のために Google LLC が提供する Google Analytics を利用しています。Google Analytics は Cookie を使用して、閲覧したページ、参照元、ブラウザや端末の種類、おおよその地域などの情報を収集します。これらの情報に、個人を特定できる情報は含まれません。<br>Google によるデータの取り扱いについては、${link(`${GOOGLE_PARTNER}?hl=ja`, "Google のサービスを使用するサイトやアプリから収集した情報の Google による使用")}をご覧ください。${link(`${GA_OPTOUT}?hl=ja`, "Google アナリティクス オプトアウト アドオン")}を利用すると、データの収集を無効にできます。`,
+        heading: "4. アクセス解析ツール",
+        body: `当サイトは、サイトの改善のために Google LLC が提供する Google Analytics を利用しています。Google Analytics は Cookie を使用して、閲覧したページ、参照元、ブラウザや端末の種類、おおよその地域などの情報を収集します。これらの情報に、個人を特定できる情報は含まれません。<br>Google によるデータの取り扱いについては、${link(`${GOOGLE_PARTNER}?hl=ja`, "Google のサービスを使用するサイトやアプリから収集した情報の Google による使用")}をご覧ください。${link(`${GA_OPTOUT}?hl=ja`, "Google アナリティクス オプトアウト アドオン")}を利用すると、データの収集を無効にできます。<br>また、ページの閲覧数や表示速度を把握するために、Cloudflare, Inc. が提供する Cloudflare Web Analytics を利用しています。Cloudflare Web Analytics は Cookie を使用せず、個人を識別・追跡することはありません。`,
       },
       {
         heading: "5. ご意見フォーム・メールでのお問い合わせ",
@@ -51,6 +52,7 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
           head: ["送信先", "送信される情報", "利用目的"],
           rows: [
             ["Google Analytics（Google LLC）", "閲覧ページの URL、参照元、ブラウザ・端末の情報、Cookie ID、IP アドレス", "アクセス状況の分析"],
+            ["Cloudflare Web Analytics（Cloudflare, Inc.）", "閲覧ページの URL、参照元、ブラウザ・端末の情報、ページの読み込み時間", "閲覧数と表示速度の計測"],
             ["Web3Forms", "ご意見フォームの入力内容、任意のメールアドレス、表示言語・画面サイズ・ブラウザの情報、IP アドレス", "ご意見の運営者へのメール転送"],
           ],
         },
@@ -60,7 +62,7 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
         body: "本ポリシーは、必要に応じて改定することがあります。改定後のポリシーは、本ページに掲載した時点から効力を生じるものとします。",
       },
     ],
-    enacted: `送信先のプライバシーポリシー：${link(`${GOOGLE_PRIVACY}?hl=ja`, "Google プライバシーポリシー")}、${link(WEB3FORMS_PRIVACY, "Web3Forms Privacy Policy")}<br>制定日：2026年10月3日<br>最終改定日：2026年10月5日`,
+    enacted: `送信先のプライバシーポリシー：${link(`${GOOGLE_PRIVACY}?hl=ja`, "Google プライバシーポリシー")}、${link(WEB3FORMS_PRIVACY, "Web3Forms Privacy Policy")}、${link(CLOUDFLARE_PRIVACY, "Cloudflare プライバシーポリシー")}<br>制定日：2026年10月3日<br>最終改定日：2026年10月5日`,
   },
   zh: {
     title: "隐私政策",
@@ -81,8 +83,8 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
         body: "显示语言和游戏进度保存在你浏览器的本地存储（localStorage）中。为了让 gratin-game.com 及其子域名下的各个游戏共用同一个语言设置，显示语言还会保存在 Cookie（gratin_lang）中。加载页面时这个 Cookie 会随请求发送到本站的服务器，但本站不会记录或使用它，也不会发送给任何第三方。清除浏览器的网站数据后，以上信息都会删除。",
       },
       {
-        heading: "4. 访问分析工具（Google Analytics）",
-        body: `为了改进网站，本站使用 Google LLC 提供的 Google Analytics。Google Analytics 通过 Cookie 收集浏览的页面、来源、浏览器和设备类型、大致地区等信息，这些信息不包含能识别个人身份的内容。<br>Google 如何处理这些数据，请参阅${link(`${GOOGLE_PARTNER}?hl=zh-CN`, "Google 如何使用来自使用其服务的网站或应用的信息")}。安装 ${link(`${GA_OPTOUT}?hl=zh-CN`, "Google Analytics 停用浏览器插件")}即可停止数据收集。`,
+        heading: "4. 访问分析工具",
+        body: `为了改进网站，本站使用 Google LLC 提供的 Google Analytics。Google Analytics 通过 Cookie 收集浏览的页面、来源、浏览器和设备类型、大致地区等信息，这些信息不包含能识别个人身份的内容。<br>Google 如何处理这些数据，请参阅${link(`${GOOGLE_PARTNER}?hl=zh-CN`, "Google 如何使用来自使用其服务的网站或应用的信息")}。安装 ${link(`${GA_OPTOUT}?hl=zh-CN`, "Google Analytics 停用浏览器插件")}即可停止数据收集。<br>此外，本站还使用 Cloudflare, Inc. 提供的 Cloudflare Web Analytics，统计页面访问量和加载速度。它不使用 Cookie，也不会识别或追踪个人。`,
       },
       {
         heading: "5. 意见表单与邮件咨询",
@@ -94,6 +96,7 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
           head: ["发送对象", "发送的信息", "使用目的"],
           rows: [
             ["Google Analytics（Google LLC）", "浏览页面的 URL、来源、浏览器和设备信息、Cookie ID、IP 地址", "分析访问情况"],
+            ["Cloudflare Web Analytics（Cloudflare, Inc.）", "访问页面的 URL、来源页面、浏览器和设备信息、页面加载时间", "统计访问量和页面性能"],
             ["Web3Forms", "意见表单填写的内容、选填的邮箱、显示语言、屏幕尺寸、浏览器信息、IP 地址", "将意见以邮件转发给运营者"],
           ],
         },
@@ -103,7 +106,7 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
         body: "本政策可能会根据需要进行修改。修改后的政策自在本页面发布之时起生效。",
       },
     ],
-    enacted: `发送对象的隐私政策：${link(`${GOOGLE_PRIVACY}?hl=zh-CN`, "Google 隐私权政策")}、${link(WEB3FORMS_PRIVACY, "Web3Forms Privacy Policy")}<br>制定日期：2026 年 10 月 3 日<br>最后修订：2026 年 10 月 5 日`,
+    enacted: `发送对象的隐私政策：${link(`${GOOGLE_PRIVACY}?hl=zh-CN`, "Google 隐私权政策")}、${link(WEB3FORMS_PRIVACY, "Web3Forms Privacy Policy")}、${link(CLOUDFLARE_PRIVACY, "Cloudflare 隐私政策")}<br>制定日期：2026 年 10 月 3 日<br>最后修订：2026 年 10 月 5 日`,
   },
   en: {
     title: "Privacy Policy",
@@ -124,8 +127,8 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
         body: "Your language setting and game progress are stored in your browser’s local storage. So that every game on gratin-game.com and its subdomains uses the same language, the language setting is also stored in a cookie (gratin_lang). The cookie is sent to this site’s servers when a page loads, but we never record or use it, and it is never sent to any third party. All of this is removed when you clear the site data in your browser.",
       },
       {
-        heading: "4. Analytics (Google Analytics)",
-        body: `To improve the site, we use Google Analytics, provided by Google LLC. Google Analytics uses cookies to collect information such as the pages you view, the referring site, your browser and device type, and your approximate region. This information does not identify you personally.<br>See ${link(GOOGLE_PARTNER, "How Google uses information from sites or apps that use its services")} for how Google handles this data. You can opt out with the ${link(GA_OPTOUT, "Google Analytics Opt-out Browser Add-on")}.`,
+        heading: "4. Analytics",
+        body: `To improve the site, we use Google Analytics, provided by Google LLC. Google Analytics uses cookies to collect information such as the pages you view, the referring site, your browser and device type, and your approximate region. This information does not identify you personally.<br>See ${link(GOOGLE_PARTNER, "How Google uses information from sites or apps that use its services")} for how Google handles this data. You can opt out with the ${link(GA_OPTOUT, "Google Analytics Opt-out Browser Add-on")}.<br>We also use Cloudflare Web Analytics, provided by Cloudflare, Inc., to measure page views and page load performance. It does not use cookies and does not identify or track individuals.`,
       },
       {
         heading: "5. Feedback form and email enquiries",
@@ -137,6 +140,7 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
           head: ["Recipient", "Information sent", "Purpose"],
           rows: [
             ["Google Analytics (Google LLC)", "Page URL, referrer, browser and device information, cookie ID, IP address", "Analysing site traffic"],
+            ["Cloudflare Web Analytics (Cloudflare, Inc.)", "Page URL, referrer, browser and device information, page load timing", "Measuring page views and performance"],
             ["Web3Forms", "Feedback form message, optional email address, display language, screen size, browser information, IP address", "Forwarding feedback to us by email"],
           ],
         },
@@ -146,7 +150,7 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
         body: "We may update this policy when needed. The updated policy takes effect as soon as it is posted on this page.",
       },
     ],
-    enacted: `Recipients’ privacy policies: ${link(GOOGLE_PRIVACY, "Google Privacy Policy")}, ${link(WEB3FORMS_PRIVACY, "Web3Forms Privacy Policy")}<br>Effective: October 3, 2026<br>Last updated: October 5, 2026`,
+    enacted: `Recipients’ privacy policies: ${link(GOOGLE_PRIVACY, "Google Privacy Policy")}, ${link(WEB3FORMS_PRIVACY, "Web3Forms Privacy Policy")}, ${link(CLOUDFLARE_PRIVACY, "Cloudflare Privacy Policy")}<br>Effective: October 3, 2026<br>Last updated: October 5, 2026`,
   },
 };
 
