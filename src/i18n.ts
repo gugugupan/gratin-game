@@ -2,9 +2,11 @@ export const LOCALES = ["ja", "zh", "en"] as const;
 export type Locale = (typeof LOCALES)[number];
 export type Localized = Record<Locale, string>;
 
-// Shared by every site on gugugupan.github.io so a choice made on one applies to all.
+// Shared by gratin-game.com and its subdomains through a parent-domain cookie; localStorage still holds choices made before the cookie existed.
 const SHARED_KEY = "gratin:lang";
 const LEGACY_KEY = "gratin-game:locale";
+const COOKIE = "gratin_lang";
+const COOKIE_DOMAIN = "gratin-game.com";
 
 export const LOCALE_LABELS: Localized = { ja: "日本語", zh: "中文", en: "EN" };
 
@@ -62,7 +64,24 @@ export function detectLocale(languages: readonly string[]): Locale {
   return bases.find(isLocale) ?? "ja";
 }
 
+function readCookie(): string | null {
+  try {
+    return document.cookie.match(new RegExp(`(?:^|;\\s*)${COOKIE}=([^;]*)`))?.[1] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCookie(value: string): void {
+  const host = location.hostname;
+  const domain = host === COOKIE_DOMAIN || host.endsWith(`.${COOKIE_DOMAIN}`) ? `; domain=${COOKIE_DOMAIN}` : "";
+  const secure = location.protocol === "https:" ? "; secure" : "";
+  document.cookie = `${COOKIE}=${value}; path=/; max-age=31536000; samesite=lax${domain}${secure}`;
+}
+
 function chosen(): string | null {
+  const cookie = readCookie();
+  if (cookie) return cookie;
   try {
     return localStorage.getItem(SHARED_KEY) ?? localStorage.getItem(LEGACY_KEY);
   } catch {
@@ -77,6 +96,7 @@ export function loadLocale(): Locale {
 }
 
 export function saveLocale(locale: Locale): void {
+  writeCookie(locale);
   try {
     localStorage.setItem(SHARED_KEY, locale);
   } catch {}
@@ -92,6 +112,12 @@ export function watchLocale(current: () => Locale, onChange: (locale: Locale) =>
   });
   window.addEventListener("languagechange", () => {
     if (!chosen()) update();
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) update();
+  });
+  window.addEventListener("pageshow", (e) => {
+    if (e.persisted) update();
   });
 }
 

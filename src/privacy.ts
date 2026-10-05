@@ -35,7 +35,7 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
       },
       {
         heading: "3. ブラウザ内に保存する情報",
-        body: "表示言語やゲームの進行状況は、お使いのブラウザのローカルストレージにのみ保存されます。これらの情報が当サイトや第三者に送信されることはありません。ブラウザのサイトデータを削除すると消去されます。",
+        body: "表示言語やゲームの進行状況は、お使いのブラウザのローカルストレージに保存されます。表示言語の設定は、gratin-game.com とそのサブドメインで公開している各ゲームで共通して使えるよう、Cookie（gratin_lang）にも保存します。この Cookie はページを読み込む際に当サイトのサーバーへ送信されますが、当サイトが記録・利用することはなく、第三者に送信されることもありません。いずれもブラウザのサイトデータを削除すると消去されます。",
       },
       {
         heading: "4. アクセス解析ツール（Google Analytics）",
@@ -83,7 +83,7 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
       },
       {
         heading: "3. 保存在浏览器中的信息",
-        body: "显示语言和游戏进度只保存在你浏览器的本地存储（localStorage）中，不会发送给本站或任何第三方。清除浏览器的网站数据后即会删除。",
+        body: "显示语言和游戏进度保存在你浏览器的本地存储（localStorage）中。为了让 gratin-game.com 及其子域名下的各个游戏共用同一个语言设置，显示语言还会保存在 Cookie（gratin_lang）中。加载页面时这个 Cookie 会随请求发送到本站的服务器，但本站不会记录或使用它，也不会发送给任何第三方。清除浏览器的网站数据后，以上信息都会删除。",
       },
       {
         heading: "4. 访问分析工具（Google Analytics）",
@@ -131,7 +131,7 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
       },
       {
         heading: "3. Information stored in your browser",
-        body: "Your language setting and game progress are stored only in your browser’s local storage. They are never sent to this site or to any third party, and are removed when you clear the site data in your browser.",
+        body: "Your language setting and game progress are stored in your browser’s local storage. So that every game on gratin-game.com and its subdomains uses the same language, the language setting is also stored in a cookie (gratin_lang). The cookie is sent to this site’s servers when a page loads, but we never record or use it, and it is never sent to any third party. All of this is removed when you clear the site data in your browser.",
       },
       {
         heading: "4. Analytics (Google Analytics)",
