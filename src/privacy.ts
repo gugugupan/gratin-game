@@ -8,7 +8,7 @@ export interface PrivacyPolicy {
   enacted: string;
 }
 
-export const FEEDBACK_EMAIL = ["guratan.game.asobu", "gmail.com"].join("@");
+export const FEEDBACK_EMAIL = ["feedback", "gratin-game.com"].join("@");
 
 const link = (href: string, label: string) => `<a href="${href}" target="_blank" rel="noopener">${label}</a>`;
 
@@ -65,7 +65,7 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
         body: "本ポリシーは、必要に応じて改定することがあります。改定後のポリシーは、本ページに掲載した時点から効力を生じるものとします。",
       },
     ],
-    enacted: `送信先のプライバシーポリシー：${link(`${GOOGLE_PRIVACY}?hl=ja`, "Google プライバシーポリシー")}、${link(WEB3FORMS_PRIVACY, "Web3Forms Privacy Policy")}<br>制定日：2026年10月3日<br>最終改定日：2026年10月4日`,
+    enacted: `送信先のプライバシーポリシー：${link(`${GOOGLE_PRIVACY}?hl=ja`, "Google プライバシーポリシー")}、${link(WEB3FORMS_PRIVACY, "Web3Forms Privacy Policy")}<br>制定日：2026年10月3日<br>最終改定日：2026年10月5日`,
   },
   zh: {
     title: "隐私政策",
@@ -113,7 +113,7 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
         body: "本政策可能会根据需要进行修改。修改后的政策自在本页面发布之时起生效。",
       },
     ],
-    enacted: `发送对象的隐私政策：${link(`${GOOGLE_PRIVACY}?hl=zh-CN`, "Google 隐私权政策")}、${link(WEB3FORMS_PRIVACY, "Web3Forms Privacy Policy")}<br>制定日期：2026 年 10 月 3 日<br>最后修订：2026 年 10 月 4 日`,
+    enacted: `发送对象的隐私政策：${link(`${GOOGLE_PRIVACY}?hl=zh-CN`, "Google 隐私权政策")}、${link(WEB3FORMS_PRIVACY, "Web3Forms Privacy Policy")}<br>制定日期：2026 年 10 月 3 日<br>最后修订：2026 年 10 月 5 日`,
   },
   en: {
     title: "Privacy Policy",
@@ -161,7 +161,7 @@ export const PRIVACY: Record<Locale, PrivacyPolicy> = {
         body: "We may update this policy when needed. The updated policy takes effect as soon as it is posted on this page.",
       },
     ],
-    enacted: `Recipients’ privacy policies: ${link(GOOGLE_PRIVACY, "Google Privacy Policy")}, ${link(WEB3FORMS_PRIVACY, "Web3Forms Privacy Policy")}<br>Effective: October 3, 2026<br>Last updated: October 4, 2026`,
+    enacted: `Recipients’ privacy policies: ${link(GOOGLE_PRIVACY, "Google Privacy Policy")}, ${link(WEB3FORMS_PRIVACY, "Web3Forms Privacy Policy")}<br>Effective: October 3, 2026<br>Last updated: October 5, 2026`,
   },
 };
 
