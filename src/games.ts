@@ -15,7 +15,7 @@ export type Game = {
 
 export const GAMES = data as Game[];
 
-export const SITE_URL = "https://gugugupan.github.io/gratin-game/";
+export const SITE_URL = "https://gratin-game.com/";
 
 const NEW_DAYS = 30;
 

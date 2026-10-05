@@ -1,3 +1,4 @@
+void import("./fonts");
 import "./style.css";
 import { langButtons, loadLocale, saveLocale, t, watchLocale, type Locale } from "./i18n";
 import { PRIVACY, renderPolicy } from "./privacy";

@@ -6,14 +6,15 @@
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <title>阡陌 · Gridlands</title>
     <script>
-      if (location.hostname === "gugugupan.github.io") {
+      var gaId = "%VITE_GA_ID%";
+      if (gaId && location.href.indexOf("%VITE_SITE_URL%") === 0) {
         window.dataLayer = window.dataLayer || [];
         window.gtag = function () { dataLayer.push(arguments); };
         gtag("js", new Date());
-        gtag("config", "G-8J5VSLTX1B");
+        gtag("config", gaId);
         var ga = document.createElement("script");
         ga.async = true;
-        ga.src = "https://www.googletagmanager.com/gtag/js?id=G-8J5VSLTX1B";
+        ga.src = "https://www.googletagmanager.com/gtag/js?id=" + gaId;
         document.head.appendChild(ga);
       }
     </script>

@@ -1,3 +1,4 @@
+void import("./fonts");
 import "./style.css";
 import { GAMES, isNew, sortGames, type Game } from "./games";
 import { INPUTS, LOCALE_LABELS, langButtons, loadLocale, saveLocale, t, watchLocale, type Locale } from "./i18n";

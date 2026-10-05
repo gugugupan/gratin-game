@@ -6,6 +6,7 @@ export default defineConfig({
   base: "./",
   server: { port: 5190, strictPort: true },
   build: {
+    assetsInlineLimit: (file) => (/\.woff2?$/.test(file) ? false : undefined),
     rollupOptions: {
       input: {
         main: resolve(import.meta.dirname, "index.html"),

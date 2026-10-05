@@ -62,7 +62,7 @@
       "zh": "按条件把地图划分成矩形区域，纯逻辑推理解谜。",
       "en": "Split the map into rectangles that satisfy every clue — pure-logic puzzles."
     },
-    "url": "https://gugugupan.github.io/gratin-game/gridlands/",
+    "url": "https://gratin-game.com/gridlands/",
     "cover": "covers/gridlands.jpg",
     "input": [
       "mouse",
