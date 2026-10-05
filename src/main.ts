@@ -2,7 +2,7 @@ void import("./fonts");
 import "./style.css";
 import { GAMES, isNew, sortGames, type Game } from "./games";
 import { INPUTS, LOCALE_LABELS, langButtons, loadLocale, saveLocale, t, watchLocale, type Locale } from "./i18n";
-import { initFeedback, mailto } from "./feedback";
+import { mailto } from "./feedback";
 import { FEEDBACK_EMAIL, PRIVACY } from "./privacy";
 
 if (location.hash === "#privacy") location.replace("./privacy/");
@@ -85,7 +85,6 @@ document.addEventListener("click", (e) => {
   }
 });
 
-initFeedback(() => state.locale);
 watchLocale(
   () => state.locale,
   (locale) => {
