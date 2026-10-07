@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "vite --config web/vite.config.ts",
     "build": "tsc -p web/tsconfig.json && vite build --config web/vite.config.ts",
-    "test": "tsc -p tsconfig.json && node --test dist/engine/",
+    "test": "tsc -p tsconfig.json && node --test dist/engine/game.test.js",
     "sim": "tsc -p tsconfig.json && node dist/sim/run.js"
   },
   "type": "module",
