@@ -4,7 +4,7 @@ import { easeInOut, seg } from "../util";
 
 const ELEVATION = 0.86;
 const HOME_Z = 0.8;
-const ZOOM = 0.48;
+const ZOOM = (0.48 * 28) / SHEET_W;
 
 export interface FreeArea {
   top: number;
@@ -48,7 +48,7 @@ export class CameraRig {
     const fracH = Math.max(0.3, (area.bottom - area.top) / innerHeight);
     const byWidth = SHEET_W / 2 / (t * this.camera.aspect);
     const byDepth = ((SHEET_H / 2) * Math.sin(ELEVATION)) / (t * fracH);
-    this.distance = Math.max(byWidth, byDepth) * ZOOM;
+    this.distance = Math.max(byWidth, byDepth) * ZOOM * (this.camera.aspect < 0.85 ? 1 : 1.3);
     const perPixel = (2 * this.distance * t) / innerHeight;
     const dy = (area.top + area.bottom) / 2 - innerHeight / 2;
     this.home.set(0, 0, HOME_Z - (dy * perPixel) / Math.sin(ELEVATION));

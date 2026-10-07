@@ -13,6 +13,7 @@ export class Hud {
   readonly teamCards = el("team-cards");
   private toastEl = el("toast");
   private toastTimer = 0;
+  hiddenRoles = new Set<RoleId>();
 
   render(state: State, portraits: Record<RoleId, string>, active: RoleId | null): void {
     this.renderAp(state);
@@ -68,16 +69,17 @@ export class Hud {
     this.showStubs(state.lastDrawn);
   }
 
-  showStubs(cities: number[], label = "上轮点名"): void {
+  showStubs(cities: number[], label = "上轮感染"): void {
     (this.stubs.previousElementSibling as HTMLElement).textContent = label;
     this.stubs.innerHTML = cities.length
       ? cities.map((c) => `<span class="stub" style="--c: var(${STRAIN_CSS[Math.floor(c / 6)]})">${CITY_NAMES[c]}</span>`).join("")
-      : `<span class="stub" style="--c: var(--ink-soft)">尚未点名</span>`;
+      : `<span class="stub" style="--c: var(--ink-soft)">尚未感染</span>`;
   }
 
   private renderTeam(state: State, portraits: Record<RoleId, string>, active: RoleId | null): void {
     this.teamCards.innerHTML = "";
     state.roles.forEach((role, r) => {
+      if (this.hiddenRoles.has(role)) return;
       const samples = Array.from({ length: STRAINS }, (_, s) => state.sample(r, s));
       const status = role === "police" ? `● 驻守封城：${CITY_NAMES[state.pos[r]]}` : undefined;
       const card = idCard(role, portraits[role], "team", { samples, status });

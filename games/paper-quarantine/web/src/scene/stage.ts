@@ -6,6 +6,7 @@ export interface Stage {
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
   canvas: HTMLCanvasElement;
+  sun: THREE.DirectionalLight;
 }
 
 export function createStage(canvas: HTMLCanvasElement): Stage {
@@ -18,19 +19,19 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color("#2c5a4c");
-  const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 200);
+  const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 300);
 
   scene.add(new THREE.HemisphereLight("#fff3df", "#30483f", 0.62 * Math.PI));
   const sun = new THREE.DirectionalLight("#ffe8c8", 0.95 * Math.PI);
   sun.position.set(-12, 26, 16);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
-  Object.assign(sun.shadow.camera, { left: -27, right: 27, top: 24, bottom: -24, near: 1, far: 70 });
+  Object.assign(sun.shadow.camera, { left: -27, right: 27, top: 24, bottom: -24, near: 1, far: 90 });
   sun.shadow.bias = -0.0008;
-  scene.add(sun);
+  scene.add(sun, sun.target);
 
   scene.add(cuttingMat());
-  return { renderer, scene, camera, canvas };
+  return { renderer, scene, camera, canvas, sun };
 }
 
 function cuttingMat(): THREE.Mesh {
@@ -50,8 +51,8 @@ function cuttingMat(): THREE.Mesh {
   g.beginPath(); g.moveTo(0, 1024); g.lineTo(1024, 0); g.stroke();
   const tex = texture(c);
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-  tex.repeat.set(9, 9);
-  const mat = new THREE.Mesh(new THREE.PlaneGeometry(90, 90), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.95 }));
+  tex.repeat.set(15, 15);
+  const mat = new THREE.Mesh(new THREE.PlaneGeometry(150, 150), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.95 }));
   mat.rotation.x = -Math.PI / 2;
   mat.position.y = -0.02;
   mat.receiveShadow = true;

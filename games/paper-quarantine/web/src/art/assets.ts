@@ -3,6 +3,11 @@ import { ROLE_ORDER } from "../data";
 import { cutoutFromImage, type PaperArt } from "./paper";
 
 export const TOKEN_KEYS = ["station", "field_lab", "lockdown", "virus_red", "virus_blue", "virus_gold", "outbreak", "named_pin"] as const;
+const ICON_KEYS = [
+  "cure_red", "cure_blue", "cure_gold", "sample_red", "sample_blue", "sample_gold", "epidemic",
+  "mut_breach", "mut_resistant", "mut_virulent", "mut_stubborn", "mut_acute",
+] as const;
+export const ASSET_COUNT = ROLE_ORDER.length + TOKEN_KEYS.length + ICON_KEYS.length;
 export type TokenKey = (typeof TOKEN_KEYS)[number];
 
 export interface Assets {
@@ -24,10 +29,15 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-export async function loadAssets(): Promise<Assets> {
+export async function loadAssets(onLoaded: () => void = () => {}): Promise<Assets> {
+  const load = (src: string) => loadImage(src).then((img) => {
+    onLoaded();
+    return img;
+  });
   const [roleList, tokenList] = await Promise.all([
-    Promise.all(ROLE_ORDER.map((k) => loadImage(`${base}art/${k}.webp`))),
-    Promise.all(TOKEN_KEYS.map((k) => loadImage(`${base}art/tokens/${k}.webp`))),
+    Promise.all(ROLE_ORDER.map((k) => load(`${base}art/${k}.webp`))),
+    Promise.all(TOKEN_KEYS.map((k) => load(`${base}art/tokens/${k}.webp`))),
+    Promise.all(ICON_KEYS.map((k) => load(iconUrl(k)))),
   ]);
   const roleImages = {} as Record<RoleId, HTMLImageElement>;
   const roleArt = {} as Record<RoleId, PaperArt>;

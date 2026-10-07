@@ -122,6 +122,7 @@ export type GameEvent =
   | { t: "intensify" }
   | { t: "mutation"; m: MutationId; strain: number }
   | { t: "named"; cities: number[] }
+  | { t: "infecting"; city: number }
   | { t: "cancelled"; city: number }
   | { t: "labExpired"; city: number }
   | { t: "round"; round: number }
@@ -139,6 +140,18 @@ export interface MutationChoice {
 export interface Chooser {
   chooseMutation(state: State, cards: MutationId[]): MutationChoice;
   chooseCancel(state: State, cities: number[]): number;
+}
+
+export interface Scenario {
+  pos: [number, number];
+  cubes: [city: number, strain: number, n: number][];
+  samples?: [role: number, strain: number, n: number][];
+  stations?: number[];
+  discard: number[];
+  deckTop: number[];
+  deckBottom: number;
+  mutationDeck: MutationId[];
+  epidemicRounds: number[];
 }
 
 export interface Stats {
@@ -727,6 +740,7 @@ export class State {
       const drawn = inf.drawn;
       drawn.forEach((city, i) => {
         if (i === inf.cancelled || this.status !== "playing") return;
+        this.emit({ t: "infecting", city });
         const s = CITIES[city].strain;
         const n = this.hasMutation(s, "virulent") && this.cube(city, s) > 0 ? 2 : 1;
         this.infect(city, s, n);
@@ -767,6 +781,26 @@ export class State {
       const hi = 2 + Math.floor((i + 1) * span) - 1;
       this.epidemicRounds.push(lo + this.rng.int(Math.max(1, hi - lo + 1)));
     }
+    this.officerUses = this.cfg.officerUses;
+    this.startRound();
+  }
+
+  setupScenario(sc: Scenario): void {
+    this.supply.fill(this.cfg.cubesPerStrain);
+    for (const [city, s, n] of sc.cubes) {
+      this.cubes[city * STRAINS + s] += n;
+      this.supply[s] -= n;
+    }
+    for (const [r, s, n] of sc.samples ?? []) this.samples[r * STRAINS + s] = n;
+    this.pos.set(sc.pos);
+    this.stations = sc.stations?.slice() ?? [HUB];
+    this.discard = sc.discard.slice();
+    const placed = new Set([...sc.deckTop, sc.deckBottom, ...sc.discard]);
+    this.deck = [...sc.deckTop, ...CITIES.map((c) => c.id).filter((c) => !placed.has(c)), sc.deckBottom];
+    this.deckSeg = this.deck.map(() => 0);
+    this.deckKnown = this.deck.map(() => 0);
+    this.mutationDeck = sc.mutationDeck.slice();
+    this.epidemicRounds = sc.epidemicRounds.slice();
     this.officerUses = this.cfg.officerUses;
     this.startRound();
   }

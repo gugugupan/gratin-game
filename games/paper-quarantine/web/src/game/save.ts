@@ -29,3 +29,21 @@ export function clearSave(): void {
     // Nothing to clear when storage is unavailable.
   }
 }
+
+const TUTORIAL_KEY = "paper-quarantine:tutorial:v1";
+
+export function tutorialSeen(): boolean {
+  try {
+    return localStorage.getItem(TUTORIAL_KEY) !== null;
+  } catch {
+    return true;
+  }
+}
+
+export function markTutorialSeen(): void {
+  try {
+    localStorage.setItem(TUTORIAL_KEY, "1");
+  } catch {
+    // Without storage the first-run prompt simply shows again next visit.
+  }
+}

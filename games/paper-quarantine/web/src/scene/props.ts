@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import type { Assets } from "../art/assets";
+import { SHEET_SCALE } from "../art/mapArt";
 import { canvasTexture } from "../art/paper";
 import { ROLE_INFO, ROLE_ORDER } from "../data";
 import { rand } from "../util";
@@ -65,6 +66,7 @@ export class DeskProps {
 
   layout(portrait: boolean): DeskLayout {
     const L = portrait ? LAYOUTS.portrait : LAYOUTS.landscape;
+    this.group.scale.setScalar(SHEET_SCALE);
     this.mug.position.set(L.mug[0], 0, L.mug[1]);
     this.stamp.position.set(L.stamp[0], 0, L.stamp[1]);
     this.stamp.rotation.y = L.stamp[2];
@@ -81,7 +83,7 @@ export class DeskProps {
     this.cards.forEach(({ mesh, a, k }) => {
       mesh.position.set(L.cards[0] + Math.sin(a) * 3.6, 0.02 + k * 0.012, L.cards[1] - Math.cos(a) * 3.6 + 3.6);
     });
-    return L;
+    return { ...L, rect: L.rect.map((v) => v * SHEET_SCALE) as DeskLayout["rect"] };
   }
 
   private buildMug(): void {

@@ -139,8 +139,8 @@ export function entriesFor(state: State, r: number): MenuEntry[] {
   }
   if (role === "epidemiologist") {
     out.unshift({
-      label: "预判",
-      note: "看牌库顶 3 张，移走 1 张",
+      label: "预判感染",
+      note: "看接下来 3 座，移走 1 座",
       cost: state.cost({ t: "forecast", r, bury: 0 }),
       kind: "forecast",
       disabled: legal.some((a) => a.t === "forecast") ? undefined : state.forecastUsed ? "本轮已用" : "无法预判",
@@ -149,7 +149,7 @@ export function entriesFor(state: State, r: number): MenuEntry[] {
   if (role === "officer") {
     const a: Action = { t: "cancel", r };
     out.push({
-      label: "取消点名",
+      label: "取消感染",
       note: `本局剩余 ${state.officerUses} 次`,
       cost: 1,
       kind: "apply",
@@ -194,9 +194,9 @@ export function describe(state: State, a: Action): string {
     case "lab":
       return `在${CITY_NAMES[state.pos[a.r]]}部署野战实验室`;
     case "cancel":
-      return "本轮点名时可以取消 1 张";
+      return "本轮感染时可以取消 1 座城市";
     case "forecast":
-      return "已移走 1 张点名牌";
+      return "已移走 1 座城市";
     default:
       return "";
   }

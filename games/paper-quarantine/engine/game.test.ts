@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { Chooser, DEFAULT_CONFIG, MUTATIONS, State } from "./game.js";
+import { Action, Chooser, DEFAULT_CONFIG, MUTATIONS, State } from "./game.js";
 import { CITIES, EDGES, LINKS, STRAINS } from "./map.js";
+import { tutorialState } from "./tutorial.js";
 
 const chooser: Chooser = {
   chooseMutation: () => ({ card: 0, strain: 0 }),
@@ -298,4 +299,41 @@ test("save and restore round-trips the whole game deterministically", () => {
   b.endRound(chooser);
   assert.deepEqual(b.serialize(), a.serialize());
   assert.equal(b.round, 2);
+});
+
+test("tutorial script plays out as the coach describes", () => {
+  const s = tutorialState();
+  const play = (actions: Action[]) => actions.forEach((a) => {
+    assert.ok(s.legalActions().some((l) => JSON.stringify(l) === JSON.stringify(a)), JSON.stringify(a));
+    s.apply(a);
+  });
+  play([{ t: "move", r: 0, to: 2 }, { t: "move", r: 0, to: 4 }, { t: "treat", r: 0, s: 0 }, { t: "move", r: 0, to: 3 }]);
+  assert.equal(s.sample(0, 0), 1);
+  assert.equal(s.apLeft(0), 0);
+  s.events = [];
+  s.endRound(chooser);
+  assert.deepEqual(s.lastDrawn, [5, 8, 15]);
+  assert.equal(s.outbreaks, 1);
+  assert.deepEqual(s.events.filter((e) => e.t === "outbreak"), [{ t: "outbreak", city: 5, s: 0, total: 1 }]);
+  assert.equal(s.cube(3, 0), 2);
+
+  play([{ t: "treat", r: 0, s: 0 }, { t: "move", r: 1, to: 3 }, { t: "give", r: 0, s: 0 }, { t: "cure", r: 1, s: 0 }]);
+  assert.equal(s.cured[0], 1);
+  s.events = [];
+  s.beginInfection();
+  const pending = s.continueInfection();
+  assert.equal(pending?.kind, "mutation");
+  assert.deepEqual(pending.kind === "mutation" && pending.targets, [1, 2]);
+  for (const strain of [1, 2]) {
+    for (const card of [0, 1]) {
+      const t = s.clone(true);
+      t.resolveMutation({ card, strain });
+      while (t.continueInfection());
+      assert.equal(t.outbreaks, 1);
+      assert.equal(t.round, 3);
+    }
+  }
+  const types = s.events.map((e) => e.t);
+  assert.deepEqual(types.slice(0, 2), ["epidemic", "cube"]);
+  assert.ok(types.includes("intensify"));
 });

@@ -2,13 +2,21 @@ import * as THREE from "three";
 import type { RoleId, State } from "../../../engine/game.js";
 import { CITY_COUNT, STRAINS } from "../../../engine/map.js";
 import type { Assets } from "../art/assets";
-import { cityWorld } from "../art/mapArt";
+import { cityWorld, DISTRICT_R } from "../art/mapArt";
 import { STRAIN_COLORS } from "../data";
 import { clamp01, easeInOut, easeOutBack, rand, reduceMotion, seg } from "../util";
 import { paperWhite, Standee } from "./standee";
 import { createVirusToken, flatMaterial, flatSprite, type FlatMaterial } from "./tokens";
 
 const SPAWN_MS = 420;
+const VIRUS_SIZE = 0.95;
+
+function cubeSlot(city: number, strain: number, k: number): [number, number] {
+  const own = Math.floor(city / 6);
+  if (strain === own) return [(k - 1) * 0.95, 1.1];
+  const side = (strain - own + 3) % 3 === 1 ? -1 : 1;
+  return [side * 1.55, -0.75 + k * 0.72];
+}
 const REMOVE_MS = 260;
 const WALK_MS = 760;
 
@@ -18,7 +26,12 @@ interface Item {
   born: number | null;
   dying: number | null;
   standee?: Standee;
+  group?: BoardGroup;
+  home?: THREE.Vector3;
+  phase?: number;
 }
+
+export type BoardGroup = "cube" | "station" | "pin" | "calendar";
 
 interface Walker {
   standee: Standee;
@@ -27,6 +40,7 @@ interface Walker {
   to: THREE.Vector3;
   start: number | null;
   at: number;
+  rise: number | null;
 }
 
 export class Board {
@@ -44,6 +58,8 @@ export class Board {
   private hitAreas: THREE.Mesh[] = [];
   private markers: THREE.Mesh[] = [];
   private markerCities: number[] = [];
+  private hiddenGroups = new Set<BoardGroup>();
+  private hiddenRoles = new Set<RoleId>();
 
   constructor(private scene: THREE.Scene, private assets: Assets) {
     for (let i = 0; i < CITY_COUNT; i++) {
@@ -58,8 +74,8 @@ export class Board {
       g.add(rim, top);
       g.position.copy(p);
       this.add(g, 0.56 + (i / CITY_COUNT) * 0.12, false);
-      const hit = new THREE.Mesh(new THREE.CylinderGeometry(1.25, 1.25, 0.6, 16), new THREE.MeshBasicMaterial({ visible: false }));
-      hit.position.set(p.x, 0.3, p.z + 0.35);
+      const hit = new THREE.Mesh(new THREE.CylinderGeometry(DISTRICT_R, DISTRICT_R, 0.6, 20), new THREE.MeshBasicMaterial({ visible: false }));
+      hit.position.set(p.x, 0.3, p.z + 0.2);
       hit.userData.city = i;
       scene.add(hit);
       this.hitAreas.push(hit);
@@ -72,12 +88,36 @@ export class Board {
     this.burst = { mesh, fm, start: null };
   }
 
-  addStatic(obj: THREE.Object3D, at: number): void {
-    this.add(obj, at, false);
+  addStatic(obj: THREE.Object3D, at: number, group?: BoardGroup): void {
+    this.add(obj, at, false, undefined, group);
   }
 
-  private add(obj: THREE.Object3D, at: number, spawned: boolean, standee?: Standee): Item {
-    const item: Item = { obj, at, born: spawned ? performance.now() : null, dying: null, standee };
+  setGroupHidden(group: BoardGroup, hidden: boolean): void {
+    if (this.hiddenGroups.has(group) === hidden) return;
+    if (hidden) this.hiddenGroups.add(group);
+    else {
+      this.hiddenGroups.delete(group);
+      const now = performance.now();
+      for (const item of this.items) if (item.group === group && item.dying === null) item.born = now;
+    }
+  }
+
+  setRoleHidden(role: RoleId, hidden: boolean): void {
+    if (this.hiddenRoles.has(role) === hidden) return;
+    if (hidden) this.hiddenRoles.add(role);
+    else {
+      this.hiddenRoles.delete(role);
+      const w = this.walkers.get(role);
+      if (w) w.rise = performance.now();
+    }
+  }
+
+  isRoleHidden(role: RoleId): boolean {
+    return this.hiddenRoles.has(role);
+  }
+
+  private add(obj: THREE.Object3D, at: number, spawned: boolean, standee?: Standee, group?: BoardGroup): Item {
+    const item: Item = { obj, at, born: spawned ? performance.now() : null, dying: null, standee, group };
     this.scene.add(obj);
     this.items.add(item);
     return item;
@@ -115,11 +155,11 @@ export class Board {
     roles.forEach((role, i) => {
       const st = new Standee(this.assets.roleArt[role], 3.7);
       this.scene.add(st.outer);
-      this.walkers.set(role, { standee: st, city: -1, from: new THREE.Vector3(), to: new THREE.Vector3(), start: null, at: 0.8 + i * 0.06 });
+      this.walkers.set(role, { standee: st, city: -1, from: new THREE.Vector3(), to: new THREE.Vector3(), start: null, at: 0.8 + i * 0.06, rise: null });
     });
     for (let k = 0; k < 3; k++) {
       const st = this.tokenStandee("named_pin", 1.15);
-      const item = this.add(st.outer, 0.78, false, st);
+      const item = this.add(st.outer, 0.78, false, st, "pin");
       item.obj.visible = false;
       this.pins.push(item);
     }
@@ -156,11 +196,15 @@ export class Board {
           const k = list.length;
           const r = rand(key * 31 + k * 7 + 3);
           const v = createVirusToken(this.assets, s);
+          v.scale.setScalar(VIRUS_SIZE);
+          const [dx, dz] = cubeSlot(c, s, k);
           const p = cityWorld(c);
-          const offA = (s * 2 * Math.PI) / 3 + 0.6 + c;
-          v.position.set(p.x + Math.cos(offA) * 0.95 + (r() - 0.5) * 0.1, 0.03 + k * 0.045, p.z + Math.sin(offA) * 0.95 + (r() - 0.5) * 0.1);
+          v.position.set(p.x + dx, 0.03, p.z + dz);
           v.rotation.y = r() * Math.PI * 2;
-          list.push(this.add(v, 0.64 + ((key + k) % 12) * 0.012, animate));
+          const item = this.add(v, 0.64 + ((key + k) % 12) * 0.012, animate, undefined, "cube");
+          item.home = v.position.clone();
+          item.phase = r() * 100;
+          list.push(item);
         }
         while (list.length > want) this.remove(list.pop()!, animate);
         this.stacks.set(key, list);
@@ -180,9 +224,8 @@ export class Board {
       if (this.stations.has(city)) return;
       const st = this.tokenStandee("station", 1.9);
       const p = cityWorld(city);
-      const a = city * 1.3 + 2.4;
-      st.outer.position.set(p.x + Math.cos(a) * 1.05, 0, p.z + Math.sin(a) * 1.05);
-      this.stations.set(city, this.add(st.outer, 0.72, animate, st));
+      st.outer.position.set(p.x + 1.25, 0, p.z - 1.15);
+      this.stations.set(city, this.add(st.outer, 0.72, animate, st, "station"));
     });
   }
 
@@ -195,14 +238,14 @@ export class Board {
     if (city >= 0 && !this.lab) {
       const st = this.tokenStandee("field_lab", 1.9);
       const p = cityWorld(city);
-      st.outer.position.set(p.x + 1.1, 0, p.z - 0.7);
+      st.outer.position.set(p.x - 1.25, 0, p.z - 1.15);
       this.lab = { item: this.add(st.outer, 0.74, animate, st), city };
     }
   }
 
   private placePin(item: Item, city: number): void {
     const p = cityWorld(city);
-    item.obj.position.set(p.x - 0.75, 0, p.z - 0.5);
+    item.obj.position.set(p.x - 0.25, 0, p.z - 1.55);
   }
 
   showNamed(cities: number[], animate: boolean): void {
@@ -210,7 +253,18 @@ export class Board {
     const same = cities.length === this.pinCities.length && cities.every((c, i) => c === this.pinCities[i]);
     if (same) return;
     const hadPins = this.pinCities.length > 0;
+    const grows = hadPins && cities.length > this.pinCities.length && this.pinCities.every((c, i) => c === cities[i]);
+    const from = this.pinCities.length;
     this.pinCities = cities.slice();
+    if (grows && !this.pinSwap) {
+      for (let i = from; i < Math.min(cities.length, this.pins.length); i++) {
+        const item = this.pins[i];
+        this.placePin(item, cities[i]);
+        item.obj.visible = true;
+        item.born = animate ? now : null;
+      }
+      return;
+    }
     if (!animate || !hadPins) {
       this.pinSwap = null;
       this.pins.forEach((item, i) => {
@@ -292,6 +346,10 @@ export class Board {
         item.obj.visible = false;
         continue;
       }
+      if (item.group && this.hiddenGroups.has(item.group)) {
+        item.obj.visible = false;
+        continue;
+      }
       const isPin = this.pins.includes(item);
       if (isPin && this.pinSwap) continue;
       const k = seg(this.reveal, item.at, item.at + 0.1);
@@ -306,9 +364,10 @@ export class Board {
           continue;
         }
       }
-      if (isPin && this.pinCities.length === 0) s = 0;
+      if (isPin && this.pins.indexOf(item) >= this.pinCities.length) s = 0;
       item.obj.visible = s > 0.001;
-      item.obj.scale.setScalar(Math.max(0.0001, s));
+      if (item.home) s *= this.idleVirus(item, now);
+      item.obj.scale.setScalar(Math.max(0.0001, s * (item.group === "cube" ? VIRUS_SIZE : 1)));
       if (item.standee && !reduceMotion) {
         const [w, l] = item.standee.gust(now);
         item.standee.face(camera, w * 0.7, l * 0.7, false);
@@ -319,6 +378,21 @@ export class Board {
     this.updateBurst(now);
     const pulse = 1 + Math.sin(now / 180) * 0.08;
     this.markers.forEach((m) => m.scale.set(pulse, 1, pulse));
+  }
+
+  private idleVirus(item: Item, now: number): number {
+    if (reduceMotion || !item.home) return 1;
+    const t = now / 1000, ph = item.phase ?? 0;
+    const period = 6 + (ph % 5);
+    const local = (t + ph * 3) % period;
+    const hop = local < 0.5 ? Math.sin((local / 0.5) * Math.PI) * 0.22 : 0;
+    item.obj.position.set(
+      item.home.x + Math.sin(t * 0.45 + ph) * 0.06,
+      item.home.y + hop,
+      item.home.z + Math.cos(t * 0.38 + ph * 1.7) * 0.05,
+    );
+    item.obj.rotation.y = ph + Math.sin(t * 0.25 + ph) * 0.9;
+    return 1 + Math.sin(t * 1.5 + ph * 3) * 0.07;
   }
 
   private updatePinSwap(now: number): void {
@@ -343,10 +417,14 @@ export class Board {
   }
 
   private updateWalkers(now: number, camera: THREE.Camera): void {
-    for (const w of this.walkers.values()) {
+    for (const [role, w] of this.walkers) {
       const st = w.standee;
-      const k = seg(this.reveal, w.at, w.at + 0.1);
-      st.outer.visible = k > 0;
+      let k = seg(this.reveal, w.at, w.at + 0.1);
+      if (w.rise !== null) {
+        k = Math.min(k, clamp01((now - w.rise) / 700));
+        if (k >= 1) w.rise = null;
+      }
+      st.outer.visible = k > 0 && !this.hiddenRoles.has(role);
       st.rise.rotation.x = (-Math.PI / 2) * (1 - easeOutBack(k));
       if (w.start !== null) {
         const t = clamp01((now - w.start) / WALK_MS);
@@ -386,6 +464,7 @@ export class Board {
 
   pickRole(raycaster: THREE.Raycaster): RoleId | null {
     for (const [role, w] of this.walkers) {
+      if (this.hiddenRoles.has(role)) continue;
       for (const hit of raycaster.intersectObject(w.standee.flip, true)) {
         if (hit.uv && w.standee.opaqueAt(hit.uv)) return role;
       }

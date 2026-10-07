@@ -36,6 +36,7 @@ export class ActionMenu {
       this.root.append(b);
     });
     requestAnimationFrame(() => {
+      if (this.anchor !== anchor) return;
       this.root.classList.add("open");
       this.root.querySelector<HTMLElement>(".act:not(:disabled)")?.focus({ preventScroll: true });
     });

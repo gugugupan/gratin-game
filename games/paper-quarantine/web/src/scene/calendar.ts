@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { SHEET_H } from "../art/mapArt";
 import { kraftCanvas, texture } from "../art/paper";
 import { clamp01, easeInOut } from "../util";
 
@@ -45,7 +46,7 @@ class Page {
     g.fillText(`第 ${info.round} 轮 · 共 ${info.rounds} 轮`, w / 2, 410);
     g.fillStyle = "#6b5743";
     g.font = '28px "ZCOOL XiaoWei", serif';
-    g.fillText(`流行病 ${info.epidemics} / ${info.epidemicsTotal} · 每轮点名 ${info.rate} 城`, w / 2, 462);
+    g.fillText(`流行病 ${info.epidemics} / ${info.epidemicsTotal} · 每轮感染 ${info.rate} 城`, w / 2, 462);
     g.strokeStyle = "rgba(46,33,22,.25)";
     g.lineWidth = 2;
     g.beginPath(); g.moveTo(60, 372); g.lineTo(w - 60, 372); g.stroke();
@@ -88,7 +89,7 @@ export class Calendar {
       binding.add(r);
     }
     this.group.add(binding);
-    this.group.position.set(0, 0, -13.6);
+    this.group.position.set(0, 0, -(SHEET_H / 2 + 2.1));
     ready.then(() => {
       if (this.top.info) this.top.paint(this.top.info);
       if (this.under.info) this.under.paint(this.under.info);

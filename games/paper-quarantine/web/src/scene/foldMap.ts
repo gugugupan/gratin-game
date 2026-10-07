@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { drawMap, SHEET_H, SHEET_W } from "../art/mapArt";
 import { texture } from "../art/paper";
+import { nextFrame } from "../loading";
 
 const PW = SHEET_W / 3, PH = SHEET_H / 2;
 
@@ -18,6 +19,7 @@ export class FoldMap {
   private columns: THREE.Group[] = [];
   private hinges: THREE.Group[] = [];
   private panels: { front: THREE.Mesh; back: THREE.Mesh }[] = [];
+  readonly painted: Promise<void>;
 
   constructor(scene: THREE.Scene, ready: Promise<unknown>) {
     this.root.position.y = 0.01;
@@ -43,7 +45,7 @@ export class FoldMap {
       this.columns.push(pivot);
       this.hinges.push(hinge);
     }
-    ready.then(() => this.paint());
+    this.painted = ready.then(nextFrame).then(() => this.paint());
   }
 
   private paint(): void {
