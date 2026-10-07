@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>纸上防疫</title>
+  <script>
+    var gaId = "%VITE_GA_ID%";
+    if (gaId && location.href.indexOf("%VITE_SITE_URL%") === 0) {
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () { dataLayer.push(arguments); };
+      gtag("js", new Date());
+      gtag("config", gaId);
+      var ga = document.createElement("script");
+      ga.async = true;
+      ga.src = "https://www.googletagmanager.com/gtag/js?id=" + gaId;
+      document.head.appendChild(ga);
+    }
+  </script>
+</head>
+<body class="in-menu">
+  <canvas id="stage" aria-label="纸质地图上的防疫行动"></canvas>
+
+  <div class="hud">
+    <div class="top">
+      <div class="paper ap tape">
+        <span class="label">行动点（共享）</span>
+        <div class="punches" id="ap-punches" aria-live="polite"></div>
+      </div>
+      <div class="paper track tape" style="--tape-tilt: -6deg">
+        <span class="label">爆发</span>
+        <div class="slots" id="outbreak-slots"></div>
+      </div>
+      <div class="paper cures tape">
+        <span class="label">解药</span>
+        <div class="vials" id="cures"></div>
+      </div>
+      <div class="paper drawn tape" style="--tape-tilt: 5deg">
+        <span class="label">上轮点名</span>
+        <div class="stubs" id="stubs"></div>
+      </div>
+      <button class="sticker help" id="help" type="button" aria-label="规则说明">?</button>
+      <button class="sticker" id="back-menu" type="button">菜单</button>
+    </div>
+    <div class="side" id="team-cards"></div>
+  </div>
+  <div class="act-menu" id="act-menu" role="menu" aria-label="选择行动"></div>
+  <div class="turn-ctrl" id="turn-ctrl">
+    <button class="sticker undo" id="undo" type="button" disabled>撤销</button>
+    <button class="stamp-btn" id="end-turn" type="button">结束行动</button>
+    <button class="sticker fast" id="fast" type="button" hidden>快进</button>
+  </div>
+  <div class="target-hint" id="target-hint" hidden>
+    <span id="target-text">选择目的地</span>
+    <button class="text-btn dark" id="target-cancel" type="button">取消</button>
+  </div>
+  <div class="dialog" id="dialog" hidden>
+    <div class="dialog-card paper" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+      <h2 id="dialog-title"></h2>
+      <div class="dialog-body" id="dialog-body"></div>
+      <div class="dialog-actions" id="dialog-actions"></div>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+  <div class="epi-card" id="epi-card" aria-live="polite">
+    <img src="art/icons/epidemic.webp" alt="">
+    <div class="epi-text"><b>流行病！</b><span id="epi-detail"></span></div>
+  </div>
+
+  <div class="draft" id="draft" hidden>
+    <div class="draft-head">
+      <h2>选择两名队员</h2>
+      <p>从 8 名队员中选 2 名出发。</p>
+    </div>
+    <div class="draft-cards" id="draft-cards"></div>
+    <div class="draft-actions">
+      <button class="text-btn" id="draft-back" type="button">返回</button>
+      <span class="draft-count" id="draft-count">已选 0 / 2</span>
+      <button class="stamp-btn" id="draft-go" type="button" disabled>确认出发</button>
+    </div>
+  </div>
+  <div class="menu" id="menu">
+    <button class="index-card" id="start-game" type="button"><span class="stamp-text">开始游戏</span><small>新的一局 · 约 15 分钟</small></button>
+    <button class="index-card" id="continue-game" type="button" disabled><span class="stamp-text">继续上局</span><small id="continue-note">暂无存档</small></button>
+    <button class="index-card" id="open-rules" type="button"><span class="stamp-text">规则说明</span><small>三分钟看懂怎么玩</small></button>
+  </div>
+  <div class="report" id="report" hidden>
+    <article class="report-card paper" role="dialog" aria-modal="true" aria-label="行动报告"></article>
+  </div>
+  <div class="rules" id="rules" hidden>
+    <article class="rules-card paper" role="dialog" aria-modal="true" aria-labelledby="rules-title">
+      <header>
+        <h2 id="rules-title">纸上防疫 · 规则手册</h2>
+        <button class="sticker" type="button" data-close>关闭</button>
+      </header>
+      <div class="rules-body"></div>
+    </article>
+  </div>
+  <div class="hint">点角色弹出行动 · 拖动平移 · 双击回到当前角色</div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

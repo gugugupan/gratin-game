@@ -75,5 +75,29 @@
     ],
     "status": "live",
     "added": "2026-10-02"
+  },
+  {
+    "id": "paper-quarantine",
+    "title": {
+      "ja": "紙上防疫",
+      "zh": "纸上防疫",
+      "en": "Paper Quarantine"
+    },
+    "tagline": {
+      "ja": "二人の隊員を同時に動かし、紙の地図に広がる三つのウイルスを食い止める。12ラウンド以内に三種類のワクチンを完成させよう。",
+      "zh": "同时指挥两名队员，在纸质地图上阻止三种病毒蔓延，12 轮内研制出全部解药。",
+      "en": "Command two responders at once to contain three viruses on a paper map — develop all three cures within 12 rounds."
+    },
+    "url": "https://gratin-game.com/paper-quarantine/",
+    "cover": "covers/paper-quarantine.jpg",
+    "input": [
+      "mouse",
+      "touch"
+    ],
+    "languages": [
+      "zh"
+    ],
+    "status": "live",
+    "added": "2026-10-07"
   }
 ]

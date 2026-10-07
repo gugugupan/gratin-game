@@ -1,3 +1,4 @@
 {
-  "gridlands": "games/gridlands/web/dist"
+  "gridlands": "games/gridlands/web/dist",
+  "paper-quarantine": "games/paper-quarantine/dist-web"
 }
