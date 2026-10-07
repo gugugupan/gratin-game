@@ -16,8 +16,15 @@ Branding posts for **@gratingame** (https://x.com/gratingame), the account of th
 
 ## Workflow
 
-### 1. Investigate (Claude in Chrome — the user's logged-in browser)
+### 0. Make sure Chrome is acting as @gratingame
 Load the Chrome tools (`tabs_context_mcp` with `createIfEmpty`, `navigate`, `find`, `get_page_text`, `computer`, `form_input`, `file_upload`, `tabs_close_mcp`). If the extension is not connected, tell the user to install/sign in (https://chromewebstore.google.com/detail/fcoeoabgfenejglbffodgkkbkcdhcgfn) and stop.
+- Open `https://x.com/home`, `find` "account switcher button at the bottom of the left sidebar" (label アカウントメニュー) and `read_page` that ref — its child text is the active `@handle`.
+- Not `@gratingame` → click the button (if `find` can't see the popover, click the button's screen position and zoom the area above it). The menu lists every account signed in on this browser, the active one with a green ✓ (seen 2026-10-08: @gratingame and the user's personal @gugugupan), then 既存のアカウントを追加 / アカウントを管理 / @…からログアウト. Click the `@gratingame` row only — never the ログアウト item. Wait, reload `/home`, `read_page` the button again.
+- **Fail and stop the run** — before reading stats or touching the composer — if `@gratingame` is not in the menu, clicking it leads to a login page / password prompt / verification step, or the handle still isn't `@gratingame` after switching. Tell the user which account Chrome is on and ask them to sign in to @gratingame themselves (add it via 「既存のアカウントを追加」). Never type a username, password or code.
+- Re-read the bottom-left handle right before pressing ポストする / 予約設定; if it changed, stop.
+- If the run switched accounts, say so in the report; don't switch back unless the user asks.
+
+### 1. Investigate (Claude in Chrome — the user's logged-in browser)
 - `https://x.com/gratingame` → follower/following/post counts (`get_page_text`), then `find` "reply/repost/like/view count groups for each post" to read per-post stats (timeline articles are not in page text).
 - `https://x.com/compose/post/unsent/scheduled` → what is already queued (screenshot; the page has no text content).
 - Optionally browse `https://x.com/search?q=%23インディーゲーム&f=live` (and #ブラウザゲーム, #箱庭ゲーム, #リズムゲーム) for what similar devs post — read only.
