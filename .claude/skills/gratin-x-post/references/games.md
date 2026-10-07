@@ -36,3 +36,4 @@ Source of truth for the list: `src/games.json` (title/tagline/url/languages). Re
 
 ## Portal
 - グラタンゲーム itself: logo story (cheese strand), loader animation `brand/loader.svg`, games added over time — good for dev-story posts.
+- **Logo clip**: `node scripts/record-logo.mjs <out.mp4>` → 5.4 s silent 1080² loop (wordmark + loader.svg). Existing: `marketing/logo-cheese.mp4` (scheduled 2026-10-08 12:30).

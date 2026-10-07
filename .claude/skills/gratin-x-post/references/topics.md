@@ -11,8 +11,8 @@ Check `marketing/post-log.md` for what has been used. Add new ideas at the botto
 - P6 🔲 Gridlands chapter 5 railways (train overlay in a solved level)
 
 ## Everyday (no link, light)
-- E1 Logo: the 「ー」 is stretching cheese 🧀 (wordmark or loader.svg clip)
-- E2 🧱 Clickton nights: 4-minute day, lit windows, headlights — **scheduled 2026-10-07 18:00**
+- E1 Logo: the 「ー」 is stretching cheese 🧀 (wordmark or loader.svg clip) — **scheduled 2026-10-08 12:30**
+- E2 🧱 Clickton nights: 4-minute day, lit windows, headlights — **used 2026-10-07 18:00**
 - E3 🍋 FEVER tip: 10 in a row, a wait ends it
 - E4 🧱 Today's theme (e.g. 水の郷) with your own town screenshot
 - E5 Poll: パズル派 / リズム派 / 箱庭派 — "next game reference"

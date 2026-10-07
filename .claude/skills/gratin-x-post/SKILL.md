@@ -40,6 +40,7 @@ Read `references/topics.md` and the log. Rules:
 Scripts live in `scripts/` (run `npm install` there once; uses the cached Playwright Chromium). Dev servers via `preview_start` names `cc-lemon-web` (5188) / `clickton` (5189) from `~/workspace/.claude/launch.json` — if another chat already runs one, reuse it, don't stop it.
 - Clickton still: `node scripts/shot-clickton.mjs <out> 40 classic 1.6 0.8` (night). Run 2–3 times, view, keep the best.
 - Gridlands: `node scripts/shot-gridlands.mjs 5-3 <out>` → unsolved + solved.
+- Logo / brand: `node scripts/record-logo.mjs <out.mp4>` → silent 5.4 s cheese-drip loop.
 - Video: `record-lemon.mjs` / `record-clickton.mjs` → pick the window from log.json → `endcard.mjs` → `compose-video.py` (1:1 1080², ~15 s, −22 LUFS — the user found louder versions too loud).
 - Always look at the result (Read the PNG / a contact sheet of video frames) before using it. Save finals to `~/workspace/fde/gratin-game/marketing/`.
 
