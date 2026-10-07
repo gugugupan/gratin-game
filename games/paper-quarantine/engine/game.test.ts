@@ -16,7 +16,7 @@ function blank(roles: State["roles"] = ["medic", "police"]): State {
 }
 
 test("map is connected and symmetric", () => {
-  assert.equal(EDGES.length, 30);
+  assert.equal(EDGES.length, 29);
   for (let c = 0; c < LINKS.length; c++) {
     for (const { to } of LINKS[c]) assert.ok(LINKS[to].some((l) => l.to === c));
   }
@@ -33,10 +33,10 @@ test("fourth cube triggers an outbreak into neighbours", () => {
 
 test("quarantined edge stops outbreak spread", () => {
   const s = blank();
-  const link = LINKS[1].find((l) => l.to === 3)!;
+  const link = LINKS[1].find((l) => l.to === 4)!;
   s.quarantine.push(link.edge);
   s.infect(1, 0, 4);
-  assert.equal(s.cube(3, 0), 0);
+  assert.equal(s.cube(4, 0), 0);
   assert.equal(s.cube(0, 0), 1);
 });
 
@@ -51,11 +51,11 @@ test("breach ignores one quarantine edge per round", () => {
 
 test("chain outbreak hits each city once", () => {
   const s = blank();
-  s.infect(1, 0, 3);
   s.infect(2, 0, 3);
-  s.infect(1, 0, 1);
+  s.infect(3, 0, 3);
+  s.infect(2, 0, 1);
   assert.equal(s.outbreaks, 2);
-  assert.equal(s.cube(0, 0), 2);
+  assert.equal(s.cube(4, 0), 2);
 });
 
 test("police quarantine costs 1 AP and is capped FIFO", () => {
@@ -171,9 +171,9 @@ test("breach punches through a lockdown once per round", () => {
   const s = blank(["police", "medic"]);
   s.mutations[0] |= 1 << MUTATIONS.indexOf("breach");
   s.locked.push(1);
-  s.infect(2, 0, 4);
+  s.infect(0, 0, 4);
   assert.equal(s.cube(1, 0), 1);
-  s.infect(3, 0, 4);
+  s.infect(4, 0, 4);
   assert.equal(s.cube(1, 0), 1);
 });
 
@@ -278,15 +278,15 @@ test("epidemic offers a mutation choice limited to uncured strains", () => {
 test("outbreak and lockdown events are emitted in order", () => {
   const s = new State({ ...DEFAULT_CONFIG, setup: [], epidemics: 0 }, ["police", "medic"], 1);
   s.setup();
-  s.pos[0] = 2;
+  s.pos[0] = 4;
   s.events = [];
   s.infect(1, 0, 4);
   const types = s.events.map((e) => e.t);
   assert.ok(types.includes("outbreak"));
   assert.ok(types.includes("shielded"));
   s.events = [];
-  s.infect(2, 0, 1);
-  assert.deepEqual(s.events, [{ t: "blocked", city: 2, s: 0, sample: true }]);
+  s.infect(4, 0, 1);
+  assert.deepEqual(s.events, [{ t: "blocked", city: 4, s: 0, sample: true }]);
 });
 
 test("save and restore round-trips the whole game deterministically", () => {
@@ -307,14 +307,14 @@ test("tutorial script plays out as the coach describes", () => {
     assert.ok(s.legalActions().some((l) => JSON.stringify(l) === JSON.stringify(a)), JSON.stringify(a));
     s.apply(a);
   });
-  play([{ t: "move", r: 0, to: 2 }, { t: "move", r: 0, to: 4 }, { t: "treat", r: 0, s: 0 }, { t: "move", r: 0, to: 3 }]);
+  play([{ t: "move", r: 0, to: 1 }, { t: "move", r: 0, to: 4 }, { t: "treat", r: 0, s: 0 }, { t: "move", r: 0, to: 3 }]);
   assert.equal(s.sample(0, 0), 1);
   assert.equal(s.apLeft(0), 0);
   s.events = [];
   s.endRound(chooser);
-  assert.deepEqual(s.lastDrawn, [5, 8, 15]);
+  assert.deepEqual(s.lastDrawn, [2, 8, 15]);
   assert.equal(s.outbreaks, 1);
-  assert.deepEqual(s.events.filter((e) => e.t === "outbreak"), [{ t: "outbreak", city: 5, s: 0, total: 1 }]);
+  assert.deepEqual(s.events.filter((e) => e.t === "outbreak"), [{ t: "outbreak", city: 2, s: 0, total: 1 }]);
   assert.equal(s.cube(3, 0), 2);
 
   play([{ t: "treat", r: 0, s: 0 }, { t: "move", r: 1, to: 3 }, { t: "give", r: 0, s: 0 }, { t: "cure", r: 1, s: 0 }]);

@@ -23,7 +23,8 @@ import { Draft } from "./ui/draft";
 import { Report } from "./ui/report";
 import { Rules } from "./ui/rules";
 import { Hud } from "./ui/hud";
-import { CITY_NAMES, MUTATION_INFO, ROLE_INFO, STRAIN_CSS, STRAIN_SHORT } from "./data";
+import { CITY_NAMES, MUTATION_INFO, ROLE_INFO, STRAIN_CSS, STRAIN_NAME } from "./data";
+import { APP } from "./i18n/appText";
 import { clamp01, easeInOut, el, reduceMotion, seg } from "./util";
 
 type Mode = "menu" | "transition" | "game";
@@ -171,7 +172,7 @@ export class App {
           if (target) {
             this.stopTargeting();
             this.perform(target.action);
-          } else this.hud.toast("请点选高亮的城市");
+          } else this.hud.toast(APP.tapHighlighted);
           release(e);
           return;
         }
@@ -197,12 +198,12 @@ export class App {
   private async backToMenu(): Promise<void> {
     if (this.dialog.isOpen || this.mode !== "game") return;
     if (this.busy) {
-      this.hud.toast("感染结算中，结束后再返回");
+      this.hud.toast(APP.busyBack);
       return;
     }
     const choice = await this.dialog.show(this.tutorial
-      ? { title: "退出教程？", body: "退出后回到菜单，下次可以从「新手教程」重新开始。", buttons: [{ id: "stay", label: "继续教程" }, { id: "leave", label: "退出教程", primary: true }], cancel: "stay" }
-      : { title: "返回菜单？", body: "进度已经自动保存，可以从「继续上局」接着玩。", buttons: [{ id: "stay", label: "继续游戏" }, { id: "leave", label: "返回菜单", primary: true }], cancel: "stay" });
+      ? { title: APP.leaveTutorial.title, body: APP.leaveTutorial.body, buttons: [{ id: "stay", label: APP.leaveTutorial.stay }, { id: "leave", label: APP.leaveTutorial.leave, primary: true }], cancel: "stay" }
+      : { title: APP.leaveGame.title, body: APP.leaveGame.body, buttons: [{ id: "stay", label: APP.leaveGame.stay }, { id: "leave", label: APP.leaveGame.leave, primary: true }], cancel: "stay" });
     if (choice !== "leave") return;
     this.closeMenus();
     this.stopTutorial();
@@ -213,9 +214,9 @@ export class App {
   private async startGame(): Promise<void> {
     if (!tutorialSeen()) {
       const choice = await this.dialog.show({
-        title: "第一次玩？",
-        body: "推荐先玩一遍新手教程，大约 5 分钟，带你一步步走完一轮完整的防疫。",
-        buttons: [{ id: "skip", label: "直接开始" }, { id: "tutorial", label: "玩教程", primary: true }],
+        title: APP.firstTime.title,
+        body: APP.firstTime.body,
+        buttons: [{ id: "skip", label: APP.firstTime.skip }, { id: "tutorial", label: APP.firstTime.play, primary: true }],
         cancel: "close",
       });
       if (choice === "close") return;
@@ -291,9 +292,9 @@ export class App {
 
   private async finishTutorial(): Promise<void> {
     const choice = await this.dialog.show({
-      title: "教程完成",
-      body: `<span class="tut-stamp">结业</span><p class="tut-done">移动、治疗、交接、研制、撤销，还有感染、爆发、流行病和变异，你都已经见过了。正式游戏里，自己选 2 名队员出发吧。</p>`,
-      buttons: [{ id: "menu", label: "回到菜单" }, { id: "play", label: "开始正式游戏", primary: true }],
+      title: APP.tutorialDone.title,
+      body: `<span class="tut-stamp">${APP.tutorialDone.stamp}</span><p class="tut-done">${APP.tutorialDone.body}</p>`,
+      buttons: [{ id: "menu", label: APP.tutorialDone.menu }, { id: "play", label: APP.tutorialDone.play, primary: true }],
       cancel: "menu",
     });
     this.closeMenus();
@@ -340,8 +341,8 @@ export class App {
     const btn = el<HTMLButtonElement>("continue-game");
     btn.disabled = !saved;
     el("continue-note").textContent = saved
-      ? `第 ${saved.round} 轮 · ${saved.roles.map((r) => ROLE_INFO[r].name).join(" + ")}`
-      : "暂无存档";
+      ? APP.savedNote(saved.round, saved.roles.map((r) => ROLE_INFO[r].name).join(APP.teamJoin))
+      : APP.noSave;
   }
 
   refresh(animate: boolean): void {
@@ -391,12 +392,12 @@ export class App {
         .map((e) => {
           if (!e.targets) return e;
           const targets = e.targets.filter((t) => tut.allows(t.action));
-          return { ...e, targets, note: targets.length === 1 ? `前往${CITY_NAMES[targets[0].city]}` : e.note };
+          return { ...e, targets, note: targets.length === 1 ? APP.goTo(CITY_NAMES[targets[0].city]) : e.note };
         })
         .filter((e) => (e.action ? tut.allows(e.action) && !e.disabled : !!e.targets?.length));
       if (!entries.length) {
         this.menu.close();
-        this.hud.toast("先按教程提示操作");
+        this.hud.toast(APP.followCoach);
         return;
       }
     }
@@ -421,7 +422,7 @@ export class App {
     if (!this.active || !entry.targets?.length) return;
     this.targeting = { role: this.active, entry };
     this.board.highlight(entry.targets.map((t) => t.city));
-    el("target-text").textContent = `${entry.label}：点选高亮的城市`;
+    el("target-text").textContent = APP.targetHint(entry.label);
     el("target-hint").hidden = false;
   }
 
@@ -453,7 +454,7 @@ export class App {
     this.tutorial?.afterUndo();
     this.refresh(true);
     this.save();
-    this.hud.toast("已撤销上一步");
+    this.hud.toast(APP.undone);
   }
 
   private async forecast(): Promise<void> {
@@ -463,12 +464,12 @@ export class App {
     this.history = [];
     const top = s.deck.slice(0, Math.min(3, s.deck.length));
     const pickId = await this.dialog.show({
-      title: "预判感染：接下来的 3 座城市",
-      body: "这是接下来最先被感染的城市。选 1 座移到牌库倒数第二张（翻开后不能撤销）。",
+      title: APP.forecast.title,
+      body: APP.forecast.body,
       choices: top.map((city, i) => ({
         id: String(i),
         label: CITY_NAMES[city],
-        html: `<b style="color: var(${STRAIN_CSS[Math.floor(city / 6)]})">${CITY_NAMES[city]}</b><small>现有病毒 ${s.cube(city, Math.floor(city / 6))} 个</small>`,
+        html: `<b style="color: var(${STRAIN_CSS[Math.floor(city / 6)]})">${CITY_NAMES[city]}</b><small>${APP.cubesHere(s.cube(city, Math.floor(city / 6)))}</small>`,
       })),
     });
     this.perform({ t: "forecast", r, bury: Number(pickId) }, false);
@@ -478,16 +479,16 @@ export class App {
     const s = this.state;
     if (!s || !this.canAct()) return;
     if (this.tutorial && !this.tutorial.canEndTurn) {
-      this.hud.toast("先按教程提示操作");
+      this.hud.toast(APP.followCoach);
       return;
     }
     this.closeMenus();
     const left = s.apLeft(0);
     if (left > 0 && !skipConfirm) {
       const choice = await this.dialog.show({
-        title: "结束行动？",
-        body: `还剩 ${left} 个行动点没有用。结束后进入感染阶段，之前的行动就不能撤销了。`,
-        buttons: [{ id: "no", label: "继续行动" }, { id: "yes", label: "结束行动", primary: true }],
+        title: APP.endTurn.title,
+        body: APP.endTurn.body(left),
+        buttons: [{ id: "no", label: APP.endTurn.no }, { id: "yes", label: APP.endTurn.yes, primary: true }],
         cancel: "no",
       });
       if (choice !== "yes") return;
@@ -517,7 +518,7 @@ export class App {
       void this.gameOver();
       return;
     }
-    this.hud.toast(`第 ${s.round} 轮 · 开始行动`);
+    this.hud.toast(APP.roundStart(s.round));
     this.tutorial?.afterRound();
   }
 
@@ -537,12 +538,12 @@ export class App {
   private async playEvents(events: GameEvent[], view: { cubes: Int8Array; outbreaks: number }): Promise<void> {
     const s = this.state!;
     const name = (c: number) => CITY_NAMES[c];
-    const strainName = (k: number) => `${STRAIN_SHORT[k]}株`;
+    const strainName = (k: number) => STRAIN_NAME[k];
     const infecting = this.infecting;
     for (const e of events) {
       switch (e.t) {
         case "epidemic": {
-          el("epi-detail").textContent = `第 ${e.count} 次流行病：牌库最底的${name(e.city)}一次放 3 个病毒，随后弃牌堆洗回牌库顶。`;
+          el("epi-detail").textContent = APP.epidemic(e.count, name(e.city));
           const card = el("epi-card");
           card.classList.remove("show");
           void card.offsetWidth;
@@ -563,35 +564,35 @@ export class App {
           this.focusCity(e.city);
           this.board.triggerOutbreak(e.city);
           this.hud.showOutbreaks(e.total, s.cfg.outbreakLimit, true);
-          this.hud.toast(`${name(e.city)}爆发！病毒向邻近城市扩散（${e.total}/${s.cfg.outbreakLimit}）`);
+          this.hud.toast(APP.outbreak(name(e.city), e.total, s.cfg.outbreakLimit));
           await this.sleep(900);
           break;
         case "blocked":
           this.focusCity(e.city);
-          this.hud.toast(`封城拦下了${name(e.city)}的${strainName(e.s)}${e.sample ? " · 警察获得 1 个样本" : ""}`);
+          this.hud.toast(APP.blocked(name(e.city), strainName(e.s), e.sample));
           await this.sleep(700);
           break;
         case "shielded":
-          this.hud.toast(`封城挡住了扩散到${name(e.city)}的病毒`);
+          this.hud.toast(APP.shielded(name(e.city)));
           await this.sleep(450);
           break;
         case "guarded":
-          this.hud.toast(`急救队员守住了${name(e.city)}`);
+          this.hud.toast(APP.guarded(name(e.city)));
           await this.sleep(500);
           break;
         case "intensify":
-          this.hud.toast("弃牌堆洗回牌库顶：最近感染过的城市很快会再被感染");
+          this.hud.toast(APP.intensify);
           await this.sleep(1300);
           break;
         case "mutation":
-          this.hud.toast(`${strainName(e.strain)}发生变异：${MUTATION_INFO[e.m].name}（${MUTATION_INFO[e.m].text}）`);
+          this.hud.toast(APP.mutated(strainName(e.strain), MUTATION_INFO[e.m].name, MUTATION_INFO[e.m].text));
           await this.sleep(1100);
           break;
         case "named":
           infecting.length = 0;
           this.board.showNamed([], true);
-          this.hud.showStubs([], "本轮感染");
-          this.hud.toast(`本轮感染 ${e.cities.length} 座城市`);
+          this.hud.showStubs([], APP.thisRound);
+          this.hud.toast(APP.roundCities(e.cities.length));
           await this.sleep(900);
           break;
         case "infecting":
@@ -599,16 +600,16 @@ export class App {
           this.focusCity(e.city);
           await this.sleep(650);
           this.board.showNamed(infecting, true);
-          this.hud.showStubs(infecting, "本轮感染");
-          this.hud.toast(`感染城市：${name(e.city)}`);
+          this.hud.showStubs(infecting, APP.thisRound);
+          this.hud.toast(APP.infecting(name(e.city)));
           await this.sleep(550);
           break;
         case "cancelled":
-          this.hud.toast(`取消感染：${name(e.city)}`);
+          this.hud.toast(APP.cancelled(name(e.city)));
           await this.sleep(700);
           break;
         case "labExpired":
-          this.hud.toast(`${name(e.city)}的野战实验室撤除了`);
+          this.hud.toast(APP.labGone(name(e.city)));
           await this.sleep(500);
           break;
         case "round":
@@ -626,13 +627,13 @@ export class App {
       const choices = p.cards.flatMap((m, card) =>
         p.targets.map((strain) => ({
           id: `${card}:${strain}`,
-          label: `${MUTATION_INFO[m].name} → ${STRAIN_SHORT[strain]}株`,
-          html: `<span class="mut"><img src="${iconUrl(MUTATION_INFO[m].icon)}" alt=""><span><b>${MUTATION_INFO[m].name} → <span style="color: var(${STRAIN_CSS[strain]})">${STRAIN_SHORT[strain]}株</span></b><small>${MUTATION_INFO[m].text} · 场上 ${CITIES.reduce((n, c) => n + s.cube(c.id, strain), 0)} 个</small></span></span>`,
+          label: `${MUTATION_INFO[m].name} → ${STRAIN_NAME[strain]}`,
+          html: `<span class="mut"><img src="${iconUrl(MUTATION_INFO[m].icon)}" alt=""><span><b>${MUTATION_INFO[m].name} → <span style="color: var(${STRAIN_CSS[strain]})">${STRAIN_NAME[strain]}</span></b><small>${MUTATION_INFO[m].text} · ${APP.onBoard(CITIES.reduce((n, c) => n + s.cube(c.id, strain), 0))}</small></span></span>`,
         })),
       );
       const id = await this.dialog.show({
-        title: "变异：选 1 张交给 1 株病毒",
-        body: "翻出了 2 张变异卡。选 1 张交给一株还没研制出解药的病毒，另一张放回牌库底。",
+        title: APP.mutation.title,
+        body: APP.mutation.body,
         choices,
         wide: true,
       });
@@ -642,12 +643,12 @@ export class App {
       return;
     }
     const id = await this.dialog.show({
-      title: "卫生官：取消 1 座感染城市",
-      body: "这 3 座城市将被感染。选 1 座取消，它这轮不放病毒。",
+      title: APP.officer.title,
+      body: APP.officer.body,
       choices: p.cities.map((city, i) => ({
         id: String(i),
         label: CITY_NAMES[city],
-        html: `<b style="color: var(${STRAIN_CSS[Math.floor(city / 6)]})">${CITY_NAMES[city]}</b><small>现有病毒 ${s.cube(city, Math.floor(city / 6))} 个</small>`,
+        html: `<b style="color: var(${STRAIN_CSS[Math.floor(city / 6)]})">${CITY_NAMES[city]}</b><small>${APP.cubesHere(s.cube(city, Math.floor(city / 6)))}</small>`,
       })),
     });
     s.resolveCancel(Number(id));

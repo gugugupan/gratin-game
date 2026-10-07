@@ -74,7 +74,7 @@ export const DEFAULT_CONFIG: Config = {
   epidemics: 4,
   outbreakLimit: 6,
   cubesPerStrain: 16,
-  setup: [3, 3, 2, 2, 1, 1],
+  setup: [3, 3, 3, 2, 1, 1],
   ap: { mode: "shared", n: 4 },
   cureNeed: 4,
   researcherCureNeed: 3,
@@ -176,7 +176,7 @@ function newStats(): Stats {
 
 const SCRATCH_STATS = newStats();
 
-const SAVE_VERSION = 1;
+const SAVE_VERSION = 2;
 const SAVED_FIELDS = [
   "cubes", "supply", "cured", "eradicated", "mutations", "breachUsed", "pos", "samples", "ap", "freeMove",
   "stations", "labCity", "labExpires", "quarantine", "locked", "deck", "deckSeg", "deckKnown", "discard", "lastDrawn",

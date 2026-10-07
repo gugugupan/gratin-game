@@ -1,6 +1,13 @@
 import type { RoleId } from "../../../engine/game.js";
 import { ROLE_ORDER } from "../data";
+import { tr } from "../i18n/locale";
 import { el } from "../util";
+
+const DRAFT = tr({
+  zh: { count: (n: number) => `已选 ${n} / 2` },
+  ja: { count: (n: number) => `${n} / 2 人選択中` },
+  en: { count: (n: number) => `${n} / 2 picked` },
+});
 import { idCard } from "./idcard";
 
 const TILTS = [-2, 1.2, -0.8, 1.8, 1, -1.6, 2, -1.2];
@@ -62,7 +69,7 @@ export class Draft {
 
   private update(): void {
     this.cards.querySelectorAll<HTMLElement>(".idcard").forEach((c) => c.setAttribute("aria-pressed", String(this.picked.includes(c.dataset.role as RoleId))));
-    this.count.textContent = `已选 ${this.picked.length} / 2`;
+    this.count.textContent = DRAFT.count(this.picked.length);
     this.go.disabled = this.picked.length !== 2;
   }
 }

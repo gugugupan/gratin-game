@@ -4,15 +4,15 @@ export const TUTORIAL_ROLES: [RoleId, RoleId] = ["medic", "researcher"];
 export const TUTORIAL_SEED = 1;
 
 export const TUTORIAL_SCENARIO: Scenario = {
-  pos: [0, 1],
+  pos: [0, 17],
   cubes: [
-    [3, 0, 1], [4, 0, 2], [5, 0, 3],
+    [2, 0, 3], [3, 0, 1], [4, 0, 2],
     [7, 1, 2], [8, 1, 1],
     [13, 2, 2], [15, 2, 1],
   ],
   samples: [[1, 0, 1]],
   discard: [4, 3, 7, 13],
-  deckTop: [5, 8, 15],
+  deckTop: [2, 8, 15],
   deckBottom: 9,
   mutationDeck: ["resistant", "stubborn", "virulent", "acute", "breach"],
   epidemicRounds: [2],

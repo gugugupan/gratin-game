@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="ja">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>纸上防疫</title>
+  <title>紙上防疫 · Paper Quarantine</title>
   <script>
     var gaId = "%VITE_GA_ID%";
     if (gaId && location.href.indexOf("%VITE_SITE_URL%") === 0) {
@@ -22,11 +22,11 @@
       position: fixed; inset: 0; z-index: 50;
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
       background: #2c5a4c; color: #f3ead8;
-      font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", sans-serif;
+      font-family: var(--font-body, sans-serif);
       transition: opacity .45s ease;
     }
     .loading.done { opacity: 0; pointer-events: none; }
-    .loading-title { margin: 0; font-family: "ZCOOL XiaoWei", "Songti SC", serif; font-weight: 400; font-size: 40px; letter-spacing: .16em; }
+    .loading-title { margin: 0; font-family: var(--font-display, serif); font-weight: 400; font-size: 40px; letter-spacing: .16em; }
     .loading-track { width: 200px; height: 8px; border-radius: 99px; background: rgba(243, 234, 216, .2); overflow: hidden; }
     #loading-bar { width: 0; height: 100%; background: #f5b935; transition: width .2s ease; }
     #loading-text { margin: 0; font-size: 13px; letter-spacing: .08em; color: rgba(243, 234, 216, .75); }
@@ -37,45 +37,45 @@
 <body class="in-menu">
   <div class="loading" id="loading" role="status" aria-live="polite">
     <img class="loader" src="loader.svg" width="180" height="120" alt="">
-    <h1 class="loading-title">纸上防疫</h1>
+    <h1 class="loading-title" data-i18n="gameName"></h1>
     <div class="loading-track"><div id="loading-bar"></div></div>
-    <p id="loading-text">正在准备……</p>
+    <p id="loading-text"></p>
   </div>
-  <canvas id="stage" aria-label="纸质地图上的防疫行动"></canvas>
+  <canvas id="stage" data-i18n-aria="stageLabel"></canvas>
 
   <div class="hud">
     <div class="top">
       <div class="paper ap tape">
-        <span class="label">行动点</span>
+        <span class="label" data-i18n="ap"></span>
         <div class="punches" id="ap-punches" aria-live="polite"></div>
       </div>
       <div class="paper track tape" style="--tape-tilt: -6deg">
-        <span class="label">爆发</span>
+        <span class="label" data-i18n="outbreaks"></span>
         <div class="slots" id="outbreak-slots"></div>
       </div>
       <div class="paper cures tape">
-        <span class="label">解药</span>
+        <span class="label" data-i18n="cures"></span>
         <div class="vials" id="cures"></div>
       </div>
       <div class="paper drawn tape" style="--tape-tilt: 5deg">
-        <span class="label">上轮感染</span>
+        <span class="label" data-i18n="lastInfected"></span>
         <div class="stubs" id="stubs"></div>
       </div>
-      <button class="sticker help" id="help" type="button" aria-label="规则说明">?</button>
-      <button class="sticker" id="back-menu" type="button">菜单</button>
+      <button class="sticker help" id="help" type="button" data-i18n-aria="rules">?</button>
+      <button class="sticker" id="back-menu" type="button" data-i18n="menu"></button>
     </div>
     <div class="side" id="team-cards"></div>
   </div>
-  <div class="act-menu" id="act-menu" role="menu" aria-label="选择行动"></div>
+  <div class="act-menu" id="act-menu" role="menu" data-i18n-aria="chooseAction"></div>
   <div class="city-card paper" id="city-card" hidden aria-live="polite"></div>
   <div class="turn-ctrl" id="turn-ctrl">
-    <button class="sticker undo" id="undo" type="button" disabled>撤销</button>
-    <button class="stamp-btn" id="end-turn" type="button">结束行动</button>
-    <button class="sticker fast" id="fast" type="button" hidden>快进</button>
+    <button class="sticker undo" id="undo" type="button" disabled data-i18n="undo"></button>
+    <button class="stamp-btn" id="end-turn" type="button" data-i18n="endTurn"></button>
+    <button class="sticker fast" id="fast" type="button" hidden data-i18n="fast"></button>
   </div>
   <div class="target-hint" id="target-hint" hidden>
-    <span id="target-text">选择目的地</span>
-    <button class="text-btn dark" id="target-cancel" type="button">取消</button>
+    <span id="target-text"></span>
+    <button class="text-btn dark" id="target-cancel" type="button" data-i18n="cancel"></button>
   </div>
   <div class="dialog" id="dialog" hidden>
     <div class="dialog-card paper" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
@@ -93,40 +93,42 @@
   <div class="toast" id="toast" role="status"></div>
   <div class="epi-card" id="epi-card" aria-live="polite">
     <img src="art/icons/epidemic.webp" alt="">
-    <div class="epi-text"><b>流行病！</b><span id="epi-detail"></span></div>
+    <div class="epi-text"><b data-i18n="epidemicBang"></b><span id="epi-detail"></span></div>
   </div>
 
   <div class="draft" id="draft" hidden>
     <div class="draft-head">
-      <h2>选择两名队员</h2>
-      <p>从 8 名队员中选 2 名出发。</p>
+      <h2 data-i18n="draftTitle"></h2>
+      <p data-i18n="draftLead"></p>
     </div>
     <div class="draft-cards" id="draft-cards"></div>
     <div class="draft-actions">
-      <button class="text-btn" id="draft-back" type="button">返回</button>
-      <span class="draft-count" id="draft-count">已选 0 / 2</span>
-      <button class="stamp-btn" id="draft-go" type="button" disabled>确认出发</button>
+      <button class="text-btn" id="draft-back" type="button" data-i18n="back"></button>
+      <span class="draft-count" id="draft-count"></span>
+      <button class="stamp-btn" id="draft-go" type="button" disabled data-i18n="draftGo"></button>
     </div>
   </div>
+  <div class="lang-switch menu-lang" data-lang-switch></div>
   <div class="menu" id="menu">
-    <button class="index-card" id="start-game" type="button"><span class="stamp-text">开始游戏</span><small>新的一局 · 约 15 分钟</small></button>
-    <button class="index-card" id="start-tutorial" type="button"><span class="stamp-text">新手教程</span><small>边玩边学 · 约 5 分钟</small></button>
-    <button class="index-card" id="continue-game" type="button" disabled><span class="stamp-text">继续上局</span><small id="continue-note">暂无存档</small></button>
-    <button class="index-card" id="open-rules" type="button"><span class="stamp-text">规则说明</span><small>三分钟看懂怎么玩</small></button>
+    <button class="index-card" id="start-game" type="button"><span class="stamp-text" data-i18n="startGame"></span><small data-i18n="startGameNote"></small></button>
+    <button class="index-card" id="start-tutorial" type="button"><span class="stamp-text" data-i18n="tutorial"></span><small data-i18n="tutorialNote"></small></button>
+    <button class="index-card" id="continue-game" type="button" disabled><span class="stamp-text" data-i18n="continue"></span><small id="continue-note"></small></button>
+    <button class="index-card" id="open-rules" type="button"><span class="stamp-text" data-i18n="rules"></span><small data-i18n="rulesNote"></small></button>
   </div>
   <div class="report" id="report" hidden>
-    <article class="report-card paper" role="dialog" aria-modal="true" aria-label="行动报告"></article>
+    <article class="report-card paper" role="dialog" aria-modal="true" data-i18n-aria="report"></article>
   </div>
   <div class="rules" id="rules" hidden>
     <article class="rules-card paper" role="dialog" aria-modal="true" aria-labelledby="rules-title">
       <header>
-        <h2 id="rules-title">纸上防疫 · 规则手册</h2>
-        <button class="sticker" type="button" data-close>关闭</button>
+        <h2 id="rules-title" data-i18n="rulesTitle"></h2>
+        <div class="lang-switch" data-lang-switch></div>
+        <button class="sticker" type="button" data-close data-i18n="close"></button>
       </header>
       <div class="rules-body"></div>
     </article>
   </div>
-  <div class="hint">点角色弹出行动 · 点城市看详情 · 拖动平移 · 双击回到当前角色</div>
+  <div class="hint" data-i18n="hint"></div>
 
   <script type="module" src="/src/main.ts"></script>
 </body>

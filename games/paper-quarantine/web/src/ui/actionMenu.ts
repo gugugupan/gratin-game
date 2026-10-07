@@ -1,5 +1,12 @@
 import * as THREE from "three";
 import type { MenuEntry } from "../game/actions";
+import { tr } from "../i18n/locale";
+
+const MENU = tr({
+  zh: { title: (who: string) => `${who} · 选择行动`, free: "免费", cost: (n: number) => `${n} 点` },
+  ja: { title: (who: string) => `${who} · 行動を選ぶ`, free: "無料", cost: (n: number) => `${n} ポイント` },
+  en: { title: (who: string) => `${who} · choose an action`, free: "Free", cost: (n: number) => `${n} AP` },
+});
 import { el } from "../util";
 
 export class ActionMenu {
@@ -17,7 +24,7 @@ export class ActionMenu {
   open(title: string, entries: MenuEntry[], anchor: THREE.Object3D): void {
     this.anchor = anchor;
     this.root.classList.remove("open");
-    this.root.innerHTML = `<h3>${title} · 选择行动</h3>`;
+    this.root.innerHTML = `<h3>${MENU.title(title)}</h3>`;
     entries.forEach((entry, k) => {
       const b = document.createElement("button");
       b.type = "button";
@@ -26,8 +33,8 @@ export class ActionMenu {
       b.style.setProperty("--d", `${k * 0.03}s`);
       b.disabled = !!entry.disabled;
       const sub = entry.disabled ?? entry.note ?? "";
-      const holes = entry.cost ? "<i></i>".repeat(entry.cost) : `<b class="free">免费</b>`;
-      b.innerHTML = `<span>${entry.label}${sub ? `<small>${sub}</small>` : ""}</span><span class="holes" aria-label="${entry.cost} 点">${holes}</span>`;
+      const holes = entry.cost ? "<i></i>".repeat(entry.cost) : `<b class="free">${MENU.free}</b>`;
+      b.innerHTML = `<span>${entry.label}${sub ? `<small>${sub}</small>` : ""}</span><span class="holes" aria-label="${MENU.cost(entry.cost)}">${holes}</span>`;
       b.addEventListener("click", (e) => {
         e.stopPropagation();
         b.classList.add("picked");

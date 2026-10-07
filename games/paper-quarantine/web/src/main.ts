@@ -1,24 +1,30 @@
-import "@fontsource/zcool-xiaowei";
-import "@fontsource/noto-sans-sc/400.css";
-import "@fontsource/noto-sans-sc/700.css";
-import "@fontsource/courier-prime/400.css";
-import "@fontsource/courier-prime/700.css";
 import "./styles.css";
 import { App } from "./app";
-import { ASSET_COUNT, fontsReady, loadAssets } from "./art/assets";
+import { ASSET_COUNT, loadAssets, waitFonts } from "./art/assets";
+import { GAME_NAME } from "./data";
+import { tr } from "./i18n/locale";
+import { applyStaticText } from "./i18n/static";
 import { Loading, nextFrame } from "./loading";
+
+const TEXT = tr({
+  zh: { paper: "正在准备纸张……", cut: "正在裁剪纸片……", map: "正在铺开地图……", failed: "加载失败：" },
+  ja: { paper: "紙を用意しています……", cut: "紙を切り抜いています……", map: "地図を広げています……", failed: "読み込みに失敗しました：" },
+  en: { paper: "Fetching the paper…", cut: "Cutting out the pieces…", map: "Unfolding the map…", failed: "Failed to load: " },
+});
 
 const FONT_WEIGHT = 3;
 const SCENE_WEIGHT = 8;
 const loading = new Loading(FONT_WEIGHT + ASSET_COUNT + SCENE_WEIGHT);
 
 async function boot(): Promise<void> {
-  loading.say("正在准备纸张……");
-  const fonts = loading.track(fontsReady, FONT_WEIGHT);
+  document.title = GAME_NAME;
+  applyStaticText();
+  loading.say(TEXT.paper);
+  const fonts = loading.track(waitFonts(), FONT_WEIGHT);
   const assets = await loadAssets(() => loading.advance());
-  loading.say("正在裁剪纸片……");
+  loading.say(TEXT.cut);
   await fonts;
-  loading.say("正在铺开地图……");
+  loading.say(TEXT.map);
   await nextFrame();
   const app = new App(assets);
   await loading.track(app.ready, SCENE_WEIGHT);
@@ -31,5 +37,5 @@ async function boot(): Promise<void> {
 
 boot().catch((err) => {
   console.error(err);
-  loading.fail(`加载失败：${String(err?.message ?? err)}`);
+  loading.fail(`${TEXT.failed}${String(err?.message ?? err)}`);
 });

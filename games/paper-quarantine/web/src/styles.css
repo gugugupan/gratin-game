@@ -568,7 +568,7 @@ body.busy .turn-ctrl .fast { pointer-events: auto; opacity: 1; }
 .rules-foot { display: flex; gap: 18px; padding-top: 6px; border-top: 1px dashed var(--card-edge); font-size: 13px; }
 .rules-foot a { color: var(--ink-soft); text-underline-offset: 3px; }
 .rules-foot a:hover, .rules-foot a:focus-visible { color: var(--red); }
-body.cover-shot .hud, body.cover-shot .turn-ctrl, body.cover-shot .hint, body.cover-shot .toast { display: none; }
+body.cover-shot .hud, body.cover-shot .turn-ctrl, body.cover-shot .hint, body.cover-shot .toast, body.cover-shot .menu, body.cover-shot .menu-lang { display: none; }
 
 body.tut-off-ap .hud .ap,
 body.tut-off-track .hud .track,
@@ -647,3 +647,41 @@ body:not(.playing) .city-card { display: none; }
 .city-links { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: 12px; }
 .city-links small { color: var(--ink-soft); margin-right: 2px; }
 .city-links span { font-family: var(--font-display); padding: 1px 6px; border-left: 3px solid var(--c); background: #fffaf0; }
+
+html[lang="ja"] {
+  --font-display: "Klee One", "Hiragino Mincho ProN", serif;
+  --font-body: "Noto Sans JP", "Hiragino Sans", sans-serif;
+}
+html[lang="en"] {
+  --font-display: "Special Elite", "Courier New", serif;
+  --font-body: "Noto Sans", "Helvetica Neue", sans-serif;
+}
+html[lang="ja"] .stamp-text, html[lang="ja"] h2, html[lang="ja"] h3 { font-weight: 600; }
+
+.lang-switch { display: flex; gap: 6px; }
+.lang-switch button {
+  font: inherit; font-size: 13px; color: var(--ink); cursor: pointer;
+  background: var(--card); border: 1px solid var(--card-edge);
+  padding: 4px 10px; box-shadow: 0 4px 8px -4px rgba(0,0,0,.45);
+  transform: rotate(-1.5deg); transition: transform .15s ease;
+}
+.lang-switch button:nth-child(2) { transform: rotate(1deg); }
+.lang-switch button:hover { transform: translateY(-2px); }
+.lang-switch button[aria-pressed="true"] { background: var(--red); border-color: var(--red); color: #fbf6ea; }
+.lang-switch button:focus-visible { outline: 2px dashed var(--ink); outline-offset: 2px; }
+.menu-lang {
+  position: fixed; right: 16px; top: calc(env(safe-area-inset-top, 0px) + 16px); z-index: 6;
+  transition: opacity .35s ease;
+}
+body:not(.in-menu) .menu-lang, body.drafting .menu-lang { opacity: 0; pointer-events: none; }
+.rules-card header .lang-switch { margin-left: auto; margin-right: 10px; }
+.stamp-text { white-space: nowrap; }
+html[lang="ja"] .index-card .stamp-text { font-size: 22px; letter-spacing: .02em; }
+html[lang="en"] .index-card .stamp-text { font-size: 23px; letter-spacing: .02em; }
+@media (max-width: 760px) {
+  html[lang="ja"] .index-card .stamp-text, html[lang="en"] .index-card .stamp-text { font-size: 16px; }
+}
+.sticker { white-space: nowrap; }
+html[lang="ja"] .sticker:not(.help) { font-size: 12px; letter-spacing: -.02em; }
+html[lang="ja"] .turn-ctrl .sticker { font-size: 12px; }
+html[lang="en"] .sticker:not(.help) { font-size: 14px; }

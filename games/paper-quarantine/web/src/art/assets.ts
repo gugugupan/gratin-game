@@ -1,5 +1,6 @@
 import type { RoleId } from "../../../engine/game.js";
-import { ROLE_ORDER } from "../data";
+import { CITY_NAMES, GAME_NAME, REGION_NAMES, ROLE_ORDER } from "../data";
+import { FONT, loadFonts } from "../i18n/locale";
 import { cutoutFromImage, type PaperArt } from "./paper";
 
 export const TOKEN_KEYS = ["station", "field_lab", "lockdown", "virus_red", "virus_blue", "virus_gold", "outbreak", "named_pin"] as const;
@@ -24,7 +25,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error(`无法加载图片：${src}`));
+    img.onerror = () => reject(new Error(src));
     img.src = src;
   });
 }
@@ -50,11 +51,18 @@ export async function loadAssets(onLoaded: () => void = () => {}): Promise<Asset
   return { roleImages, roleArt, tokenArt };
 }
 
-export const fontsReady: Promise<unknown> = Promise.race([
-  Promise.all([
-    document.fonts.load('40px "ZCOOL XiaoWei"', "枢港赤岩丹霞朱桥绛城赭原苍门碧湾蓝屿靛川沧涯青坞金沙琥原橙林鎏城黄岭杏湾赤域苍域金域北三域防疫图纸上第号一人两角十二轮内研制三种解药回合共流行病每点名城今日任务别让爆发到次完成"),
-    document.fonts.load('20px "Courier Prime"'),
-    document.fonts.load('15px "Noto Sans SC"', "纸上防疫行动人员证职务"),
-  ]),
-  new Promise((res) => setTimeout(res, 2500)),
-]);
+let resolveFonts: () => void = () => {};
+export const fontsReady: Promise<void> = new Promise((res) => { resolveFonts = res; });
+
+export async function waitFonts(): Promise<void> {
+  const sample = [...CITY_NAMES, ...REGION_NAMES, GAME_NAME].join("");
+  await Promise.race([
+    loadFonts().then(() => Promise.all([
+      document.fonts.load(`40px ${FONT.display}`, sample),
+      document.fonts.load('20px "Courier Prime"'),
+      document.fonts.load(`15px ${FONT.body}`, sample),
+    ])),
+    new Promise((res) => setTimeout(res, 4000)),
+  ]);
+  resolveFonts();
+}

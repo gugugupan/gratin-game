@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { drawMap, SHEET_H, SHEET_W } from "../art/mapArt";
 import { texture } from "../art/paper";
 import { nextFrame } from "../loading";
+import { MAP_TEXT } from "../i18n/mapText";
 
 const PW = SHEET_W / 3, PH = SHEET_H / 2;
 
@@ -49,7 +50,7 @@ export class FoldMap {
   }
 
   private paint(): void {
-    const art = drawMap();
+    const art = drawMap(MAP_TEXT);
     const mask = new THREE.CanvasTexture(art.mask);
     const frontMat = new THREE.MeshStandardMaterial({ map: texture(art.front), alphaTest: 0.5, roughness: 0.92 });
     const backMat = new THREE.MeshStandardMaterial({ map: texture(art.back), alphaMap: mask, alphaTest: 0.5, roughness: 0.95, side: THREE.BackSide });

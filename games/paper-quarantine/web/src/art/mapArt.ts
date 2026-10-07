@@ -1,10 +1,9 @@
 import * as THREE from "three";
 import { CITY_COUNT, EDGES } from "../../../engine/map.js";
-import { CITY_NAMES, STRAIN_COLORS } from "../data";
+import { STRAIN_COLORS } from "../data";
 import { rand } from "../util";
 import { kraftCanvas } from "./paper";
 
-export const MAP_SCALE = 1.8;
 export const SHEET_W = 46;
 export const SHEET_H = 38;
 export const SHEET_SCALE = SHEET_W / 28;
@@ -12,26 +11,34 @@ export const DISTRICT_R = 2.0;
 const PX = 64;
 const CELL = 0.25;
 const COAST = 0.42;
+const SPREAD = 1.12;
 
-const LOCAL: [number, number][] = [[3, 0], [5.6, -0.34], [5.6, 0.34], [8, -0.3], [8, 0.3], [10.2, 0]];
-const DIRS = [210, 90, 330].map((d) => (d * Math.PI) / 180);
-const CENTER_Y = 2.2 * MAP_SCALE;
+const LAYOUT: [number, number][] = [
+  [0, 0], [-7, 5], [-6, -5], [-14, -6], [-12, 1], [-16, 8],
+  [5, 6], [13, 12], [2, 13], [10, 5], [-5, 12], [17, 6],
+  [6, -5], [12, -2], [2, -12], [9, -10], [17, -8], [-6, -13],
+];
 
-export const POS2D: [number, number][] = Array.from({ length: CITY_COUNT }, (_, i) => {
-  const [r, phi] = LOCAL[i % 6];
-  const a = DIRS[Math.floor(i / 6)] + phi;
-  return [r * MAP_SCALE * Math.cos(a), r * MAP_SCALE * Math.sin(a) - CENTER_Y];
-});
+export const POS2D: [number, number][] = LAYOUT.slice(0, CITY_COUNT).map(([x, y]) => [x * SPREAD, y * SPREAD]);
 
 export function cityWorld(i: number, out = new THREE.Vector3()): THREE.Vector3 {
   return out.set(POS2D[i][0], 0, -POS2D[i][1]);
 }
 
+export interface MapText {
+  font: string;
+  cities: readonly string[];
+  regions: readonly [string, string, string];
+  cover: { title: string; subtitle: string; issue: string; tagline: string };
+}
+
 type Pt = [number, number];
 type EdgeKind = "road" | "rail" | "sea";
+const RAIL = new Set(["0-6", "0-12"]);
+const SEA = new Set(["5-10", "3-17", "11-16"]);
 function edgeKind(a: number, b: number): EdgeKind {
-  if (Math.floor(a / 6) === Math.floor(b / 6)) return "road";
-  return a % 6 === 0 ? "rail" : "sea";
+  const key = `${Math.min(a, b)}-${Math.max(a, b)}`;
+  return RAIL.has(key) ? "rail" : SEA.has(key) ? "sea" : "road";
 }
 
 function segDist([px, py]: Pt, [ax, ay]: Pt, [bx, by]: Pt): number {
@@ -87,14 +94,14 @@ class Field {
     return top + (bot - top) * w;
   }
 
-  contour(g: CanvasRenderingContext2D, thr: number, toPx: (p: Pt) => Pt): void {
+  contour(g: CanvasRenderingContext2D, thr: number, keep: (p: Pt) => boolean = () => true): void {
     const { nx, v } = this;
     g.beginPath();
     for (let j = 0; j < this.ny - 1; j++) {
       for (let i = 0; i < nx - 1; i++) {
         const a = v[j * nx + i], b = v[j * nx + i + 1], c = v[(j + 1) * nx + i + 1], d = v[(j + 1) * nx + i];
         const k = (a > thr ? 8 : 0) | (b > thr ? 4 : 0) | (c > thr ? 2 : 0) | (d > thr ? 1 : 0);
-        if (k === 0 || k === 15) continue;
+        if (k === 0 || k === 15 || !keep(this.world(i + 0.5, j + 0.5))) continue;
         const lerp = (p: number, q: number) => (thr - p) / (q - p);
         const T: Pt = [i + lerp(a, b), j], R: Pt = [i + 1, j + lerp(b, c)], B: Pt = [i + lerp(d, c), j + 1], L: Pt = [i, j + lerp(a, d)];
         const segs: [Pt, Pt][] = ({
@@ -120,23 +127,57 @@ export interface MapCanvases {
 
 const toPx = ([x, y]: Pt): Pt => [(x + SHEET_W / 2) * PX, (SHEET_H / 2 - y) * PX];
 
-export function drawMap(): MapCanvases {
+function regionOf(p: Pt): number {
+  let best = 0, bd = Infinity;
+  POS2D.forEach((q, i) => {
+    const d = Math.hypot(p[0] - q[0], p[1] - q[1]);
+    if (d < bd) {
+      bd = d;
+      best = Math.floor(i / 6);
+    }
+  });
+  return best;
+}
+
+function regionCenter(k: number): Pt {
+  const pts = POS2D.slice(k * 6, k * 6 + 6);
+  return [pts.reduce((n, p) => n + p[0], 0) / pts.length, pts.reduce((n, p) => n + p[1], 0) / pts.length];
+}
+
+interface Ctx {
+  g: CanvasRenderingContext2D;
+  land: Field;
+  r: () => number;
+  noise: (x: number, y: number) => number;
+  lumps: (x: number, y: number) => number;
+  nearRoad: (p: Pt) => number;
+  nearCity: (p: Pt) => number;
+  text: MapText;
+}
+
+export function drawMap(text: MapText): MapCanvases {
   const w = SHEET_W * PX, h = SHEET_H * PX;
   const r = rand(99);
   const noise = valueNoise(7);
   const lumps = valueNoise(23);
 
   const links = EDGES.filter(([a, b]) => edgeKind(a, b) !== "sea").map(([a, b]): [Pt, Pt] => [POS2D[a], POS2D[b]]);
+  const lanes = EDGES.filter(([a, b]) => edgeKind(a, b) === "sea").map(([a, b]) => seaRouteWorld(a, b));
+  const near = (p: Pt, pts: Pt[]) => Math.min(...pts.map((q) => Math.hypot(p[0] - q[0], p[1] - q[1])));
   const land = new Field((p) => {
+    const city = Math.min(...POS2D.map((q) => Math.hypot(p[0] - q[0], p[1] - q[1])));
+    const lane = Math.min(...lanes.map((pts) => near(p, pts)));
+    const strait = Math.exp(-((lane / 2.6) ** 2)) * (1 - Math.exp(-((city / 3.4) ** 2))) * 1.1;
     let best = 0;
-    for (const [a, b] of links) best = Math.max(best, Math.exp(-((segDist(p, a, b) / 4.6) ** 2)));
+    for (const [a, b] of links) best = Math.max(best, Math.exp(-((segDist(p, a, b) / 4.4) ** 2)));
     for (const c of POS2D) best = Math.max(best, Math.exp(-((Math.hypot(p[0] - c[0], p[1] - c[1]) / 5.2) ** 2)));
     const edge = Math.min(p[0] + SHEET_W / 2, SHEET_W / 2 - p[0], p[1] + SHEET_H / 2, SHEET_H / 2 - p[1]);
     const coarse = noise(p[0] * 0.16 + 40, p[1] * 0.16 + 40) - 0.5;
     const fine = noise(p[0] * 0.55 - 12, p[1] * 0.55 + 7) - 0.5;
     const isles = Math.max(0, lumps(p[0] * 0.3 + 5, p[1] * 0.3 - 3) - 0.68) * 2.6;
-    return best + coarse * 0.62 + fine * 0.2 + isles - Math.max(0, 2.5 - edge) * 0.3;
+    return best + coarse * 0.62 + fine * 0.2 + isles - strait - Math.max(0, 2.5 - edge) * 0.3;
   });
+  rose = findRoseSpot(land);
 
   const outline: Pt[] = [[14, 14]];
   const step = 22;
@@ -163,6 +204,11 @@ export function drawMap(): MapCanvases {
   c.width = w;
   c.height = h;
   const g = c.getContext("2d")!;
+  const ctx: Ctx = {
+    g, land, r, noise, lumps, text,
+    nearRoad: (p) => Math.min(...links.map(([a, b]) => segDist(p, a, b))),
+    nearCity: (p) => Math.min(...POS2D.map((q) => Math.hypot(p[0] - q[0], p[1] - q[1]))),
+  };
   trace(g);
   g.save();
   g.clip();
@@ -170,33 +216,38 @@ export function drawMap(): MapCanvases {
   g.drawImage(paper, 0, 0);
   g.fillStyle = "rgba(76, 138, 156, 0.42)";
   g.fillRect(0, 0, w, h);
-  drawWaves(g, land, r);
+  drawRhumbLines(ctx, w, h);
+  drawWaves(ctx);
 
   g.lineCap = "round";
   g.lineJoin = "round";
   [[0.14, 1.4, 0.22], [0.09, 1.8, 0.32], [0.045, 2.4, 0.45]].forEach(([d, lw, a]) => {
     g.strokeStyle = `rgba(30, 62, 74, ${a})`;
     g.lineWidth = lw;
-    land.contour(g, COAST - d, toPx);
+    land.contour(g, COAST - d);
   });
 
   g.drawImage(landLayer(paper, land), 0, 0);
+  g.strokeStyle = "rgba(236, 210, 150, 0.85)";
+  g.lineWidth = 9;
+  land.contour(g, COAST + 0.035, (p) => regionOf(p) === 2);
   g.strokeStyle = "rgba(52, 34, 20, 0.85)";
   g.lineWidth = 3.2;
-  land.contour(g, COAST, toPx);
+  land.contour(g, COAST);
 
-  const nearRoad = (p: Pt) => Math.min(...links.map(([a, b]) => segDist(p, a, b)));
-  const nearCity = (p: Pt) => Math.min(...POS2D.map((q) => Math.hypot(p[0] - q[0], p[1] - q[1])));
-  drawBorders(g, land);
-  drawRivers(g, land, r, nearCity);
-  drawRelief(g, land, lumps, r, nearRoad, nearCity);
-  drawRegionNames(g, r);
-  drawLinks(g, r);
-  drawDistricts(g, r);
-  drawFurniture(g, w, h);
+  drawBorders(ctx);
+  drawRivers(ctx);
+  drawTerrain(ctx);
+  drawMist(ctx);
+  drawRegionNames(ctx);
+  drawLinks(ctx);
+  drawLighthouse(ctx);
+  drawSerpent(ctx);
+  drawDistricts(ctx);
+  drawFurniture(ctx, w, h);
   g.restore();
 
-  return { front: c, back: drawMapBack(w, h), mask };
+  return { front: c, back: drawMapBack(w, h, text), mask };
 }
 
 function landLayer(paper: HTMLCanvasElement, land: Field): HTMLCanvasElement {
@@ -216,17 +267,18 @@ function landLayer(paper: HTMLCanvasElement, land: Field): HTMLCanvasElement {
   const g = layer.getContext("2d")!;
   g.drawImage(paper, 0, 0);
   const r = rand(5);
-  DIRS.forEach((d, i) => {
-    const [cx, cy] = toPx([Math.cos(d) * 10 * MAP_SCALE * 0.66, Math.sin(d) * 10 * MAP_SCALE * 0.66 - CENTER_Y]);
-    for (let k = 0; k < 9; k++) {
-      const ox = cx + (r() - 0.5) * PX * 9, oy = cy + (r() - 0.5) * PX * 9, rad = PX * (5 + r() * 4);
+  const washes = ["#c4472f", "#3f6f7a", "#d0a040"];
+  for (let k = 0; k < 3; k++) {
+    const [cx, cy] = toPx(regionCenter(k));
+    for (let n = 0; n < 12; n++) {
+      const ox = cx + (r() - 0.5) * PX * 12, oy = cy + (r() - 0.5) * PX * 11, rad = PX * (4 + r() * 4);
       const grad = g.createRadialGradient(ox, oy, 0, ox, oy, rad);
-      grad.addColorStop(0, STRAIN_COLORS[i] + "22");
-      grad.addColorStop(1, STRAIN_COLORS[i] + "00");
+      grad.addColorStop(0, washes[k] + "2a");
+      grad.addColorStop(1, washes[k] + "00");
       g.fillStyle = grad;
       g.fillRect(0, 0, w, h);
     }
-  });
+  }
   g.globalCompositeOperation = "destination-in";
   g.imageSmoothingEnabled = true;
   g.imageSmoothingQuality = "high";
@@ -234,7 +286,46 @@ function landLayer(paper: HTMLCanvasElement, land: Field): HTMLCanvasElement {
   return layer;
 }
 
-function drawWaves(g: CanvasRenderingContext2D, land: Field, r: () => number): void {
+let rose: Pt = [SHEET_W / 2 - 4, 2];
+
+function findRoseSpot(land: Field): Pt {
+  let best: Pt = rose, score = -Infinity;
+  for (let x = 4; x < SHEET_W / 2 - 3; x += 0.5) {
+    for (let y = -SHEET_H / 2 + 4; y < SHEET_H / 2 - 7; y += 0.5) {
+      const p: Pt = [x, y];
+      const city = Math.min(...POS2D.map((q) => Math.hypot(x - q[0], y - q[1])));
+      let sea = 0;
+      for (let a = 0; a < 8; a++) sea += land.sample([x + Math.cos(a) * 2.2, y + Math.sin(a) * 2.2]) < COAST ? 1 : 0;
+      const s = sea * 2 + Math.min(city, 6) + (land.sample(p) < COAST ? 4 : 0) + x * 0.1;
+      if (s > score) {
+        score = s;
+        best = p;
+      }
+    }
+  }
+  return best;
+}
+
+function roseCenter(): Pt {
+  return toPx(rose);
+}
+
+function drawRhumbLines({ g }: Ctx, w: number, h: number): void {
+  const [cx, cy] = roseCenter();
+  g.save();
+  g.strokeStyle = "rgba(30, 50, 60, 0.16)";
+  g.lineWidth = 1.5;
+  for (let k = 0; k < 16; k++) {
+    const a = (k / 16) * Math.PI * 2;
+    g.beginPath();
+    g.moveTo(cx, cy);
+    g.lineTo(cx + Math.cos(a) * w * 1.5, cy + Math.sin(a) * w * 1.5);
+    g.stroke();
+  }
+  g.restore();
+}
+
+function drawWaves({ g, land, r }: Ctx): void {
   g.strokeStyle = "rgba(34, 66, 78, 0.35)";
   g.lineWidth = 2;
   for (let k = 0; k < 260; k++) {
@@ -250,23 +341,15 @@ function drawWaves(g: CanvasRenderingContext2D, land: Field, r: () => number): v
   }
 }
 
-function drawBorders(g: CanvasRenderingContext2D, land: Field): void {
-  const region = (p: Pt) => {
-    let best = 0, bd = Infinity;
-    POS2D.forEach((q, i) => {
-      const d = Math.hypot(p[0] - q[0], p[1] - q[1]);
-      if (d < bd) { bd = d; best = Math.floor(i / 6); }
-    });
-    return best;
-  };
+function drawBorders({ g, land }: Ctx): void {
   g.fillStyle = "rgba(52, 34, 20, 0.55)";
   const step = 0.3;
   for (let y = -SHEET_H / 2; y < SHEET_H / 2; y += step) {
     for (let x = -SHEET_W / 2; x < SHEET_W / 2; x += step) {
       const p: Pt = [x, y];
       if (land.sample(p) < COAST + 0.02) continue;
-      const here = region(p);
-      if (region([x + step, y]) !== here || region([x, y + step]) !== here) {
+      const here = regionOf(p);
+      if (regionOf([x + step, y]) !== here || regionOf([x, y + step]) !== here) {
         const [px, py] = toPx(p);
         g.beginPath();
         g.arc(px, py, 2.6, 0, Math.PI * 2);
@@ -276,9 +359,9 @@ function drawBorders(g: CanvasRenderingContext2D, land: Field): void {
   }
 }
 
-function drawRivers(g: CanvasRenderingContext2D, land: Field, r: () => number, nearCity: (p: Pt) => number): void {
+function drawRivers({ g, land, r, nearCity }: Ctx): void {
   let made = 0;
-  for (let tries = 0; tries < 400 && made < 7; tries++) {
+  for (let tries = 0; tries < 500 && made < 7; tries++) {
     let p: Pt = [(r() - 0.5) * SHEET_W, (r() - 0.5) * SHEET_H];
     if (land.sample(p) < COAST + 0.32 || nearCity(p) < DISTRICT_R + 0.6) continue;
     const pts: Pt[] = [p];
@@ -309,75 +392,209 @@ function drawRivers(g: CanvasRenderingContext2D, land: Field, r: () => number, n
   }
 }
 
-function drawRelief(g: CanvasRenderingContext2D, land: Field, lumps: (x: number, y: number) => number, r: () => number, nearRoad: (p: Pt) => number, nearCity: (p: Pt) => number): void {
-  const spots: { p: Pt; kind: "peak" | "tree"; s: number }[] = [];
-  for (let k = 0; k < 1500; k++) {
+type Mark = { p: Pt; kind: "peak" | "tree" | "pine" | "field" | "dune" | "bamboo"; s: number; a: number };
+
+function drawTerrain({ g, land, r, lumps, noise, nearRoad, nearCity }: Ctx): void {
+  const marks: Mark[] = [];
+  for (let k = 0; k < 2200; k++) {
     const p: Pt = [(r() - 0.5) * SHEET_W, (r() - 0.5) * SHEET_H];
     if (land.sample(p) < COAST + 0.08 || nearCity(p) < DISTRICT_R + 0.4 || nearRoad(p) < 0.7) continue;
     const l = lumps(p[0] * 0.2, p[1] * 0.2);
-    if (l > 0.64) spots.push({ p, kind: "peak", s: 0.26 + (l - 0.64) * 1.4 + r() * 0.12 });
-    else if (l < 0.34 && r() < 0.45) spots.push({ p, kind: "tree", s: 0.16 + r() * 0.07 });
+    const n = noise(p[0] * 0.35 + 70, p[1] * 0.35 - 20);
+    const a = (r() - 0.5) * 0.5;
+    const region = regionOf(p);
+    if (region === 0) {
+      if (l > 0.7) marks.push({ p, kind: "peak", s: 0.24 + r() * 0.12, a });
+      else if (n > 0.48 && r() < 0.55) marks.push({ p, kind: "field", s: 0.4 + r() * 0.25, a: (noise(p[0] * 0.08, p[1] * 0.08) - 0.5) * 1.6 });
+      else if (n < 0.35 && r() < 0.35) marks.push({ p, kind: "tree", s: 0.16 + r() * 0.06, a });
+    } else if (region === 1) {
+      if (l > 0.52) marks.push({ p, kind: "peak", s: 0.3 + (l - 0.52) * 1.6 + r() * 0.14, a });
+      else if (r() < 0.55) marks.push({ p, kind: "pine", s: 0.2 + r() * 0.08, a });
+    } else {
+      if (l > 0.62 && r() < 0.8) marks.push({ p, kind: "dune", s: 0.35 + r() * 0.2, a });
+      else if (n < 0.42 && r() < 0.45) marks.push({ p, kind: "bamboo", s: 0.26 + r() * 0.1, a });
+    }
   }
-  spots.sort((a, b) => b.p[1] - a.p[1]);
-  for (const { p, kind, s } of spots) {
-    const [x, y] = toPx(p);
-    const S = s * PX;
-    if (kind === "peak") {
-      const tip: Pt = [x - S * 0.15, y - S * 1.15];
+  marks.sort((a, b) => b.p[1] - a.p[1]);
+  for (const m of marks) drawMark(g, m, r);
+}
+
+function drawMark(g: CanvasRenderingContext2D, { p, kind, s, a }: Mark, r: () => number): void {
+  const [x, y] = toPx(p);
+  const S = s * PX;
+  g.save();
+  g.translate(x, y);
+  switch (kind) {
+    case "peak": {
+      const tip: Pt = [-S * 0.15, -S * 1.15];
       g.fillStyle = "rgba(120, 82, 48, 0.28)";
       g.beginPath();
       g.moveTo(tip[0], tip[1]);
-      g.lineTo(x + S, y);
-      g.lineTo(x + S * 0.05, y);
+      g.lineTo(S, 0);
+      g.lineTo(S * 0.05, 0);
       g.closePath();
       g.fill();
       g.strokeStyle = "rgba(52, 34, 20, 0.8)";
       g.lineWidth = 2.2;
       g.beginPath();
-      g.moveTo(x - S, y);
-      g.quadraticCurveTo(x - S * 0.55, y - S * 0.5, tip[0], tip[1]);
-      g.quadraticCurveTo(x + S * 0.45, y - S * 0.55, x + S, y);
+      g.moveTo(-S, 0);
+      g.quadraticCurveTo(-S * 0.55, -S * 0.5, tip[0], tip[1]);
+      g.quadraticCurveTo(S * 0.45, -S * 0.55, S, 0);
       g.stroke();
       g.lineWidth = 1.2;
       for (let k = 1; k <= 3; k++) {
         const t = k / 4;
         g.beginPath();
-        g.moveTo(tip[0] + (x + S - tip[0]) * t * 0.85, tip[1] + (y - tip[1]) * t * 0.85);
-        g.lineTo(tip[0] + (x + S - tip[0]) * t * 0.5, y - S * 0.08);
+        g.moveTo(tip[0] + (S - tip[0]) * t * 0.85, tip[1] + -tip[1] * t * 0.85);
+        g.lineTo(tip[0] + (S - tip[0]) * t * 0.5, -S * 0.08);
         g.stroke();
       }
-    } else {
-      g.fillStyle = "rgba(78, 96, 52, 0.55)";
+      break;
+    }
+    case "tree":
+      g.fillStyle = "rgba(96, 104, 52, 0.5)";
       g.strokeStyle = "rgba(46, 52, 26, 0.6)";
       g.lineWidth = 1.4;
       g.beginPath();
-      g.arc(x, y - S, S, 0, Math.PI * 2);
+      g.arc(0, -S, S, 0, Math.PI * 2);
       g.fill();
       g.stroke();
       g.beginPath();
-      g.moveTo(x, y);
-      g.lineTo(x, y - S * 0.2);
+      g.moveTo(0, 0);
+      g.lineTo(0, -S * 0.2);
+      g.stroke();
+      break;
+    case "pine":
+      g.fillStyle = "rgba(48, 74, 70, 0.62)";
+      g.strokeStyle = "rgba(24, 40, 38, 0.7)";
+      g.lineWidth = 1.4;
+      for (let k = 0; k < 3; k++) {
+        const top = -S * (1.5 - k * 0.38), half = S * (0.32 + k * 0.16);
+        g.beginPath();
+        g.moveTo(0, top);
+        g.lineTo(half, top + S * 0.6);
+        g.lineTo(-half, top + S * 0.6);
+        g.closePath();
+        g.fill();
+        g.stroke();
+      }
+      g.beginPath();
+      g.moveTo(0, -S * 0.1);
+      g.lineTo(0, S * 0.12);
+      g.stroke();
+      break;
+    case "field": {
+      g.rotate(a);
+      const fw = S * 1.6, fh = S;
+      const tones = ["rgba(176, 140, 60, 0.32)", "rgba(120, 132, 60, 0.3)", "rgba(196, 120, 80, 0.26)"];
+      g.fillStyle = tones[Math.floor(r() * tones.length)];
+      g.fillRect(-fw / 2, -fh / 2, fw, fh);
+      g.strokeStyle = "rgba(82, 56, 28, 0.38)";
+      g.lineWidth = 1.2;
+      g.strokeRect(-fw / 2, -fh / 2, fw, fh);
+      for (let k = 1; k < 4; k++) {
+        g.beginPath();
+        g.moveTo(-fw / 2, -fh / 2 + (fh * k) / 4);
+        g.lineTo(fw / 2, -fh / 2 + (fh * k) / 4);
+        g.stroke();
+      }
+      break;
+    }
+    case "dune":
+      g.strokeStyle = "rgba(120, 86, 36, 0.55)";
+      g.lineWidth = 1.8;
+      g.beginPath();
+      g.moveTo(-S, 0);
+      g.quadraticCurveTo(-S * 0.2, -S * 0.7, S, 0);
+      g.stroke();
+      g.fillStyle = "rgba(120, 86, 36, 0.4)";
+      for (let k = 0; k < 7; k++) {
+        g.beginPath();
+        g.arc((r() - 0.3) * S, -r() * S * 0.3, 1.6, 0, Math.PI * 2);
+        g.fill();
+      }
+      break;
+    case "bamboo":
+      g.strokeStyle = "rgba(70, 104, 50, 0.7)";
+      g.lineWidth = 2;
+      for (let k = -1; k <= 1; k++) {
+        const h2 = S * (1.4 + r() * 0.5);
+        g.beginPath();
+        g.moveTo(k * S * 0.3, 0);
+        g.lineTo(k * S * 0.3 + S * 0.08, -h2);
+        g.stroke();
+        for (let j = 1; j < 3; j++) {
+          g.beginPath();
+          g.moveTo(k * S * 0.3 - 3, -h2 * (j / 3));
+          g.lineTo(k * S * 0.3 + 4, -h2 * (j / 3));
+          g.stroke();
+        }
+        g.beginPath();
+        g.moveTo(k * S * 0.3 + S * 0.08, -h2);
+        g.quadraticCurveTo(k * S * 0.3 + S * 0.5, -h2 - S * 0.2, k * S * 0.3 + S * 0.6, -h2 + S * 0.1);
+        g.stroke();
+      }
+      break;
+  }
+  g.restore();
+}
+
+function drawMist({ g, land, r }: Ctx): void {
+  g.save();
+  g.lineCap = "round";
+  for (let k = 0, made = 0; k < 200 && made < 7; k++) {
+    const p: Pt = [(r() - 0.5) * SHEET_W, (r() - 0.5) * SHEET_H];
+    if (regionOf(p) !== 1 || land.sample(p) < COAST + 0.12) continue;
+    made++;
+    const [x, y] = toPx(p);
+    const len = PX * (1.6 + r() * 1.4);
+    for (let band = 0; band < 3; band++) {
+      const oy = band * 14, ox = (band - 1) * len * 0.12;
+      g.strokeStyle = `rgba(250, 246, 236, ${0.32 - band * 0.08})`;
+      g.lineWidth = 5 - band;
+      g.beginPath();
+      g.moveTo(x - len / 2 + ox, y + oy);
+      g.bezierCurveTo(x - len / 6 + ox, y + oy - 12, x + len / 6 + ox, y + oy + 12, x + len / 2 + ox, y + oy);
       g.stroke();
     }
   }
+  g.restore();
 }
 
-function drawRegionNames(g: CanvasRenderingContext2D, r: () => number): void {
-  DIRS.forEach((d, i) => {
-    const [cx, cy] = toPx([Math.cos(d) * 7.4 * MAP_SCALE, Math.sin(d) * 7.4 * MAP_SCALE - CENTER_Y]);
+function drawRegionNames({ g, r, text }: Ctx): void {
+  for (let k = 0; k < 3; k++) {
+    const [cx, cy] = regionCenter(k);
+    const len = Math.hypot(cx, cy) || 1;
+    const [x, y] = toPx([cx + (cx / len) * 3.4, cy + (cy / len) * 3.4]);
     g.save();
-    g.translate(cx + Math.sin(d) * PX * 2.6, cy + Math.cos(d) * PX * 2.6);
+    g.translate(x, y);
     g.rotate((r() - 0.5) * 0.2);
-    g.font = `${PX * 2.6}px "ZCOOL XiaoWei", serif`;
+    g.font = `${PX * 1.6}px ${text.font}`;
     g.textAlign = "center";
     g.textBaseline = "middle";
-    g.fillStyle = STRAIN_COLORS[i] + "38";
-    g.fillText(["赤域", "苍域", "金域"][i], 0, 0);
+    g.fillStyle = STRAIN_COLORS[k] + "40";
+    g.fillText(text.regions[k], 0, 0);
     g.restore();
+  }
+}
+
+function seaRoute(a: number, b: number): Pt[] {
+  return seaRouteWorld(a, b).map(toPx);
+}
+
+function seaRouteWorld(a: number, b: number): Pt[] {
+  const A = POS2D[a], B = POS2D[b];
+  const mx = (A[0] + B[0]) / 2, my = (A[1] + B[1]) / 2;
+  const len = Math.hypot(mx, my) || 1;
+  const bulge = Math.hypot(A[0] - B[0], A[1] - B[1]) * 0.35;
+  const ctrl: Pt = [mx + (mx / len) * bulge, my + (my / len) * bulge];
+  return Array.from({ length: 49 }, (_, i): Pt => {
+    const t = i / 48;
+    return [(1 - t) ** 2 * A[0] + 2 * (1 - t) * t * ctrl[0] + t * t * B[0], (1 - t) ** 2 * A[1] + 2 * (1 - t) * t * ctrl[1] + t * t * B[1]];
   });
 }
 
-function drawLinks(g: CanvasRenderingContext2D, r: () => number): void {
+function drawLinks({ g, r }: Ctx): void {
   const bowed = (a: number, b: number, bow: number, n = 24): Pt[] => {
     const [ax, ay] = toPx(POS2D[a]), [bx, by] = toPx(POS2D[b]);
     const len = Math.hypot(bx - ax, by - ay) || 1;
@@ -393,15 +610,6 @@ function drawLinks(g: CanvasRenderingContext2D, r: () => number): void {
       const jx = x + (r() - 0.5) * jitter, jy = y + (r() - 0.5) * jitter;
       if (i) g.lineTo(jx, jy);
       else g.moveTo(jx, jy);
-    });
-  };
-  const seaRoute = (a: number, b: number) => {
-    const A = POS2D[a], B = POS2D[b];
-    const mid = Math.atan2(A[1] + B[1] + 2 * CENTER_Y, A[0] + B[0]);
-    const ctrl: Pt = [Math.cos(mid) * 13 * MAP_SCALE, Math.sin(mid) * 13 * MAP_SCALE - CENTER_Y];
-    return Array.from({ length: 49 }, (_, i): Pt => {
-      const t = i / 48;
-      return toPx([(1 - t) ** 2 * A[0] + 2 * (1 - t) * t * ctrl[0] + t * t * B[0], (1 - t) ** 2 * A[1] + 2 * (1 - t) * t * ctrl[1] + t * t * B[1]]);
     });
   };
   g.lineCap = "round";
@@ -466,8 +674,86 @@ function drawShip(g: CanvasRenderingContext2D, x: number, y: number): void {
   g.restore();
 }
 
-function drawDistricts(g: CanvasRenderingContext2D, r: () => number): void {
-  CITY_NAMES.forEach((name, i) => {
+function drawLighthouse({ g, land }: Ctx): void {
+  const city = POS2D[16];
+  let best: Pt | null = null;
+  for (let a = -1.2; a <= 1.2 && !best; a += 0.1) {
+    for (let d = 2.6; d < 7; d += 0.2) {
+      const p: Pt = [city[0] + Math.cos(a) * d, city[1] + Math.sin(a) * d];
+      if (Math.abs(land.sample(p) - (COAST + 0.04)) < 0.02) {
+        best = p;
+        break;
+      }
+    }
+  }
+  if (!best) return;
+  const [x, y] = toPx(best);
+  g.save();
+  g.translate(x, y);
+  g.fillStyle = "rgba(255, 224, 138, 0.35)";
+  g.beginPath();
+  g.moveTo(0, -46); g.lineTo(70, -66); g.lineTo(70, -26); g.closePath();
+  g.fill();
+  g.fillStyle = "rgba(248, 240, 222, 0.98)";
+  g.strokeStyle = "rgba(52, 34, 20, 0.9)";
+  g.lineWidth = 2.4;
+  g.beginPath();
+  g.moveTo(-10, 0); g.lineTo(10, 0); g.lineTo(6, -40); g.lineTo(-6, -40); g.closePath();
+  g.fill(); g.stroke();
+  g.fillStyle = "#c4472f";
+  g.fillRect(-8, -16, 16, 6);
+  g.fillRect(-7, -30, 14, 6);
+  g.fillStyle = "rgba(245, 185, 53, 0.95)";
+  g.fillRect(-6, -50, 12, 10);
+  g.strokeRect(-6, -50, 12, 10);
+  g.restore();
+}
+
+function drawSerpent({ g, land }: Ctx): void {
+  const spot = ([[-17, -15], [-18, 14], [18, 15], [0, -17], [-19, -1]] as Pt[]).find((p) => land.sample(p) < COAST - 0.25);
+  if (!spot) return;
+  const [x, y] = toPx(spot);
+  g.save();
+  g.translate(x, y);
+  g.strokeStyle = "rgba(24, 44, 70, 0.85)";
+  g.fillStyle = "rgba(92, 128, 120, 0.9)";
+  g.lineWidth = 2.6;
+  for (let k = 0; k < 3; k++) {
+    const cx = k * 54;
+    g.beginPath();
+    g.moveTo(cx - 22, 0);
+    g.quadraticCurveTo(cx, -44, cx + 22, 0);
+    g.closePath();
+    g.fill();
+    g.stroke();
+  }
+  g.beginPath();
+  g.moveTo(-30, 0);
+  g.quadraticCurveTo(-46, -50, -70, -38);
+  g.quadraticCurveTo(-84, -30, -70, -22);
+  g.quadraticCurveTo(-58, -20, -44, 0);
+  g.closePath();
+  g.fill();
+  g.stroke();
+  g.fillStyle = "#fff6e6";
+  g.beginPath();
+  g.arc(-68, -32, 3.5, 0, Math.PI * 2);
+  g.fill();
+  g.beginPath();
+  g.moveTo(134, 0);
+  g.quadraticCurveTo(150, -18, 166, -6);
+  g.stroke();
+  g.strokeStyle = "rgba(34, 66, 78, 0.5)";
+  g.lineWidth = 2;
+  g.beginPath();
+  g.moveTo(-90, 6);
+  g.lineTo(180, 6);
+  g.stroke();
+  g.restore();
+}
+
+function drawDistricts({ g, r, text }: Ctx): void {
+  text.cities.forEach((name, i) => {
     const [x, y] = toPx(POS2D[i]);
     const R = DISTRICT_R * PX;
     const color = STRAIN_COLORS[Math.floor(i / 6)];
@@ -506,8 +792,13 @@ function drawDistricts(g: CanvasRenderingContext2D, r: () => number): void {
     g.save();
     g.translate(x, y + PX * 2.0);
     g.rotate((r() - 0.5) * 0.1);
-    const fs = PX * (i === 0 ? 0.66 : 0.56);
-    g.font = `${fs}px "ZCOOL XiaoWei", serif`;
+    let fs = PX * (i === 0 ? 0.66 : 0.56);
+    g.font = `${fs}px ${text.font}`;
+    const maxW = PX * 3.2;
+    if (g.measureText(name).width > maxW) {
+      fs *= maxW / g.measureText(name).width;
+      g.font = `${fs}px ${text.font}`;
+    }
     const tw = g.measureText(name).width;
     g.fillStyle = "rgba(248,240,222,0.95)";
     g.shadowColor = "rgba(40,25,10,0.35)";
@@ -525,71 +816,28 @@ function drawDistricts(g: CanvasRenderingContext2D, r: () => number): void {
   });
 }
 
-function drawFurniture(g: CanvasRenderingContext2D, w: number, h: number): void {
+function drawFurniture({ g, text }: Ctx, w: number, h: number): void {
   const K = SHEET_SCALE;
+  const [rx, ry] = roseCenter();
   g.save();
-  g.translate(w - PX * 3.0 * K, h * 0.42);
+  g.translate(rx, ry);
   g.strokeStyle = "rgba(46,33,22,0.7)";
   g.fillStyle = "rgba(46,33,22,0.7)";
   g.lineWidth = 3;
   g.beginPath(); g.arc(0, 0, PX * 1.3 * K, 0, Math.PI * 2); g.stroke();
   g.beginPath(); g.arc(0, 0, PX * 1.05 * K, 0, Math.PI * 2); g.stroke();
-  for (let k = 0; k < 4; k++) {
+  for (let k = 0; k < 8; k++) {
     g.save();
-    g.rotate((k * Math.PI) / 2);
-    g.beginPath(); g.moveTo(0, -PX * 1.25 * K); g.lineTo(PX * 0.2 * K, 0); g.lineTo(-PX * 0.2 * K, 0); g.closePath();
+    g.rotate((k * Math.PI) / 4);
+    const len = k % 2 ? 0.8 : 1.25;
+    g.beginPath(); g.moveTo(0, -PX * len * K); g.lineTo(PX * 0.16 * K, 0); g.lineTo(-PX * 0.16 * K, 0); g.closePath();
     if (k === 0) g.fill();
     else g.stroke();
     g.restore();
   }
-  g.font = `${PX * 0.5 * K}px "ZCOOL XiaoWei", serif`;
+  g.font = `${PX * 0.5 * K}px ${text.font}`;
   g.textAlign = "center";
-  g.fillText("北", 0, -PX * 1.55 * K);
-  g.restore();
-
-  g.save();
-  g.translate(PX * 1.4 * K, PX * 1.9 * K);
-  g.fillStyle = "rgba(46,33,22,0.82)";
-  g.font = `${PX * 0.62 * K}px "ZCOOL XiaoWei", serif`;
-  g.fillText("三域防疫图", 0, 0);
-  g.font = `${PX * 0.3 * K}px "Courier Prime", monospace`;
-  g.fillText("SHEET 07 · 1 : 400 000", 0, PX * 0.55 * K);
-  g.fillRect(0, PX * 0.85 * K, PX * 4 * K, 4);
-  for (let k = 0; k <= 4; k++) g.fillRect(k * PX * K, PX * 0.72 * K, 3, PX * 0.3 * K);
-  g.restore();
-
-  const items: [string, (x: number, y: number) => void][] = [
-    ["公路", (x, y) => {
-      g.strokeStyle = "rgba(52,34,20,0.85)"; g.lineWidth = 10; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 60, y); g.stroke();
-      g.strokeStyle = "rgba(236,214,170,0.95)"; g.lineWidth = 5; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 60, y); g.stroke();
-    }],
-    ["铁路", (x, y) => {
-      g.strokeStyle = "rgba(40,28,18,0.9)"; g.lineWidth = 4; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 60, y); g.stroke();
-      g.lineWidth = 2.5; for (let k = 0; k <= 60; k += 10) { g.beginPath(); g.moveTo(x + k, y - 8); g.lineTo(x + k, y + 8); g.stroke(); }
-    }],
-    ["航线", (x, y) => {
-      g.strokeStyle = "rgba(24,44,70,0.8)"; g.lineWidth = 4; g.setLineDash([2, 13]); g.beginPath(); g.moveTo(x, y); g.lineTo(x + 60, y); g.stroke(); g.setLineDash([]);
-    }],
-  ];
-  g.save();
-  const lx = w - PX * 1.4 * K - 180, ly = PX * 1.6 * K;
-  g.fillStyle = "rgba(248,240,222,0.8)";
-  g.fillRect(lx - 20, ly - 44, 220, items.length * 40 + 56);
-  g.strokeStyle = "rgba(46,33,22,0.6)";
-  g.lineWidth = 2;
-  g.strokeRect(lx - 20, ly - 44, 220, items.length * 40 + 56);
-  g.fillStyle = "rgba(46,33,22,0.85)";
-  g.font = `28px "ZCOOL XiaoWei", serif`;
-  g.fillText("图例", lx, ly - 12);
-  items.forEach(([label, draw], k) => {
-    const y = ly + 20 + k * 40;
-    g.lineCap = "round";
-    draw(lx, y);
-    g.fillStyle = "rgba(46,33,22,0.85)";
-    g.font = `26px "ZCOOL XiaoWei", serif`;
-    g.textBaseline = "middle";
-    g.fillText(label, lx + 84, y);
-  });
+  g.fillText("N", 0, -PX * 1.55 * K);
   g.restore();
 
   g.strokeStyle = "rgba(255,240,215,0.35)";
@@ -602,26 +850,31 @@ function drawFurniture(g: CanvasRenderingContext2D, w: number, h: number): void 
   g.beginPath(); g.moveTo(0, h / 2); g.lineTo(w, h / 2); g.stroke();
 }
 
-function drawMapBack(w: number, h: number): HTMLCanvasElement {
+function drawMapBack(w: number, h: number, text: MapText): HTMLCanvasElement {
   const K = SHEET_SCALE;
   const c = kraftCanvas(w, h, "#a9845a", 31, 1.8);
   const g = c.getContext("2d")!;
+  const fit = (s: string, size: number, max: number) => {
+    g.font = `${size}px ${text.font}`;
+    const width = g.measureText(s).width;
+    if (width > max) g.font = `${(size * max) / width}px ${text.font}`;
+  };
   g.save();
   g.translate(w * (5 / 6), h * 0.75);
   g.scale(-1, 1);
   g.fillStyle = "rgba(46,33,22,0.85)";
   g.textAlign = "center";
   g.textBaseline = "middle";
-  g.font = `${PX * 1.55 * K}px "ZCOOL XiaoWei", serif`;
-  g.fillText("纸上防疫", 0, -PX * 1.3 * K);
+  fit(text.cover.title, PX * 1.55 * K, PX * 7.6 * K);
+  g.fillText(text.cover.title, 0, -PX * 1.3 * K);
   g.font = `${PX * 0.36 * K}px "Courier Prime", monospace`;
-  g.fillText("PAPER  QUARANTINE", 0, PX * 0.05 * K);
+  g.fillText(text.cover.subtitle, 0, PX * 0.05 * K);
   g.fillRect(-PX * 3 * K, PX * 0.6 * K, PX * 6 * K, 3 * K);
-  g.font = `${PX * 0.42 * K}px "ZCOOL XiaoWei", serif`;
-  g.fillText("三域防疫图 · 第 07 号", 0, PX * 1.15 * K);
+  fit(text.cover.issue, PX * 0.42 * K, PX * 7.6 * K);
+  g.fillText(text.cover.issue, 0, PX * 1.15 * K);
   g.fillStyle = "rgba(196,71,47,0.9)";
-  g.font = `${PX * 0.34 * K}px "ZCOOL XiaoWei", serif`;
-  g.fillText("一人两角 · 十二轮内研制三种解药", 0, PX * 1.8 * K);
+  fit(text.cover.tagline, PX * 0.34 * K, PX * 7.6 * K);
+  g.fillText(text.cover.tagline, 0, PX * 1.8 * K);
   g.strokeStyle = "rgba(46,33,22,0.6)";
   g.lineWidth = 4 * K;
   g.strokeRect(-PX * 4.1 * K, -PX * 2.6 * K, PX * 8.2 * K, PX * 4.9 * K);

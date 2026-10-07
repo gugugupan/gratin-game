@@ -1,6 +1,19 @@
 import * as THREE from "three";
+import { FONT, tr } from "../i18n/locale";
 import { SHEET_H } from "../art/mapArt";
 import { kraftCanvas, texture } from "../art/paper";
+
+const CAL = tr({
+  zh: { header: "回 合", round: (n: number, of: number) => `第 ${n} 轮 · 共 ${of} 轮`, detail: (e: number, of: number, r: number) => `流行病 ${e} / ${of} · 每轮感染 ${r} 城` },
+  ja: { header: "ラウンド", round: (n: number, of: number) => `第 ${n} ラウンド · 全 ${of} ラウンド`, detail: (e: number, of: number, r: number) => `エピデミック ${e} / ${of} · 毎回 ${r} 都市が感染` },
+  en: { header: "ROUND", round: (n: number, of: number) => `Round ${n} of ${of}`, detail: (e: number, of: number, r: number) => `Epidemics ${e} / ${of} · ${r} cities a round` },
+});
+
+function fitText(g: CanvasRenderingContext2D, text: string, size: number, max: number): void {
+  g.font = `${size}px ${FONT.display}`;
+  const w = g.measureText(text).width;
+  if (w > max) g.font = `${(size * max) / w}px ${FONT.display}`;
+}
 import { clamp01, easeInOut } from "../util";
 
 export interface CalendarInfo {
@@ -35,18 +48,20 @@ class Page {
     g.fillStyle = "#c4472f";
     g.fillRect(0, 0, w, 92);
     g.fillStyle = "#fbf6ea";
-    g.font = '44px "ZCOOL XiaoWei", serif';
     g.textAlign = "center";
     g.textBaseline = "middle";
-    g.fillText("回 合", w / 2, 50);
+    fitText(g, CAL.header, 44, w - 60);
+    g.fillText(CAL.header, w / 2, 50);
     g.fillStyle = "#2e2116";
     g.font = 'bold 230px "Courier Prime", monospace';
     g.fillText(String(info.round).padStart(2, "0"), w / 2, 250);
-    g.font = '34px "ZCOOL XiaoWei", serif';
-    g.fillText(`第 ${info.round} 轮 · 共 ${info.rounds} 轮`, w / 2, 410);
+    const line1 = CAL.round(info.round, info.rounds);
+    fitText(g, line1, 34, w - 60);
+    g.fillText(line1, w / 2, 410);
     g.fillStyle = "#6b5743";
-    g.font = '28px "ZCOOL XiaoWei", serif';
-    g.fillText(`流行病 ${info.epidemics} / ${info.epidemicsTotal} · 每轮感染 ${info.rate} 城`, w / 2, 462);
+    const line2 = CAL.detail(info.epidemics, info.epidemicsTotal, info.rate);
+    fitText(g, line2, 28, w - 50);
+    g.fillText(line2, w / 2, 462);
     g.strokeStyle = "rgba(46,33,22,.25)";
     g.lineWidth = 2;
     g.beginPath(); g.moveTo(60, 372); g.lineTo(w - 60, 372); g.stroke();

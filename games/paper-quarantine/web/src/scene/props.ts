@@ -1,9 +1,17 @@
 import * as THREE from "three";
 import type { Assets } from "../art/assets";
 import { SHEET_SCALE } from "../art/mapArt";
+import { FONT, tr } from "../i18n/locale";
+import { ID_TEXT } from "../ui/idcard";
 import { canvasTexture } from "../art/paper";
 import { ROLE_INFO, ROLE_ORDER } from "../data";
 import { rand } from "../util";
+
+const NOTE_LINES = tr({
+  zh: ["今日任务", "研制三种解药", "别让爆发到 6 次", "12 轮内完成！"],
+  ja: ["今日のミッション", "治療薬を 3 つ開発", "アウトブレイクは 6 回まで", "12 ラウンドで完了！"],
+  en: ["Today's tasks", "Develop 3 cures", "Keep outbreaks under 6", "Done in 12 rounds!"],
+});
 import { createVirusToken } from "./tokens";
 
 interface DeskLayout {
@@ -191,9 +199,9 @@ export class DeskProps {
         g.fillStyle = color;
         g.fillRect(0, 0, w, 34);
         g.fillStyle = "#fbf6ea";
-        g.font = '15px "Noto Sans SC", sans-serif';
+        g.font = `15px ${FONT.body}`;
         g.textBaseline = "middle";
-        g.fillText("纸上防疫 · 行动人员证", 12, 18);
+        g.fillText(ID_TEXT.header, 12, 18);
         g.fillStyle = "#c7dbe6";
         g.fillRect(14, 44, 70, 100);
         const sh = Math.min(img.height, img.width * (100 / 70));
@@ -205,10 +213,12 @@ export class DeskProps {
         g.lineWidth = 2;
         g.strokeRect(14, 44, 70, 100);
         g.fillStyle = "#6b5743";
-        g.font = '12px "Noto Sans SC", sans-serif';
-        g.fillText("职务", 100, 58);
+        g.font = `12px ${FONT.body}`;
+        g.fillText(ID_TEXT.role, 100, 58);
         g.fillStyle = "#2e2116";
-        g.font = '28px "ZCOOL XiaoWei", serif';
+        g.font = `28px ${FONT.display}`;
+        const nw = g.measureText(name).width;
+        if (nw > 210) g.font = `${(28 * 210) / nw}px ${FONT.display}`;
         g.fillText(name, 100, 86);
         g.fillStyle = "rgba(46,33,22,.25)";
         [112, 124, 136].forEach((y, i) => g.fillRect(100, y, 190 - i * 40, 5));
@@ -234,8 +244,12 @@ export class DeskProps {
       g.fillStyle = "rgba(0,0,0,0.05)";
       g.fillRect(0, 0, w, 40);
       g.fillStyle = "#3a2c14";
-      g.font = '40px "ZCOOL XiaoWei", serif';
-      ["今日任务", "研制三种解药", "别让爆发到 6 次", "12 轮内完成！"].forEach((t, k) => g.fillText(t, 34, 100 + k * 72));
+      NOTE_LINES.forEach((t, k) => {
+        g.font = `40px ${FONT.display}`;
+        const tw = g.measureText(t).width;
+        if (tw > w - 60) g.font = `${(40 * (w - 60)) / tw}px ${FONT.display}`;
+        g.fillText(t, 34, 100 + k * 72);
+      });
     }, ready);
     return shadowed(new THREE.Mesh(new THREE.PlaneGeometry(4.2, 4.2).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9 })));
   }

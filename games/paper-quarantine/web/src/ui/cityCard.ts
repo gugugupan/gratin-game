@@ -2,10 +2,28 @@ import * as THREE from "three";
 import type { State } from "../../../engine/game.js";
 import { LINKS, STRAINS } from "../../../engine/map.js";
 import { cityWorld } from "../art/mapArt";
-import { CITY_NAMES, ROLE_INFO, STRAIN_CSS, STRAIN_SHORT } from "../data";
+import { CITY_NAMES, REGION_NAMES, ROLE_INFO, STRAIN_CSS, STRAIN_NAME } from "../data";
+import { tr } from "../i18n/locale";
+
+const CC = tr({
+  zh: {
+    eradicated: "已根除", full: "已满，再感染就爆发", empty: "暂无病毒", untilOutbreak: (n: number) => `再 ${n} 个就爆发`, cured: "已有解药",
+    station: "研究站", lab: (r: number) => `野战实验室 · 到第 ${r} 轮`, lockdown: "警察驻守封城", here: (who: string[]) => `在场：${who.join("、")}`,
+    capital: "首府", risk: "下一轮被感染", recent: "上一轮刚被感染", links: "相邻",
+  },
+  ja: {
+    eradicated: "根絶", full: "満杯：次でアウトブレイク", empty: "病原体なし", untilOutbreak: (n: number) => `あと ${n} 個でアウトブレイク`, cured: "治療薬あり",
+    station: "研究所", lab: (r: number) => `野外ラボ · 第 ${r} ラウンドまで`, lockdown: "警察官が駐在封鎖中", here: (who: string[]) => `滞在：${who.join("、")}`,
+    capital: "首都", risk: "次のラウンドに感染", recent: "前回感染したばかり", links: "隣接",
+  },
+  en: {
+    eradicated: "Eradicated", full: "Full: next one breaks out", empty: "No virus", untilOutbreak: (n: number) => `${n} more to break out`, cured: "cure ready",
+    station: "Research station", lab: (r: number) => `Field lab until round ${r}`, lockdown: "Police lockdown", here: (who: string[]) => `Here: ${who.join(", ")}`,
+    capital: "Capital", risk: "Chance of infection next round", recent: "Just infected", links: "Next to",
+  },
+});
 import { el } from "../util";
 
-const REGION = ["赤域", "苍域", "金域"] as const;
 
 export class CityCard {
   private root = el("city-card");
@@ -54,25 +72,25 @@ function cityHtml(s: State, city: number): string {
     if (!n && k !== own) continue;
     const max = s.maxCubes(k);
     const dots = Array.from({ length: max }, (_, i) => `<i class="${i < n ? "on" : ""}"></i>`).join("");
-    const state = s.eradicated[k] ? "已根除" : n >= max ? "已满，再感染就爆发" : n === 0 ? "暂无病毒" : `再 ${max - n} 个就爆发`;
-    rows.push(`<li style="--c: var(${STRAIN_CSS[k]})"><b>${STRAIN_SHORT[k]}株</b><span class="dots">${dots}</span><small class="${n >= max ? "warn" : ""}">${state}${s.cured[k] && !s.eradicated[k] ? " · 已有解药" : ""}</small></li>`);
+    const state = s.eradicated[k] ? CC.eradicated : n >= max ? CC.full : n === 0 ? CC.empty : CC.untilOutbreak(max - n);
+    rows.push(`<li style="--c: var(${STRAIN_CSS[k]})"><b>${STRAIN_NAME[k]}</b><span class="dots">${dots}</span><small class="${n >= max ? "warn" : ""}">${state}${s.cured[k] && !s.eradicated[k] ? ` · ${CC.cured}` : ""}</small></li>`);
   }
   const facts: string[] = [];
-  if (s.stations.includes(city)) facts.push("研究站");
-  if (s.labCity === city) facts.push(`野战实验室 · 到第 ${s.labExpires} 轮`);
-  if (s.isLocked(city)) facts.push("警察驻守封城");
+  if (s.stations.includes(city)) facts.push(CC.station);
+  if (s.labCity === city) facts.push(CC.lab(s.labExpires));
+  if (s.isLocked(city)) facts.push(CC.lockdown);
   const here = s.roles.filter((_, r) => s.pos[r] === city).map((role) => ROLE_INFO[role].name);
-  if (here.length) facts.push(`在场：${here.join("、")}`);
+  if (here.length) facts.push(CC.here(here));
   const chance = Math.round(s.drawProbabilities()[city] * 100);
   const recent = s.lastDrawn.includes(city);
   const neighbours = LINKS[city].map(({ to }) => `<span style="--c: var(${STRAIN_CSS[Math.floor(to / 6)]})">${CITY_NAMES[to]}</span>`).join("");
   return `
     <header style="--c: var(${STRAIN_CSS[own]})">
       <h3>${CITY_NAMES[city]}</h3>
-      <small>${REGION[own]}${city % 6 === 0 ? " · 中枢城市" : ""}</small>
+      <small>${REGION_NAMES[own]}${city === 0 ? ` · ${CC.capital}` : ""}</small>
     </header>
     <ul class="city-virus">${rows.join("")}</ul>
-    <p class="city-risk"><span>下一轮被感染</span><b class="num">${chance}%</b>${recent ? `<small>上一轮刚被感染</small>` : ""}</p>
+    <p class="city-risk"><span>${CC.risk}</span><b class="num">${chance}%</b>${recent ? `<small>${CC.recent}</small>` : ""}</p>
     ${facts.length ? `<p class="city-facts">${facts.join(" · ")}</p>` : ""}
-    <div class="city-links"><small>相邻</small>${neighbours}</div>`;
+    <div class="city-links"><small>${CC.links}</small>${neighbours}</div>`;
 }

@@ -1,6 +1,6 @@
 import type { Action, GameEvent, Pending } from "../../../engine/game.js";
 import type { Coach } from "../ui/coach";
-import { MUTATION_NOTE, NOTES, PARTS, STEPS, type Note, type Step, type TutorialHost } from "./steps";
+import { COACH_UI, MUTATION_NOTE, NOTES, PARTS, STEPS, type Note, type Step, type TutorialHost } from "./steps";
 
 export class Tutorial {
   private index = -1;
@@ -35,7 +35,7 @@ export class Tutorial {
     step.reveal?.forEach((p) => this.host.reveal(p, true));
     step.enter?.(this.host);
     void this.coach
-      .show({ step: `教程 ${i + 1} / ${STEPS.length}`, title: step.title, text: step.text, button: step.button, focus: step.focus, anchor: step.anchor })
+      .show({ step: COACH_UI.step(i + 1, STEPS.length), title: step.title, text: step.text, button: step.button, focus: step.focus, anchor: step.anchor })
       .then(() => {
         if (this.index === i) this.go(i + 1);
       });
@@ -80,14 +80,14 @@ export class Tutorial {
     if (!note) return;
     this.seen.add(note);
     note.reveal?.forEach((p) => this.host.reveal(p, true));
-    await this.coach.show({ step: "感染阶段", title: note.title, text: note.text(e), button: "继续", focus: note.focus, anchor: note.anchor?.(e) });
+    await this.coach.show({ step: COACH_UI.infection, title: note.title, text: note.text, button: COACH_UI.next, focus: note.focus, anchor: note.anchor?.(e) });
     this.coach.hide();
   }
 
   async onPending(p: Pending): Promise<void> {
     if (p.kind !== "mutation" || this.mutationShown) return;
     this.mutationShown = true;
-    await this.coach.show({ step: "感染阶段", title: MUTATION_NOTE.title, text: MUTATION_NOTE.text, button: "去选择" });
+    await this.coach.show({ step: COACH_UI.infection, title: MUTATION_NOTE.title, text: MUTATION_NOTE.text, button: COACH_UI.choose });
     this.coach.hide();
   }
 
