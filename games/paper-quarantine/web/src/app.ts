@@ -6,6 +6,7 @@ import { iconUrl } from "./art/assets";
 import { fontsReady, type Assets } from "./art/assets";
 import { Board } from "./scene/board";
 import { Calendar } from "./scene/calendar";
+import { TASK, TaskNote } from "./scene/taskNote";
 import { CameraRig } from "./scene/cameraRig";
 import { FoldMap } from "./scene/foldMap";
 import { DeskProps } from "./scene/props";
@@ -22,8 +23,8 @@ import type { Part, TutorialHost } from "./tutorial/steps";
 import { Draft } from "./ui/draft";
 import { Report } from "./ui/report";
 import { Rules } from "./ui/rules";
-import { Hud } from "./ui/hud";
-import { CITY_NAMES, MUTATION_INFO, ROLE_INFO, STRAIN_CSS, STRAIN_NAME } from "./data";
+import { Hud, SUPPLY_WARN } from "./ui/hud";
+import { CITY_NAMES, MUTATION_INFO, ROLE_INFO, STRAIN_CSS, STRAIN_KEY, STRAIN_NAME } from "./data";
 import { APP } from "./i18n/appText";
 import { clamp01, easeInOut, el, reduceMotion, seg } from "./util";
 
@@ -47,6 +48,7 @@ export class App {
   private fold: FoldMap;
   private props: DeskProps;
   private calendar: Calendar;
+  private taskNote = new TaskNote();
   readonly board: Board;
   private rig: CameraRig;
   readonly hud = new Hud();
@@ -65,6 +67,7 @@ export class App {
   private speed = 1;
   private cameraGoal: THREE.Vector3 | null = null;
   private infecting: number[] = [];
+  private supplyWarned = new Set<number>();
 
   state: State | null = null;
   active: RoleId | null = null;
@@ -84,6 +87,7 @@ export class App {
     this.calendar = new Calendar(fontsReady);
     this.board = new Board(scene, assets);
     this.board.addStatic(this.calendar.group, 0.7, "calendar");
+    this.board.addStatic(this.taskNote.mesh, 0.72, "task");
     this.rig = new CameraRig(camera);
     this.portraits = Object.fromEntries(Object.entries(assets.roleImages).map(([k, img]) => [k, img.src])) as Record<RoleId, string>;
     this.draft = new Draft(this.portraits, (roles) => this.newGame(roles));
@@ -236,11 +240,14 @@ export class App {
     this.busy = false;
     this.closeMenus();
     this.board.reset([...state.roles]);
+    this.board.setGroupHidden("task", true);
+    this.supplyWarned = new Set([0, 1, 2].filter((k) => state.supply[k] < SUPPLY_WARN));
     document.body.classList.add("tutorial");
     this.tutorial = new Tutorial(this.tutorialHost(), this.coach);
     this.tutorial.start();
     this.refresh(false);
     this.play(1);
+    void this.briefTask(state);
   }
 
   private stopTutorial(): void {
@@ -314,9 +321,12 @@ export class App {
     this.busy = false;
     this.closeMenus();
     this.board.reset(roles);
+    this.board.setGroupHidden("task", true);
+    this.supplyWarned.clear();
     this.refresh(false);
     saveGame(state);
     this.play(1);
+    void this.briefTask(state);
   }
 
   private continueGame(): void {
@@ -332,8 +342,49 @@ export class App {
     this.busy = false;
     this.closeMenus();
     this.board.reset([...state.roles]);
+    this.board.setGroupHidden("task", false);
+    this.supplyWarned = new Set([0, 1, 2].filter((k) => state.supply[k] < SUPPLY_WARN));
     this.refresh(false);
     this.play(1);
+  }
+
+  private async briefTask(state: State): Promise<void> {
+    await new Promise((res) => setTimeout(res, TRANSITION_MS * 0.9));
+    if (this.state !== state || this.mode === "menu") return;
+    if (!document.body.classList.contains("cover-shot")) {
+      const s = state;
+      await this.dialog.show({
+        title: TASK.title,
+        body: `<p>${TASK.lead}</p><ul class="task-list">
+          <li class="win">☐ ${TASK.goal(s.curedCount())}</li>
+          <li>✕ ${TASK.outbreaks(s.outbreaks, s.cfg.outbreakLimit)}</li>
+          <li>✕ ${TASK.supply}</li>
+          <li>✕ ${TASK.time(s.round, s.cfg.rounds)}</li>
+        </ul>`,
+        buttons: [{ id: "go", label: TASK.go, primary: true }],
+        cancel: "go",
+      });
+      if (this.state !== state) return;
+      await this.flyTaskCard();
+    }
+    this.board.setGroupHidden("task", false);
+  }
+
+  private flyTaskCard(): Promise<void> {
+    const fly = document.createElement("div");
+    fly.className = "task-fly";
+    fly.textContent = TASK.title;
+    document.body.append(fly);
+    const v = this.taskNote.mesh.position.clone().project(this.stage.camera);
+    const x = Math.max(40, Math.min(innerWidth - 40, ((v.x + 1) / 2) * innerWidth));
+    const y = Math.max(20, Math.min(innerHeight - 40, ((1 - v.y) / 2) * innerHeight));
+    void fly.offsetWidth;
+    fly.style.transform = `translate(${x - innerWidth / 2}px, ${y - innerHeight / 2}px) scale(.22) rotate(-8deg)`;
+    fly.style.opacity = "0.2";
+    return new Promise((res) => setTimeout(() => {
+      fly.remove();
+      res();
+    }, reduceMotion ? 0 : 650));
   }
 
   private updateContinue(): void {
@@ -350,6 +401,8 @@ export class App {
     if (!s) return;
     this.board.sync(s, animate);
     this.hud.render(s, this.portraits, this.active);
+    this.taskNote.update(s);
+    this.warnSupply(s);
     this.cityCard.update(s);
     this.relayout();
     el<HTMLButtonElement>("undo").disabled = this.history.length === 0 || (!!this.tutorial && !this.tutorial.canUndo);
@@ -518,7 +571,7 @@ export class App {
       void this.gameOver();
       return;
     }
-    this.hud.toast(APP.roundStart(s.round));
+    this.hud.toast(APP.roundStart(s.round, s.cfg.rounds));
     this.tutorial?.afterRound();
   }
 
@@ -542,17 +595,12 @@ export class App {
     const infecting = this.infecting;
     for (const e of events) {
       switch (e.t) {
-        case "epidemic": {
-          el("epi-detail").textContent = APP.epidemic(e.count, name(e.city));
-          const card = el("epi-card");
-          card.classList.remove("show");
-          void card.offsetWidth;
-          card.classList.add("show");
+        case "epidemic":
+          this.showEventCard(iconUrl("epidemic"), APP.epidemicBang, APP.epidemic(e.count, name(e.city)));
           await this.sleep(1700);
           this.focusCity(e.city);
           await this.sleep(500);
           break;
-        }
         case "cube":
           view.cubes[e.city * 3 + e.s]++;
           this.focusCity(e.city);
@@ -585,8 +633,9 @@ export class App {
           await this.sleep(1300);
           break;
         case "mutation":
-          this.hud.toast(APP.mutated(strainName(e.strain), MUTATION_INFO[e.m].name, MUTATION_INFO[e.m].text));
-          await this.sleep(1100);
+          this.showEventCard(iconUrl(MUTATION_INFO[e.m].icon), APP.mutationBang, APP.mutated(strainName(e.strain), MUTATION_INFO[e.m].name, MUTATION_INFO[e.m].text));
+          this.hud.render(s, this.portraits, this.active);
+          await this.sleep(2200);
           break;
         case "named":
           infecting.length = 0;
@@ -622,26 +671,6 @@ export class App {
 
   private async resolvePending(p: Pending): Promise<void> {
     const s = this.state!;
-    await this.tutorial?.onPending(p);
-    if (p.kind === "mutation") {
-      const choices = p.cards.flatMap((m, card) =>
-        p.targets.map((strain) => ({
-          id: `${card}:${strain}`,
-          label: `${MUTATION_INFO[m].name} → ${STRAIN_NAME[strain]}`,
-          html: `<span class="mut"><img src="${iconUrl(MUTATION_INFO[m].icon)}" alt=""><span><b>${MUTATION_INFO[m].name} → <span style="color: var(${STRAIN_CSS[strain]})">${STRAIN_NAME[strain]}</span></b><small>${MUTATION_INFO[m].text} · ${APP.onBoard(CITIES.reduce((n, c) => n + s.cube(c.id, strain), 0))}</small></span></span>`,
-        })),
-      );
-      const id = await this.dialog.show({
-        title: APP.mutation.title,
-        body: APP.mutation.body,
-        choices,
-        wide: true,
-      });
-      const [card, strain] = id.split(":").map(Number);
-      s.resolveMutation({ card, strain });
-      this.hud.render(s, this.portraits, this.active);
-      return;
-    }
     const id = await this.dialog.show({
       title: APP.officer.title,
       body: APP.officer.body,
@@ -652,6 +681,24 @@ export class App {
       })),
     });
     s.resolveCancel(Number(id));
+  }
+
+  private warnSupply(s: State): void {
+    for (let k = 0; k < 3; k++) {
+      if (s.eradicated[k] || s.supply[k] >= SUPPLY_WARN || this.supplyWarned.has(k)) continue;
+      this.supplyWarned.add(k);
+      this.showEventCard(iconUrl(`sample_${STRAIN_KEY[k]}`), APP.supplyBang, APP.supplyLow(STRAIN_NAME[k], s.supply[k]));
+    }
+  }
+
+  private showEventCard(icon: string, title: string, detail: string): void {
+    const card = el("epi-card");
+    card.querySelector("img")!.src = icon;
+    card.querySelector("b")!.textContent = title;
+    el("epi-detail").textContent = detail;
+    card.classList.remove("show");
+    void card.offsetWidth;
+    card.classList.add("show");
   }
 
   private async gameOver(): Promise<void> {

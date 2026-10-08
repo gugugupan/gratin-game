@@ -61,17 +61,17 @@ export interface Config {
   logisticsFreeMove: boolean;
   pharmacistBonus: number;
   policeMode: "edge" | "lockdown" | "passive";
+  cureMutations: number[];
   lockdownMax: number;
   lockdownCost: number;
   lockdownBlocksInfection: boolean;
   lockdownSample: boolean;
-  mutationUncuredOnly: boolean;
 }
 
 export const DEFAULT_CONFIG: Config = {
   rounds: 12,
   infectionRate: [3],
-  epidemics: 4,
+  epidemics: 3,
   outbreakLimit: 6,
   cubesPerStrain: 16,
   setup: [3, 3, 3, 2, 1, 1],
@@ -89,11 +89,11 @@ export const DEFAULT_CONFIG: Config = {
   logisticsFreeMove: false,
   pharmacistBonus: 1,
   policeMode: "passive",
+  cureMutations: [1, 2],
   lockdownMax: 1,
   lockdownCost: 1,
   lockdownBlocksInfection: true,
   lockdownSample: true,
-  mutationUncuredOnly: true,
 };
 
 export type Action =
@@ -128,17 +128,9 @@ export type GameEvent =
   | { t: "round"; round: number }
   | { t: "lose"; reason: LossReason };
 
-export type Pending =
-  | { kind: "mutation"; cards: MutationId[]; targets: number[] }
-  | { kind: "cancel"; cities: number[] };
-
-export interface MutationChoice {
-  card: number;
-  strain: number;
-}
+export type Pending = { kind: "cancel"; cities: number[] };
 
 export interface Chooser {
-  chooseMutation(state: State, cards: MutationId[]): MutationChoice;
   chooseCancel(state: State, cities: number[]): number;
 }
 
@@ -176,12 +168,12 @@ function newStats(): Stats {
 
 const SCRATCH_STATS = newStats();
 
-const SAVE_VERSION = 2;
+const SAVE_VERSION = 3;
 const SAVED_FIELDS = [
   "cubes", "supply", "cured", "eradicated", "mutations", "breachUsed", "pos", "samples", "ap", "freeMove",
   "stations", "labCity", "labExpires", "quarantine", "locked", "deck", "deckSeg", "deckKnown", "discard", "lastDrawn",
   "segCounter", "epidemicRounds", "epidemicsDone", "mutationDeck", "forecastUsed", "lockdownUsed", "cancelUsed",
-  "officerUses", "cancelPending", "outbreaks", "round", "status", "lossReason",
+  "officerUses", "cancelPending", "outbreaks", "round", "status", "lossReason", "pendingMutations",
 ] as const;
 
 export interface SaveData {
@@ -216,11 +208,12 @@ export class State {
   lastDrawn: number[] = [];
   settingUp = false;
   events: GameEvent[] | null = null;
-  private inf: { epidemics: number; offer: MutationId[] | null; drawn: number[] | null; cancelled: number; awaitingCancel: boolean } | null = null;
+  private inf: { epidemics: number; drawn: number[] | null; cancelled: number; awaitingCancel: boolean } | null = null;
   segCounter = 0;
   epidemicRounds: number[] = [];
   epidemicsDone = 0;
   mutationDeck: MutationId[] = [];
+  pendingMutations: number[] = [];
   forecastUsed = 0;
   lockdownUsed = 0;
   cancelUsed = 0;
@@ -271,6 +264,7 @@ export class State {
     c.epidemicRounds = this.epidemicRounds;
     c.epidemicsDone = this.epidemicsDone;
     c.mutationDeck = this.mutationDeck.slice();
+    c.pendingMutations = this.pendingMutations.slice();
     c.forecastUsed = this.forecastUsed;
     c.lockdownUsed = this.lockdownUsed;
     c.cancelUsed = this.cancelUsed;
@@ -285,7 +279,7 @@ export class State {
     c.log = full && this.log ? this.log.slice() : null;
     c.settingUp = this.settingUp;
     c.events = null;
-    c.inf = this.inf ? { ...this.inf, offer: this.inf.offer?.slice() ?? null, drawn: this.inf.drawn?.slice() ?? null } : null;
+    c.inf = this.inf ? { ...this.inf, drawn: this.inf.drawn?.slice() ?? null } : null;
     return c;
   }
 
@@ -346,13 +340,6 @@ export class State {
       return p >= 0 && this.pos[p] === city;
     }
     return this.locked.includes(city);
-  }
-
-  mutationTargets(): number[] {
-    const all = [0, 1, 2].filter((s) => !this.eradicated[s]);
-    if (!this.cfg.mutationUncuredOnly) return [0, 1, 2];
-    const uncured = all.filter((s) => !this.cured[s]);
-    return uncured.length > 0 ? uncured : [0, 1, 2];
   }
 
   isStation(city: number): boolean {
@@ -513,6 +500,7 @@ export class State {
         for (let m = 0; m < 2; m++) if (this.roles[m] === "medic") this.medicSweep(m);
         this.checkEradication(a.s);
         if (this.curedCount() === STRAINS) this.status = "won";
+        else if (this.cfg.cureMutations[this.curedCount() - 1]) this.pendingMutations.push(this.cfg.cureMutations[this.curedCount() - 1]);
         break;
       case "build":
         this.stations.push(this.pos[r]);
@@ -675,22 +663,21 @@ export class State {
     if (this.status !== "playing") return;
     this.intensify();
     this.emit({ t: "intensify" });
-    const cards = this.mutationDeck.splice(0, 2);
-    if (cards.length && this.inf) this.inf.offer = cards;
   }
 
-  resolveMutation(choice: MutationChoice): void {
-    const cards = this.inf?.offer;
-    if (!cards) throw new Error("no mutation offer pending");
-    if (!this.mutationTargets().includes(choice.strain)) throw new Error(`illegal mutation target ${choice.strain}`);
-    const m = cards[choice.card];
-    this.mutations[choice.strain] |= 1 << MUTATIONS.indexOf(m);
-    this.stats.mutations.push({ m, strain: choice.strain, cured: !!this.cured[choice.strain], eradicated: !!this.eradicated[choice.strain] });
-    const rest = cards.filter((_, i) => i !== choice.card);
-    this.mutationDeck.push(...rest);
-    this.inf!.offer = null;
-    this.note(`变异：${MUTATION_NAMES[m]} → ${choice.strain}`);
-    this.emit({ t: "mutation", m, strain: choice.strain });
+  private mutate(count: number): void {
+    const targets = [0, 1, 2].filter((k) => !this.cured[k] && !this.eradicated[k]);
+    if (targets.length === 0) return;
+    const strain = targets[this.rng.int(targets.length)];
+    for (let n = 0; n < count; n++) {
+      const at = this.mutationDeck.findIndex((m) => !this.hasMutation(strain, m));
+      if (at < 0) return;
+      const [m] = this.mutationDeck.splice(at, 1);
+      this.mutations[strain] |= 1 << MUTATIONS.indexOf(m);
+      this.stats.mutations.push({ m, strain, cured: false, eradicated: false });
+      this.note(`变异：${MUTATION_NAMES[m]} → ${strain}`);
+      this.emit({ t: "mutation", m, strain });
+    }
   }
 
   resolveCancel(index: number): void {
@@ -711,7 +698,6 @@ export class State {
     if (this.round >= this.cfg.rounds) return this.lose("time");
     this.inf = {
       epidemics: this.epidemicRounds.filter((r) => r === this.round).length,
-      offer: null,
       drawn: null,
       cancelled: -1,
       awaitingCancel: false,
@@ -721,7 +707,10 @@ export class State {
   continueInfection(): Pending | null {
     const inf = this.inf;
     while (inf && this.status === "playing") {
-      if (inf.offer) return { kind: "mutation", cards: inf.offer.slice(), targets: this.mutationTargets() };
+      if (this.pendingMutations.length) {
+        this.mutate(this.pendingMutations.shift()!);
+        continue;
+      }
       if (inf.awaitingCancel && inf.drawn) return { kind: "cancel", cities: inf.drawn.slice() };
       if (inf.epidemics > 0) {
         inf.epidemics--;
@@ -822,8 +811,7 @@ export class State {
   endRound(chooser: Chooser): void {
     this.beginInfection();
     for (let p = this.continueInfection(); p; p = this.continueInfection()) {
-      if (p.kind === "mutation") this.resolveMutation(chooser.chooseMutation(this, p.cards));
-      else this.resolveCancel(chooser.chooseCancel(this, p.cities));
+      this.resolveCancel(chooser.chooseCancel(this, p.cities));
     }
   }
 

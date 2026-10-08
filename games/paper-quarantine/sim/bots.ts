@@ -1,4 +1,4 @@
-import { Action, Chooser, MutationChoice, MutationId, State } from "../engine/game.js";
+import { Action, Chooser, State } from "../engine/game.js";
 import { CITIES, CITY_COUNT, DIST, LINKS, STRAINS } from "../engine/map.js";
 import { Rng } from "../engine/rng.js";
 
@@ -26,31 +26,10 @@ export class RandomPolicy implements Policy {
     }
   }
 
-  chooseMutation(state: State, cards: MutationId[]): MutationChoice {
-    const targets = state.mutationTargets();
-    return { card: this.rng.int(cards.length), strain: targets[this.rng.int(targets.length)] };
-  }
-
   chooseCancel(_state: State, cities: number[]): number {
     return this.rng.int(cities.length);
   }
 }
-
-const MUTATION_HARM: Record<MutationId, number> = {
-  breach: 2,
-  resistant: 4,
-  virulent: 5,
-  stubborn: 3,
-  acute: 6,
-};
-
-const MUTATION_HARM_IF_CURED: Record<MutationId, number> = {
-  breach: 1,
-  resistant: 0,
-  virulent: 3,
-  stubborn: 3,
-  acute: 4,
-};
 
 export interface HeuristicOptions {
   beamWidth: number;
@@ -130,25 +109,6 @@ export class HeuristicPolicy implements Policy {
       }
       if (risk >= 0.6) state.apply({ t: "cancel", r: officer });
     }
-  }
-
-  chooseMutation(state: State, cards: MutationId[]): MutationChoice {
-    let best: MutationChoice = { card: 0, strain: 0 };
-    let bestHarm = Infinity;
-    const targets = state.mutationTargets();
-    cards.forEach((m, card) => {
-      for (const s of targets) {
-        let harm: number;
-        if (state.eradicated[s]) harm = 0;
-        else if (state.cured[s]) harm = MUTATION_HARM_IF_CURED[m] * (1 + state.cubesOnBoard(s) / 8);
-        else harm = MUTATION_HARM[m] * (1 + state.cubesOnBoard(s) / 8);
-        if (harm < bestHarm) {
-          bestHarm = harm;
-          best = { card, strain: s };
-        }
-      }
-    });
-    return best;
   }
 
   chooseCancel(state: State, cities: number[]): number {

@@ -5,21 +5,29 @@ import { CITY_NAMES, MUTATION_INFO, STRAIN_CSS, STRAIN_KEY, STRAIN_NAME } from "
 import { el } from "../util";
 import { tr } from "../i18n/locale";
 
+export const SUPPLY_WARN = 6;
+
 const HUD = tr({
   zh: {
     apLeft: (n: number, of: number) => `剩余 ${n} / ${of} 点`, outbreaks: (n: number, of: number) => `爆发 ${n} / ${of}`,
     eradicated: "已根除", cured: "已研制", progress: (have: number, need: number) => `单人最多 ${have} 个样本，研制需要 ${need} 个`,
     vial: (s: string, done: boolean) => `${s}解药，${done ? "已研制" : "未研制"}`, last: "上轮感染", none: "尚未感染", lockdown: (c: string) => `● 驻守封城：${c}`,
+    lastOutbreak: (n: number) => `第 ${n} 次爆发即失败`, roundsLeft: (n: number) => (n <= 1 ? "最后一轮" : `剩 ${n} 轮`),
+    supply: (n: number) => `剩 ${n} 个`, supplyTitle: (n: number) => `这株病毒只剩 ${n} 个，用完就失败`,
   },
   ja: {
     apLeft: (n: number, of: number) => `残り ${n} / ${of} ポイント`, outbreaks: (n: number, of: number) => `アウトブレイク ${n} / ${of}`,
     eradicated: "根絶", cured: "開発済み", progress: (have: number, need: number) => `1 人の最多サンプル ${have} 個、開発には ${need} 個必要`,
     vial: (s: string, done: boolean) => `${s}の治療薬、${done ? "開発済み" : "未開発"}`, last: "前回の感染", none: "まだ感染なし", lockdown: (c: string) => `● 駐在封鎖：${c}`,
+    lastOutbreak: (n: number) => `${n} 回目のアウトブレイクで失敗`, roundsLeft: (n: number) => (n <= 1 ? "最終ラウンド" : `残り ${n} ラウンド`),
+    supply: (n: number) => `残り ${n}`, supplyTitle: (n: number) => `この株の病原体は残り ${n} 個。尽きると失敗`,
   },
   en: {
     apLeft: (n: number, of: number) => `${n} of ${of} actions left`, outbreaks: (n: number, of: number) => `Outbreaks ${n} / ${of}`,
     eradicated: "ERADICATED", cured: "CURED", progress: (have: number, need: number) => `Best hand: ${have} samples; a cure needs ${need}`,
     vial: (s: string, done: boolean) => `${s} cure, ${done ? "developed" : "not yet developed"}`, last: "Last infected", none: "None yet", lockdown: (c: string) => `● Lockdown: ${c}`,
+    lastOutbreak: (n: number) => `Outbreak ${n} loses the game`, roundsLeft: (n: number) => (n <= 1 ? "Final round" : `${n} rounds left`),
+    supply: (n: number) => `${n} left`, supplyTitle: (n: number) => `Only ${n} of this strain left to place; running out loses the game`,
   },
 });
 import { idCard } from "./idcard";
@@ -36,6 +44,7 @@ export class Hud {
 
   render(state: State, portraits: Record<RoleId, string>, active: RoleId | null): void {
     this.renderAp(state);
+    this.renderRoundsLeft(state);
     this.renderOutbreaks(state);
     this.renderCures(state);
     this.renderStubs(state);
@@ -49,14 +58,22 @@ export class Hud {
     this.punches.setAttribute("aria-label", HUD.apLeft(left, max));
   }
 
+  private renderRoundsLeft(state: State): void {
+    const left = state.cfg.rounds - state.round + 1;
+    const box = el("rounds-left");
+    box.hidden = left > 3 || state.status !== "playing";
+    box.querySelector("b")!.textContent = HUD.roundsLeft(left);
+  }
+
   private renderOutbreaks(state: State): void {
     this.showOutbreaks(state.outbreaks, state.cfg.outbreakLimit);
   }
 
   showOutbreaks(count: number, limit: number, bump = false): void {
     this.slots.innerHTML = Array.from({ length: limit }, (_, k) => {
-      const cls = ["slot", k < count ? "hit" : "", k === limit - 1 ? "end" : "", bump && k === count - 1 ? "bump" : ""].filter(Boolean).join(" ");
-      return `<span class="${cls}">${k + 1}</span>`;
+      const end = k === limit - 1;
+      const cls = ["slot", k < count ? "hit" : "", end ? "end" : "", end && count === limit - 1 ? "danger" : "", bump && k === count - 1 ? "bump" : ""].filter(Boolean).join(" ");
+      return `<span class="${cls}"${end ? ` title="${HUD.lastOutbreak(limit)}"` : ""}>${end ? "✕" : k + 1}</span>`;
     }).join("");
     this.slots.setAttribute("aria-label", HUD.outbreaks(count, limit));
   }
@@ -79,6 +96,7 @@ export class Hud {
         <img class="vial-img" src="${iconUrl(`cure_${STRAIN_KEY[s]}`)}" alt="${HUD.vial(STRAIN_NAME[s], cured)}">
         ${label}
         <span class="muts">${badges}</span>
+        ${!state.eradicated[s] && state.supply[s] < SUPPLY_WARN ? `<span class="supply" title="${HUD.supplyTitle(state.supply[s])}">${HUD.supply(state.supply[s])}</span>` : ""}
       </div>`);
     }
     this.cures.innerHTML = html.join("");

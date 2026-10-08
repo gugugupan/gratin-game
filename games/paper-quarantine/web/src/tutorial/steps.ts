@@ -97,12 +97,11 @@ const LOGIC: StepLogic[] = [
 ];
 
 type Copy = [title: string, text: string, button?: string];
-type NoteKey = "named" | "outbreak" | "epidemic" | "intensify" | "guarded";
+type NoteKey = "named" | "outbreak" | "epidemic" | "intensify" | "guarded" | "mutation";
 
 interface CoachCopy {
   steps: Copy[];
   notes: Record<NoteKey, [string, string]>;
-  mutation: [string, string];
   ui: { step: (n: number, of: number) => string; infection: string; next: string; choose: string };
 }
 
@@ -121,18 +120,18 @@ const COPY = tr<CoachCopy>({
       ["撤销", "走错了也不要紧。按「撤销」（或 Cmd/Ctrl+Z），行动点也会退回来。<br>但结束行动之后出现了新的随机结果，就不能再撤销到之前了。"],
       ["交接", "点急救队员，选「交接 · 赤株」，把 2 个样本交给同城的研究员。"],
       ["研制解药", "研究员凑齐了 3 个赤株样本。点研究员，选「研制 · 赤株」。顶部的解药栏记录进度，<b>三种解药全部研制出来就获胜</b>。"],
-      ["流行病要来了", "赤株解药研制成功！今后治疗赤株一次就能全部清除，急救队员所在的城市也不会再被放赤株。<br>按「结束行动」。这一轮会发生<b>流行病</b>。"],
+      ["变异与流行病", "赤株解药研制成功！今后治疗赤株一次就能全部清除，急救队员所在的城市也不会再被放赤株。<br>不过剩下的病毒会因此<b>变异</b>，这一轮还会发生<b>流行病</b>。按「结束行动」。"],
       ["研究站和快速转移", `${c(CAPITAL)}有一座<b>研究站</b>。除了研究员，其他人都要在研究站里才能研制。花 3 点可以在所在城市建一座研究站（最多 3 座）；在两座研究站之间，花 1 点就能<b>快速转移</b>。`, "下一步"],
       ["更多队员", "除了急救队员和研究员，还有 6 种职业：警察驻守封城，流行病学家预判感染，工程师搭野战实验室……正式游戏开局时，从 8 人中任选 2 人。<br><b>失败条件</b>：爆发满 6 次、某一株病毒用完，或者 12 轮结束还没研制完。忘了规则就点右上角的「?」。", "完成教程"],
     ],
     notes: {
       named: ["感染城市", `这一轮要感染 3 座城市。它们会一座一座出现在顶部的「本轮感染」里，地图上也会插上图钉，每座放 1 个它颜色的病毒。<br>第一座就是${c(SEALWELL)}，它已经有 3 个病毒了……`],
       outbreak: ["爆发！", "一座城市已经有 3 个同株病毒，再放病毒就会<b>爆发</b>：向每座相邻城市各扩散 1 个，还可能连锁。顶部的爆发计数满 6 次就失败。"],
-      epidemic: ["流行病", "<b>流行病</b>：牌库最底下的城市一次放 3 个病毒。一局会有 4 次流行病，日历上记着已经发生了几次。"],
+      epidemic: ["流行病", "<b>流行病</b>：牌库最底下的城市一次放 3 个病毒。一局会有 3 次流行病，日历上记着已经发生了几次。"],
       intensify: ["洗回牌库顶", "接着，感染过的城市会被洗回牌库顶，所以<b>最近被感染的城市很快会再被感染</b>。记住它们，是预判风险的关键。"],
       guarded: ["急救队员守城", `赤株已经有解药，急救队员所在的${c(ROUGE)}不会再被放赤株。`],
+      mutation: ["变异", "每研制出一种解药，剩下的病毒就会产生抗性：在下一次感染阶段开头，随机一株还没有解药的病毒发生<b>变异</b>。<br>研制出第二种解药时，最后一株会一次获得 <b>2 种</b>变异，收尾会更难。变异标在顶部解药栏里。"],
     },
-    mutation: ["变异", "每次流行病还会翻出 2 张<b>变异卡</b>。选 1 张交给一株病毒，而且只能交给还没研制出解药的株。挑对你影响最小的组合。"],
     ui: { step: (n, of) => `教程 ${n} / ${of}`, infection: "感染阶段", next: "继续", choose: "去选择" },
   },
   ja: {
@@ -149,18 +148,18 @@ const COPY = tr<CoachCopy>({
       ["取り消し", "間違えても大丈夫。「戻す」（または Cmd/Ctrl+Z）で行動ポイントも戻ります。<br>ただし行動終了のあとは新しい偶然が起きるので、そこより前には戻せません。"],
       ["受け渡し", "救急隊員をタップし、「受け渡し · 赤株」で 2 個のサンプルを同じ都市の研究員に渡しましょう。"],
       ["治療薬の開発", "研究員の赤株サンプルが 3 個そろいました。研究員をタップして「開発 · 赤株」を選びます。上の治療薬欄で進み具合がわかり、<b>3 つそろえば勝利</b>です。"],
-      ["エピデミックが来る", "赤株の治療薬が完成！これからは赤株を 1 回の治療ですべて除去でき、救急隊員のいる都市には赤株が置かれなくなります。<br>「行動終了」を押しましょう。このラウンドは<b>エピデミック</b>が起きます。"],
+      ["変異とエピデミック", "赤株の治療薬が完成！これからは赤株を 1 回の治療ですべて除去でき、救急隊員のいる都市には赤株が置かれなくなります。<br>ただし残りの病原体が<b>変異</b>し、このラウンドは<b>エピデミック</b>も起きます。「行動終了」を押しましょう。"],
       ["研究所と高速移動", `${c(CAPITAL)}には<b>研究所</b>があります。研究員以外は研究所にいないと開発できません。3 ポイントでいる都市に研究所を建てられ（最大 3 か所）、研究所どうしは 1 ポイントで<b>高速移動</b>できます。`, "次へ"],
       ["ほかの隊員", "救急隊員と研究員のほかに 6 つの職業があります。警察官は駐在封鎖、疫学者は感染予測、技師は野外ラボ……本番では 8 人から 2 人を選びます。<br><b>失敗条件</b>：アウトブレイク 6 回、ある株の病原体が尽きる、12 ラウンドで治療薬がそろわない。ルールは右上の「?」でいつでも見られます。", "チュートリアル完了"],
     ],
     notes: {
       named: ["感染都市", `このラウンドは 3 都市が感染します。上の「今回の感染」に 1 つずつ表示され、地図にもピンが立ち、それぞれの色の病原体が 1 個置かれます。<br>最初は${c(SEALWELL)}。すでに 3 個たまっています……`],
       outbreak: ["アウトブレイク！", "同じ株が 3 個ある都市にさらに置かれると<b>アウトブレイク</b>。隣のすべての都市に 1 個ずつ広がり、連鎖することもあります。上のカウンターが 6 回に達すると失敗です。"],
-      epidemic: ["エピデミック", "<b>エピデミック</b>：山札の一番下の都市に病原体を 3 個置きます。1 ゲームに 4 回起き、カレンダーに回数が記録されます。"],
+      epidemic: ["エピデミック", "<b>エピデミック</b>：山札の一番下の都市に病原体を 3 個置きます。1 ゲームに 3 回起き、カレンダーに回数が記録されます。"],
       intensify: ["山札の上へ", "続いて、感染した都市が山札の上に戻されます。つまり<b>最近感染した都市ほど、すぐまた感染する</b>。覚えておくとリスクが読めます。"],
       guarded: ["救急隊員の守り", `赤株にはもう治療薬があるので、救急隊員のいる${c(ROUGE)}には赤株が置かれません。`],
+      mutation: ["変異", "治療薬を 1 つ開発するたびに、残りの病原体が耐性をつけます。次の感染フェイズの最初に、治療薬のない株のどれかがランダムに<b>変異</b>します。<br>2 つ目の治療薬のあとは、最後の株が一度に <b>2 つ</b>変異し、終盤が厳しくなります。変異は上の治療薬欄に表示されます。"],
     },
-    mutation: ["変異", "エピデミックのたびに<b>変異カード</b>が 2 枚めくられます。1 枚をまだ治療薬のない株に与えます。いちばん影響の小さい組み合わせを選びましょう。"],
     ui: { step: (n, of) => `チュートリアル ${n} / ${of}`, infection: "感染フェイズ", next: "つづける", choose: "選びに行く" },
   },
   en: {
@@ -177,18 +176,18 @@ const COPY = tr<CoachCopy>({
       ["Undo", "Mistakes are fine. Press Undo (or Cmd/Ctrl+Z) and the action comes back too.<br>Once you end your turn, though, new random results appear and you can't undo past them."],
       ["Hand over", "Tap the Medic and choose Hand over · Red strain to give both samples to the Researcher."],
       ["Develop a cure", "The Researcher now has 3 Red samples. Tap the Researcher and choose Cure · Red strain. The Cures panel at the top tracks progress; <b>all three cures wins the game</b>."],
-      ["An epidemic is coming", "Red cure developed! From now on a single treat clears all Red viruses, and none can land where the Medic stands.<br>Press End turn. This round brings an <b>epidemic</b>."],
+      ["Mutation and epidemic", "Red cure developed! From now on a single treat clears all Red viruses, and none can land where the Medic stands.<br>The other viruses will <b>mutate</b> in response, and this round brings an <b>epidemic</b> too. Press End turn."],
       ["Stations and flights", `${c(CAPITAL)} has a <b>research station</b>. Everyone except the Researcher must be at one to develop a cure. Build a station in your city for 3 AP (up to 3), and <b>fly</b> between stations for 1 AP.`, "Next"],
       ["More agents", "Besides the Medic and Researcher there are 6 more roles: Police lock down cities, the Epidemiologist forecasts infections, the Engineer sets up field labs… In a real game you pick 2 of the 8.<br><b>You lose</b> at 6 outbreaks, if a strain runs out, or if round 12 ends without all cures. Tap the ? at the top right for the rules any time.", "Finish tutorial"],
     ],
     notes: {
       named: ["Infected cities", `3 cities will be infected this round. They appear one at a time under This round at the top, get a pin on the map, and gain 1 virus of their colour.<br>First up is ${c(SEALWELL)}, which already has 3…`],
       outbreak: ["Outbreak!", "A city with 3 viruses of a strain that gets another one <b>breaks out</b>: every neighbour gains 1, and chains can follow. Lose at 6 outbreaks on the counter at the top."],
-      epidemic: ["Epidemic", "<b>Epidemic</b>: the city at the bottom of the deck takes 3 viruses at once. There are 4 epidemics a game; the calendar tracks how many have happened."],
+      epidemic: ["Epidemic", "<b>Epidemic</b>: the city at the bottom of the deck takes 3 viruses at once. There are 3 epidemics a game; the calendar tracks how many have happened."],
       intensify: ["Back on top", "Then the infected cities are shuffled back on top of the deck, so <b>recently infected cities get hit again soon</b>. Keeping track of them is how you read the risk."],
       guarded: ["The medic holds", `Red now has a cure, so no Red virus can land on ${c(ROUGE)} while the Medic is there.`],
+      mutation: ["Mutation", "Each cure you develop makes the remaining viruses fight back: at the start of the next infection phase, a random uncured strain <b>mutates</b>.<br>After the second cure, the last strain gains <b>two</b> mutations at once, so the endgame gets tougher. Mutations show in the Cures panel at the top."],
     },
-    mutation: ["Mutation", "Every epidemic also reveals 2 <b>mutation cards</b>. Give one to a strain that has no cure yet. Pick the combination that hurts you least."],
     ui: { step: (n, of) => `Tutorial ${n} / ${of}`, infection: "Infection phase", next: "Continue", choose: "Choose" },
   },
 });
@@ -209,7 +208,6 @@ export const NOTES: Note[] = [
   { match: (e) => e.t === "epidemic", anchor: (e) => (e.t === "epidemic" ? { city: e.city } : undefined), ...note("epidemic") },
   { match: (e) => e.t === "intensify", ...note("intensify") },
   { match: (e) => e.t === "guarded", anchor: (e) => (e.t === "guarded" ? { city: e.city } : undefined), ...note("guarded") },
+  { match: (e) => e.t === "mutation", focus: ".hud .cures", ...note("mutation") },
 ];
-
-export const MUTATION_NOTE = { title: COPY.mutation[0], text: COPY.mutation[1] };
 export const COACH_UI = COPY.ui;

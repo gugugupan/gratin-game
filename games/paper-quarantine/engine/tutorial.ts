@@ -1,7 +1,7 @@
 import { DEFAULT_CONFIG, State, type RoleId, type Scenario } from "./game.js";
 
 export const TUTORIAL_ROLES: [RoleId, RoleId] = ["medic", "researcher"];
-export const TUTORIAL_SEED = 1;
+export const TUTORIAL_SEED = 12;
 
 export const TUTORIAL_SCENARIO: Scenario = {
   pos: [0, 17],

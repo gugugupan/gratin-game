@@ -5,7 +5,6 @@ import { CITIES, EDGES, LINKS, STRAINS } from "./map.js";
 import { tutorialState } from "./tutorial.js";
 
 const chooser: Chooser = {
-  chooseMutation: () => ({ card: 0, strain: 0 }),
   chooseCancel: () => 0,
 };
 
@@ -177,10 +176,29 @@ test("breach punches through a lockdown once per round", () => {
   assert.equal(s.cube(1, 0), 1);
 });
 
-test("mutations may only target uncured strains", () => {
-  const s = blank();
-  s.cured[0] = 1;
-  assert.deepEqual(s.mutationTargets(), [1, 2]);
+test("each cure mutates an uncured strain at the next infection, the second cure twice", () => {
+  const s = blank(["researcher", "medic"]);
+  const mutationsIn = () => {
+    s.events = [];
+    s.beginInfection();
+    while (s.continueInfection());
+    return s.events.filter((e): e is Extract<typeof e, { t: "mutation" }> => e.t === "mutation");
+  };
+  s.samples[0] = 5;
+  s.apply({ t: "cure", r: 0, s: 0 });
+  assert.deepEqual(s.pendingMutations, [1]);
+  const first = mutationsIn();
+  assert.equal(first.length, 1);
+  assert.notEqual(first[0].strain, 0);
+  const other = first[0].strain === 1 ? 2 : 1;
+  s.ap[0] = 4;
+  s.samples[other] = 5;
+  s.apply({ t: "cure", r: 0, s: other });
+  assert.deepEqual(s.pendingMutations, [2]);
+  const second = mutationsIn();
+  assert.equal(second.length, 2);
+  assert.ok(second.every((e) => e.strain === first[0].strain));
+  assert.notEqual(second[0].m, second[1].m);
 });
 
 test("lockdown also voids infection draws on the city", () => {
@@ -255,23 +273,16 @@ test("stepwise infection pauses for the officer's cancel and skips that city", (
   assert.deepEqual(kinds.filter((k) => k === "named" || k === "cancelled" || k === "round"), ["named", "cancelled", "round"]);
 });
 
-test("epidemic offers a mutation choice limited to uncured strains", () => {
+test("epidemics intensify without mutating", () => {
   const s = new State({ ...DEFAULT_CONFIG, setup: [], epidemics: 1, rounds: 3 }, ["medic", "police"], 5);
   s.setup();
   s.epidemicRounds = [1];
-  s.cured[0] = 1;
   s.events = [];
   s.beginInfection();
-  const p = s.continueInfection();
-  assert.equal(p?.kind, "mutation");
-  if (p?.kind !== "mutation") return;
-  assert.deepEqual(p.targets, [1, 2]);
-  assert.throws(() => s.resolveMutation({ card: 0, strain: 0 }));
-  s.resolveMutation({ card: 0, strain: 2 });
   assert.equal(s.continueInfection(), null);
   const kinds = s.events.map((e) => e.t);
   assert.ok(kinds.indexOf("epidemic") < kinds.indexOf("intensify"));
-  assert.ok(kinds.includes("mutation"));
+  assert.ok(!kinds.includes("mutation"));
   assert.equal(s.epidemicsDone, 1);
 });
 
@@ -320,20 +331,11 @@ test("tutorial script plays out as the coach describes", () => {
   play([{ t: "treat", r: 0, s: 0 }, { t: "move", r: 1, to: 3 }, { t: "give", r: 0, s: 0 }, { t: "cure", r: 1, s: 0 }]);
   assert.equal(s.cured[0], 1);
   s.events = [];
-  s.beginInfection();
-  const pending = s.continueInfection();
-  assert.equal(pending?.kind, "mutation");
-  assert.deepEqual(pending.kind === "mutation" && pending.targets, [1, 2]);
-  for (const strain of [1, 2]) {
-    for (const card of [0, 1]) {
-      const t = s.clone(true);
-      t.resolveMutation({ card, strain });
-      while (t.continueInfection());
-      assert.equal(t.outbreaks, 1);
-      assert.equal(t.round, 3);
-    }
-  }
+  s.endRound(chooser);
+  assert.equal(s.outbreaks, 1);
+  assert.equal(s.round, 3);
   const types = s.events.map((e) => e.t);
-  assert.deepEqual(types.slice(0, 2), ["epidemic", "cube"]);
+  assert.deepEqual(types.slice(0, 3), ["mutation", "epidemic", "cube"]);
   assert.ok(types.includes("intensify"));
+  assert.ok(types.includes("guarded"));
 });

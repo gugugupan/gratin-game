@@ -31,7 +31,7 @@ interface Item {
   phase?: number;
 }
 
-export type BoardGroup = "cube" | "station" | "pin" | "calendar";
+export type BoardGroup = "cube" | "station" | "pin" | "calendar" | "task";
 
 interface Walker {
   standee: Standee;

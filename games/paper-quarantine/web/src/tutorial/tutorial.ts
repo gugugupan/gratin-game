@@ -1,11 +1,10 @@
-import type { Action, GameEvent, Pending } from "../../../engine/game.js";
+import type { Action, GameEvent } from "../../../engine/game.js";
 import type { Coach } from "../ui/coach";
-import { COACH_UI, MUTATION_NOTE, NOTES, PARTS, STEPS, type Note, type Step, type TutorialHost } from "./steps";
+import { COACH_UI, NOTES, PARTS, STEPS, type Note, type Step, type TutorialHost } from "./steps";
 
 export class Tutorial {
   private index = -1;
   private seen = new Set<Note>();
-  private mutationShown = false;
 
   constructor(private host: TutorialHost, private coach: Coach) {}
 
@@ -81,13 +80,6 @@ export class Tutorial {
     this.seen.add(note);
     note.reveal?.forEach((p) => this.host.reveal(p, true));
     await this.coach.show({ step: COACH_UI.infection, title: note.title, text: note.text, button: COACH_UI.next, focus: note.focus, anchor: note.anchor?.(e) });
-    this.coach.hide();
-  }
-
-  async onPending(p: Pending): Promise<void> {
-    if (p.kind !== "mutation" || this.mutationShown) return;
-    this.mutationShown = true;
-    await this.coach.show({ step: COACH_UI.infection, title: MUTATION_NOTE.title, text: MUTATION_NOTE.text, button: COACH_UI.choose });
     this.coach.hide();
   }
 

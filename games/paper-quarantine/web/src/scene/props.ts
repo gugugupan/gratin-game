@@ -1,17 +1,11 @@
 import * as THREE from "three";
 import type { Assets } from "../art/assets";
 import { SHEET_SCALE } from "../art/mapArt";
-import { FONT, tr } from "../i18n/locale";
+import { FONT } from "../i18n/locale";
 import { ID_TEXT } from "../ui/idcard";
 import { canvasTexture } from "../art/paper";
 import { ROLE_INFO, ROLE_ORDER } from "../data";
 import { rand } from "../util";
-
-const NOTE_LINES = tr({
-  zh: ["今日任务", "研制三种解药", "别让爆发到 6 次", "12 轮内完成！"],
-  ja: ["今日のミッション", "治療薬を 3 つ開発", "アウトブレイクは 6 回まで", "12 ラウンドで完了！"],
-  en: ["Today's tasks", "Develop 3 cures", "Keep outbreaks under 6", "Done in 12 rounds!"],
-});
 import { createVirusToken } from "./tokens";
 
 interface DeskLayout {
@@ -19,7 +13,6 @@ interface DeskLayout {
   mug: [number, number];
   stamp: [number, number, number];
   scissors: [number, number, number];
-  note: [number, number, number];
   dish: [number, number, number];
   pencil: [number, number, number];
   roll: [number, number];
@@ -30,12 +23,12 @@ interface DeskLayout {
 const LAYOUTS: Record<"landscape" | "portrait", DeskLayout> = {
   landscape: {
     rect: [-25, 24, -15.5, 15],
-    mug: [-21, -8], stamp: [-21.5, 2, 0.25], scissors: [17.5, 12.6, -0.7], note: [-10, -15.2, 0.12], dish: [19.5, -9, 0],
+    mug: [-21, -8], stamp: [-21.5, 2, 0.25], scissors: [17.5, 12.6, -0.7], dish: [19.5, -9, 0],
     pencil: [9, 14.8, 0.55], roll: [-12, 14.6], ring: [-17.6, -11.2], cards: [20.5, 4.6],
   },
   portrait: {
     rect: [-12.5, 12.5, -23.5, 21],
-    mug: [-8.2, -19.6], stamp: [-9.6, -14.2, 0.1], scissors: [1.6, 20.4, 0.5], note: [8.8, -19.4, -0.12], dish: [7.2, -14.8, 0],
+    mug: [-8.2, -19.6], stamp: [-9.6, -14.2, 0.1], scissors: [1.6, 20.4, 0.5], dish: [7.2, -14.8, 0],
     pencil: [-8.5, 17.8, 0.35], roll: [9.6, 17.2], ring: [-4.2, -22.2], cards: [0.5, 14.2],
   },
 };
@@ -54,7 +47,6 @@ export class DeskProps {
   private pencil = new THREE.Group();
   private roll = new THREE.Group();
   private dish = new THREE.Group();
-  private note: THREE.Mesh;
   private ring: THREE.Mesh;
   private cards: { mesh: THREE.Mesh; a: number; k: number }[] = [];
 
@@ -67,9 +59,8 @@ export class DeskProps {
     this.buildRoll();
     this.buildDish(assets);
     this.buildCards(assets, ready);
-    this.note = this.buildNote(ready);
     this.ring = this.buildRing();
-    this.group.add(this.mug, this.stamp, this.scissors, this.pencil, this.roll, this.dish, this.note, this.ring);
+    this.group.add(this.mug, this.stamp, this.scissors, this.pencil, this.roll, this.dish, this.ring);
   }
 
   layout(portrait: boolean): DeskLayout {
@@ -80,8 +71,6 @@ export class DeskProps {
     this.stamp.rotation.y = L.stamp[2];
     this.scissors.position.set(L.scissors[0], 0, L.scissors[1]);
     this.scissors.rotation.y = L.scissors[2];
-    this.note.position.set(L.note[0], 0.02, L.note[1]);
-    this.note.rotation.y = L.note[2];
     this.dish.position.set(L.dish[0], 0, L.dish[1]);
     this.dish.rotation.y = L.dish[2];
     this.pencil.position.set(L.pencil[0], 0.3, L.pencil[1]);
@@ -235,23 +224,6 @@ export class DeskProps {
       this.group.add(mesh);
       this.cards.push({ mesh, a, k });
     });
-  }
-
-  private buildNote(ready: Promise<unknown>): THREE.Mesh {
-    const tex = canvasTexture(400, 400, (g, w) => {
-      g.fillStyle = "#f2d974";
-      g.fillRect(0, 0, w, w);
-      g.fillStyle = "rgba(0,0,0,0.05)";
-      g.fillRect(0, 0, w, 40);
-      g.fillStyle = "#3a2c14";
-      NOTE_LINES.forEach((t, k) => {
-        g.font = `40px ${FONT.display}`;
-        const tw = g.measureText(t).width;
-        if (tw > w - 60) g.font = `${(40 * (w - 60)) / tw}px ${FONT.display}`;
-        g.fillText(t, 34, 100 + k * 72);
-      });
-    }, ready);
-    return shadowed(new THREE.Mesh(new THREE.PlaneGeometry(4.2, 4.2).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9 })));
   }
 
   private buildRing(): THREE.Mesh {
