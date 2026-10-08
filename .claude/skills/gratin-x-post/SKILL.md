@@ -36,7 +36,7 @@ Read `references/topics.md` and the log. Rules:
 - Rotate games; same game at most once per 2 days; alternate promo (with link reply) and everyday posts.
 - Saturday → add `#screenshotsaturday` to a visual post. Weekday 18:00–19:30 JST suits commute/phone angles; 20:00–22:00 suits sound-on video (rhythm game).
 - Paper Quarantine (紙上防疫) is Chinese-only — don't promote it to the Japanese timeline until games.json lists `ja` in its languages; tell the user instead.
-- Default is **one** post per run; "排一周 / a week" = 3–5 posts, each scheduled.
+- Default is **one** post per run; "排一周 / a week" = 3–5 posts, each scheduled. For a batch, show all posts (text, media, time) in one message; the user's OK then covers exactly those — fill, verify and schedule them one by one.
 
 ### 3. Write the post
 - Voice and hashtags: `references/brand.md`. Game facts: `references/games.md` (verify against code/games.json when in doubt).
@@ -52,9 +52,12 @@ Scripts live in `scripts/` (run `npm install` there once; uses the cached Playwr
 - Always look at the result (Read the PNG / a contact sheet of video frames) before using it. Save finals to `~/workspace/fde/gratin-game/marketing/`.
 
 ### 5. Fill the composer
-- Go to `https://x.com/home` and use the **inline** composer at the top (navigating to /compose/post opened a separate modal last time and the typed text was lost). Click the textbox, `type` the text, press Escape to close the hashtag suggestion popup.
-- Media: `find` "media file input" → `file_upload` with the absolute path (≤10 MB per call — videos from compose-video.py are ~7 MB).
-- Schedule: click the schedule icon (`ポストを予約`) → set hour/minute/AM-PM with `form_input` on the comboboxes → zoom-check the line 「…に送信されます」 → `確認する`. The submit button then reads 予約設定.
+- Go to `https://x.com/home` and use the **inline** composer at the top (navigating to /compose/post opened a separate modal and the typed text was lost).
+- **Upload media first**: `find` "media file input" → `file_upload` (absolute paths, up to 4 images or 1 video, ≤10 MB per call). Uploading after typing wiped the text twice.
+- Then click the textbox **by coordinate** (the old ref goes stale after the upload re-render), `type` the text, and screenshot — if the placeholder いまどうしてる？ is still there, click again and retype.
+- The hashtag suggestion popup swallows the next click: the first click on the schedule icon only closes it, so click the icon a second time (or press Escape first, but Escape has also discarded text once).
+- X cannot schedule a self-reply. For scheduled posts either drop the link (point to the profile link) or put it in the main post; a link reply has to be posted after the post goes live.
+- Schedule: click the schedule icon (`ポストを予約`) → take a screenshot (the dialog's comboboxes only show up in `find` after that) → set day/hour/minute/AM-PM with `form_input` → zoom-check the line 「…に送信されます」 → `確認する`. The submit button then reads 予約設定.
 - Screenshot the filled composer and ask the user to confirm. **Stop here until they say OK.**
 
 ### 6. After OK
