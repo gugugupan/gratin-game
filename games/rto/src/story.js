@@ -152,7 +152,7 @@ export const TALKS = {
       ['them', T('周三是孩子的游泳课，那天我还是得在家。其他日子都行。', "Wednesday is the kids' swim class, so I still need to be home that day. Any other day works.", '水曜は子どものプール教室だから在宅にさせて。ほかの日はOK。')],
       ['them', T('谢谢你先问我，而不是先排我。', 'Thanks for asking me first, instead of just scheduling me.', '先にシフトを組むんじゃなくて、聞いてくれてありがとう。')],
     ],
-    unlock: { before: T('周二到周四 不想来', 'Tue–Thu: not coming', '火〜木 行きたくない'), after: T('只有周三在家（弹性工时 10:00–15:00）', 'Home only on Wednesday (flex hours 10:00–15:00)', '水曜だけ在宅（時差出勤 10:00〜15:00）') },
+    unlock: { before: T('周一、周四 不想来', 'Mon, Thu: not coming', '月・木 行きたくない'), after: T('只有周三在家（弹性工时 10:00–15:00）', 'Home only on Wednesday (flex hours 10:00–15:00)', '水曜だけ在宅（時差出勤 10:00〜15:00）') },
   },
   wang: {
     lines: [
@@ -172,7 +172,7 @@ export const TALKS = {
       ] },
       ['them', T('行。但别连着两天，作息会崩。周一也放过我吧，周末刚发完版。', "Deal. But never two days in a row, or my sleep falls apart. And spare me Mondays, I ship on weekends.", 'わかった。でも2日連続はやめて、生活リズムが崩れる。月曜も勘弁して、週末にリリースしてるから。')],
     ],
-    unlock: { before: T('周一、周二、周五 不想来', 'Mon, Tue, Fri: not coming', '月・火・金 行きたくない'), after: T('周一在家 · 不连续两天出社（中午出社）', 'Home on Monday, never two days in a row (arrives at noon)', '月曜在宅・2日連続NG（昼出社）') },
+    unlock: { before: T('周一、周三 不想来', 'Mon, Wed: not coming', '月・水 行きたくない'), after: T('周一在家 · 不连续两天出社（中午出社）', 'Home on Monday, never two days in a row (arrives at noon)', '月曜在宅・2日連続NG（昼出社）') },
   },
   suzuki: {
     lines: [
@@ -191,7 +191,7 @@ export const TALKS = {
       ] },
       ['them', T('行，我会连着来两天。父母那边我安排一下。', "Okay. I'll come two days back-to-back. I'll sort things out with my parents.", 'わかった、2日連続で行く。親のほうは調整する。')],
     ],
-    unlock: { before: T('周一、周四、周五 不想来', 'Mon, Thu, Fri: not coming', '月・木・金 行きたくない'), after: T('出社日必须连在一起（出差住宿补贴）', 'Office days must be back-to-back (hotel allowance)', '出社日は連続（出張宿泊手当）') },
+    unlock: { before: T('周一、周二 不想来', 'Mon, Tue: not coming', '月・火 行きたくない'), after: T('出社日必须连在一起（出差住宿补贴）', 'Office days must be back-to-back (hotel allowance)', '出社日は連続（出張宿泊手当）') },
   },
   tanaka: {
     lines: [
@@ -200,18 +200,18 @@ export const TALKS = {
       ['them', T('销售部的事之后，我在办公室总觉得大家在看我。我什么都不会，问问题又怕被觉得没用。', "Since the Sales thing, I feel like everyone's watching me at the office. I don't know anything, and I'm scared asking questions makes me look useless.", '営業部のことがあってから、オフィスでずっと見られてる気がして。何もできないし、質問したら使えないと思われそうで。')],
       ['them', T('在家的话，至少可以偷偷 Google。', 'At home I can at least Google things quietly.', '家ならこっそりググれるので。')],
       { choice: [
-        { label: T('那你跟佐藤同一天来吧，有问题直接问他。他是你的导师。', 'Come in on the same days as Sato, then. Ask him anything. That\'s what a mentor is for.', '佐藤さんと同じ日に来よう。何でも聞けばいい。メンターなんだから。'), reply: [
+        { label: T('那每周有几天跟佐藤一起来吧，那几天有问题直接问他。他是你的导师。', 'Then share a few office days with Sato each week, and ask him anything on those days. That\'s what a mentor is for.', '毎週何日かは佐藤さんと一緒に来よう。その日は何でも聞けばいい。メンターなんだから。'), reply: [
           ['them', T('佐藤さん在的话……我应该敢问。', 'If Sato is there... I think I could ask.', '佐藤さんがいれば……聞けると思います。')],
         ] },
         { label: T('我给你做个「问题扭蛋机」，问一个问题出一颗糖？', 'I\'ll build you a question gacha machine. One question, one candy.', '「質問ガチャ」を作ろう。1回質問したら飴が1個出る。'), reply: [
           ['them', T('那我会胖 10 公斤的……', "I'd gain ten kilos...", '10キロ太っちゃいます……')],
           ['them', T('不过，要是有个人可以随便问，我应该会好很多。', 'But if there were someone I could just ask, that would help a lot.', 'でも、気軽に聞ける人がいたら、だいぶ違うと思います。')],
-          ['me', T('那就跟佐藤同一天来。他是你的导师。', "Then come in on Sato's days. He's your mentor.", 'じゃあ佐藤さんと同じ日に来よう。メンターだし。')],
+          ['me', T('那每周有几天跟佐藤一起来。他是你的导师。', "Then share a few office days with Sato each week. He's your mentor.", 'じゃあ毎週何日かは佐藤さんと一緒に来よう。メンターだし。')],
         ] },
       ] },
       ['them', T('佐藤さん说过，他当新人的时候也问过「git 是什么」。', 'Sato once told me that as a new grad, he asked "what is git?"', '佐藤さん、新人のころ「gitって何ですか」って聞いたって言ってました。')],
     ],
-    unlock: { before: T('周一、周二、周五 不想来', 'Mon, Tue, Fri: not coming', '月・火・金 行きたくない'), after: T('只在佐藤也出社的日子来', 'Comes in only on days Sato does', '佐藤さんがいる日だけ出社') },
+    unlock: { before: T('周四、周五 不想来', 'Thu, Fri: not coming', '木・金 行きたくない'), after: T('和佐藤固定有几天一起出社', 'Shares a set number of office days with Sato', '佐藤さんと決まった日数だけ一緒に出社') },
   },
   abe: {
     lines: [
@@ -231,7 +231,7 @@ export const TALKS = {
       ['me', T('那就一周只有一天和老王同时在，那天专门对接口。', 'So one day a week with Wang, and that day is for API work.', 'じゃあ王さんと一緒の日は週1日だけ。その日はAPIのすり合わせ。')],
       ['them', T('成交。再加一副降噪耳机。', 'Deal. Plus the headphones.', '決まり。ヘッドホンもね。')],
     ],
-    unlock: { before: T('周一、周五 不想来', 'Mon, Fri: not coming', '月・金 行きたくない'), after: T('和老王恰好 1 天同时出社', 'Exactly 1 office day together with Wang', '王さんと同じ日の出社はちょうど1日') },
+    unlock: { before: T('周四 不想来', 'Thu: not coming', '木 行きたくない'), after: T('和老王恰好 1 天同时出社', 'Exactly 1 office day together with Wang', '王さんと同じ日の出社はちょうど1日') },
   },
   sato: {
     lines: [
@@ -252,7 +252,7 @@ export const TALKS = {
       ] },
       ['them', T('谢谢。这是我这个月第一次觉得能喘口气。', 'Thank you. That\'s the first time this month I feel like I can breathe.', 'ありがとう。今月初めて息ができる気がする。')],
     ],
-    unlock: { before: T('周一、周五 不想来', 'Mon, Fri: not coming', '月・金 行きたくない'), after: T('周五在家（深度工作日）', 'Home on Friday (deep-work day)', '金曜在宅（集中作業日）') },
+    unlock: { before: T('周三 不想来', 'Wed: not coming', '水 行きたくない'), after: T('周五在家（深度工作日）', 'Home on Friday (deep-work day)', '金曜在宅（集中作業日）') },
   },
 };
 

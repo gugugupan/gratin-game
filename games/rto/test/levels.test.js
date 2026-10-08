@@ -8,6 +8,31 @@ test('every week has exactly one solution', () => {
   LEVELS.forEach((L, i) => assert.equal(solve(L, 2).length, 1, `week ${i + 1}`));
 });
 
+const SOLS = LEVELS.map(L => solve(L, 1)[0]);
+const rowKey = r => r.join('');
+
+test('no member repeats last week\'s schedule', () => {
+  for (let w = 1; w < LEVELS.length; w++) {
+    LEVELS[w].people.forEach((p, i) => assert.notEqual(rowKey(SOLS[w][i]), rowKey(SOLS[w - 1][i]), `${p.id} in week ${w + 1}`));
+  }
+});
+
+test('any two weeks share at most 21 of 30 cells', () => {
+  for (let a = 0; a < SOLS.length; a++) for (let b = a + 1; b < SOLS.length; b++) {
+    let same = 0;
+    SOLS[a].forEach((r, p) => r.forEach((v, d) => { if (v === SOLS[b][p][d]) same++; }));
+    assert.ok(same <= 21, `weeks ${a + 1} and ${b + 1}: ${same}/30`);
+  }
+});
+
+test('nobody is solved by their blocked days alone', () => {
+  LEVELS.forEach((L, w) => L.people.forEach(p => {
+    const blocked = new Set([...(p.locks || []), ...p.rules.filter(r => r.t === 'fixed' && r.v === 0).map(r => r.d)]);
+    if (!blocked.size) return;
+    assert.ok(5 - blocked.size > (p.quota ?? L.quota), `${p.id} in week ${w + 1}`);
+  }));
+});
+
 test('one story beat per week plus the prologue', () => {
   assert.equal(BEATS.length, LEVELS.length + 1);
 });
