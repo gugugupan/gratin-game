@@ -1,0 +1,17 @@
+{
+  "name": "paper-quarantine-v2",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --config web/vite.config.ts",
+    "check": "tsc -p web/tsconfig.json",
+    "test": "tsc -p tsconfig.json && node --test dist/engine/game.test.js",
+    "sim": "tsc -p tsconfig.json && node dist/sim/run.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.4"
+  }
+}
