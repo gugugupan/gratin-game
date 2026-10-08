@@ -842,19 +842,23 @@ function finaleStage(isLive) {
     <div class="transcript" id="tsc">${shown.map(([w, t], i) => lineHtml(w, t, null, i === shown.length - 1, true)).join('')}</div>
     <div class="next-row"><button class="btn primary" id="adv">${esc(last ? u('takePhoto') : u('cont'))}</button></div>`;
 }
+const AUTO_LINE_MS = 4000;
 function bindStage(key, isLive) {
   $('stage').querySelectorAll('.choices button').forEach(b => b.onclick = () => { S.tk.pick = +b.dataset.i; render(); });
   if ($('photo')) $('photo').onclick = () => { S.view.app = 'end'; save(); render(true); };
   if (!isLive) return;
+  const autoNext = () => { S.timer = setTimeout(() => { if (S.tk?.key === key) { S.tk.pos++; render(); } }, AUTO_LINE_MS); };
   if (key === 'finale') {
     $('adv').onclick = () => {
       if (S.tk.pos < FINALE.length - 1) { S.tk.pos++; render(); return; }
       feedItem('finale').read = true; S.ended = true; S.view.app = 'end'; S.flashed = false; S.tk = null; save(); render(true);
     };
+    if (S.tk.pos < FINALE.length - 1) autoNext();
     return;
   }
   const who = idOf(key), seq = talkSeq(TALKS[who].lines, S.tk.pick);
   if ($('adv')) $('adv').onclick = () => { if (S.tk.pos >= seq.length - 1) S.tk.end = true; else S.tk.pos++; render(); };
+  if ($('adv') && S.tk.pos < seq.length - 1) autoNext();
   if ($('leave')) $('leave').onclick = () => { S.picks[who] = S.tk.pick ?? 0; S.tk = null; markRead(key); render(); };
 }
 
