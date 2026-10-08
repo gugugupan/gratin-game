@@ -23,6 +23,14 @@ const STRINGS = {
   language: { ja: "言語", zh: "语言", en: "Language" },
   feedbackSubject: { ja: "【グラタンゲーム】ご意見・ご感想", zh: "【グラタンゲーム】意见反馈", en: "[Gratin Game] Feedback" },
   backHome: { ja: "ゲーム一覧へもどる", zh: "返回游戏列表", en: "Back to all games" },
+  ideaTitle: { ja: "ゲームのアイデア、募集中！", zh: "征集游戏点子！", en: "Got a game idea?" },
+  ideaBody: {
+    ja: "「こんなゲームがあったらいいな」というアイデアはありませんか？ゲームにしてみたい企画があれば、お気軽にご連絡ください！",
+    zh: "你有没有「要是有这样的游戏就好了」的想法？如果有想做成游戏的点子，欢迎随时联系我们！",
+    en: "Ever thought \"I wish there were a game like this\"? If you have an idea you'd love to see turned into a game, feel free to get in touch!",
+  },
+  ideaButton: { ja: "アイデアを送る", zh: "发送点子", en: "Send us your idea" },
+  ideaSubject: { ja: "【グラタンゲーム】ゲームのアイデア", zh: "【グラタンゲーム】游戏点子", en: "[Gratin Game] Game idea" },
   contact: { ja: "お問い合わせ：", zh: "联系我们：", en: "Contact: " },
   footer: { ja: "すべて手づくり、ブラウザですぐ遊べます。", zh: "全部手工制作，打开浏览器就能玩。", en: "Handmade, and playable right in your browser." },
 } satisfies Record<string, Localized>;

@@ -72,6 +72,7 @@ function render(): void {
   $(".count").textContent = t(locale, "count", { n: games.length });
   $<HTMLAnchorElement>(".mail-address").href = mailto(locale);
   $(".mail-address").textContent = FEEDBACK_EMAIL;
+  $<HTMLAnchorElement>(".idea-mail").href = mailto(locale, "ideaSubject");
   $(".privacy-link").textContent = PRIVACY[locale].linkLabel;
 }
 
