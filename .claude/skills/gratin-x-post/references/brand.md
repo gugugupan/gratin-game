@@ -27,5 +27,5 @@ Typical set: work tag + one player tag + `#ブラウザゲーム` (or `#個人�
 - Replies/likes/follows on other accounts on the user's behalf.
 
 ## Links
-- Portal https://gratin-game.com · Lemon Punch https://lemon-punch.gratin-game.com · Clickton https://clickton.gratin-game.com · Gridlands https://gratin-game.com/gridlands/ · Paper Quarantine https://gratin-game.com/paper-quarantine/
+- Portal https://gratin-game.com · Lemon Punch https://lemon-punch.gratin-game.com · Clickton https://clickton.gratin-game.com · Gridlands https://gratin-game.com/gridlands/ · Paper Quarantine https://gratin-game.com/paper-quarantine/ · Return to Office https://gratin-game.com/rto/
 - Feedback mail feedback@gratin-game.com

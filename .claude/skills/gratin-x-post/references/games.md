@@ -34,6 +34,11 @@ Source of truth for the list: `src/games.json` (title/tagline/url/languages). Re
 - Added 2026-10-07 by another session. Move two agents at once, stop three viruses on a paper map, finish three vaccines within 12 rounds.
 - **Chinese only** (`languages: ["zh"]`) — do not promote on the Japanese timeline yet; ask the user.
 
+## 🏢 Return to Office — `games/rto` (ja/zh/en)
+- Puzzle + story: new manager schedules 6 members (小林/佐藤/田中/王さん/阿部/鈴木) over 10 weeks; quota grows 1 → 2 → 3 days a week (鈴木 2 as an exception); every week has exactly one answer (`npm test -w games/rto`). Story via Mail/Chat/1on1 (2 replies: まじめに / 突拍子もなく), ending = All Hands group photo (spoiler — don't post it before players have had time).
+- Media: `http://localhost:5250/?cover=meet&lang=ja` (1on1 with 阿部, choice buttons) or `?cover=grid&lang=ja` (week 2 schedule); headless Chrome `--force-device-scale-factor=2 --window-size=1216,760`. Launch config `rto`.
+- Hashtags: no work tag yet; used `#ブラウザゲーム #個人開発`.
+
 ## Portal
 - グラタンゲーム itself: logo story (cheese strand), loader animation `brand/loader.svg`, games added over time — good for dev-story posts.
 - **Logo clip**: `node scripts/record-logo.mjs <out.mp4>` → 5.4 s silent 1080² loop (wordmark + loader.svg). Existing: `marketing/logo-cheese.mp4` (scheduled 2026-10-08 12:30).

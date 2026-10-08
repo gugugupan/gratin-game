@@ -10,6 +10,10 @@ Check `marketing/post-log.md` for what has been used. Add new ideas at the botto
 - P5 🍋 Lemon Punch: 8 characters, unlocked by playing (character lineup image)
 - P6 🔲 Gridlands chapter 5 railways (train overlay in a solved level)
 
+- P7 🏢 Return to Office launch (1on1 + schedule screenshots) — **used 2026-10-08 22:45**
+- P8 🏢 Return to Office: "can you solve week 2?" schedule screenshot, answer in reply
+- P9 🏢 Return to Office: the 突拍子もない reply options (ハンモック, 長野支社, 電子ピアノ…) as a light post
+
 ## Everyday (no link, light)
 - E1 Logo: the 「ー」 is stretching cheese 🧀 (wordmark or loader.svg clip) — **scheduled 2026-10-08 12:30**
 - E2 🧱 Clickton nights: 4-minute day, lit windows, headlights — **used 2026-10-07 18:00**
