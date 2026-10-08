@@ -247,6 +247,8 @@ function openItem(key) {
   if (k === 'email') S.view.mail = key;
   if (k === 'chat') S.view.chat = key;
   if (k === 'talk' || k === 'finale') S.view.meet = key;
+  if (S.collapsed) S.collapsed[APP_OF[k]] = false;
+  S.scrollCur = MOBILE.matches;
   S.tk = null; closePop(); save(); render(true);
 }
 function unreadOf(app) {
@@ -703,6 +705,28 @@ function showTut() {
 }
 function endTut() { S.tut = true; S.tutForce = false; save(); $('tut').innerHTML = ''; }
 
+/* ---------- list/detail layout ---------- */
+const MOBILE = matchMedia('(max-width: 720px)');
+MOBILE.addEventListener('change', () => { if (S.open) render(); });
+function accordion(app, kind, bodySel) {
+  if (!MOBILE.matches) return;
+  const cur = app.querySelector('.li.cur'), body = app.querySelector(bodySel);
+  if (!cur || !body) return;
+  app.querySelector('.split').classList.add('acc');
+  if (S.collapsed?.[kind]) { body.remove(); cur.classList.remove('cur'); cur.setAttribute('aria-expanded', 'false'); return; }
+  body.classList.add('acc-body');
+  if (S.scrollCur) body.classList.add('enter');
+  cur.setAttribute('aria-expanded', 'true');
+  cur.after(body);
+  if (S.scrollCur) { S.scrollCur = false; cur.scrollIntoView({ block: 'start', behavior: reduceMotion() ? 'auto' : 'smooth' }); }
+}
+function pickItem(kind, key) {
+  S.collapsed = S.collapsed || {};
+  if (MOBILE.matches && S.view[kind] === key && !S.collapsed[kind]) S.collapsed[kind] = true;
+  else { S.collapsed[kind] = false; S.scrollCur = MOBILE.matches; }
+  S.view[kind] = key;
+}
+
 /* ---------- Mail ---------- */
 const shortDate = s => S.lang === 'en' ? s.split(', ')[1].split(' ·')[0] : s.split(' ')[0];
 function renderMail() {
@@ -726,7 +750,8 @@ function renderMail() {
         <p style="color:var(--ink-3)">— ${esc(nm(m.from))}${role ? ` (${esc(role)})` : ''}, ${esc(tr(COMPANY))}</p>
       </article>
     </div>`;
-  app.querySelectorAll('.li').forEach(b => b.onclick = () => { S.view.mail = b.dataset.k; save(); render(); });
+  accordion(app, 'mail', '.read');
+  app.querySelectorAll('.li').forEach(b => b.onclick = () => { pickItem('mail', b.dataset.k); save(); render(); });
   if (!feedItem(cur).read) { markRead(cur); $('rail').querySelector('[data-app="mail"] .badge')?.remove(); }
 }
 
@@ -755,7 +780,8 @@ function renderChat() {
       </div>
     </div>`;
   const box = $('msgs'); box.scrollTop = box.scrollHeight;
-  app.querySelectorAll('.li').forEach(b => b.onclick = () => { S.view.chat = b.dataset.k; save(); render(); });
+  accordion(app, 'chat', '.convo');
+  app.querySelectorAll('.li').forEach(b => b.onclick = () => { pickItem('chat', b.dataset.k); save(); render(); });
   if (S.anim) {
     if (S.anim.n >= c.msgs.length) { S.anim = null; markRead(cur); render(); }
     else S.timer = setTimeout(() => { if (S.anim) S.anim.n++; render(); }, S.anim.n === 0 ? 400 : 950);
@@ -785,7 +811,8 @@ function renderMeet() {
   const isLive = !feedItem(cur).read;
   const stage = cur === 'finale' ? finaleStage(isLive) : talkStage(idOf(cur), cur, isLive);
   app.innerHTML = `<div class="split"><div class="list">${list}</div><div class="stage" id="stage">${stage}</div></div>`;
-  app.querySelectorAll('.li').forEach(b => b.onclick = () => { S.view.meet = b.dataset.k; S.tk = null; save(); render(); });
+  accordion(app, 'meet', '.stage');
+  app.querySelectorAll('.li').forEach(b => b.onclick = () => { if (b.dataset.k !== S.view.meet) S.tk = null; pickItem('meet', b.dataset.k); save(); render(); });
   const t = $('tsc'); if (t) t.scrollTop = t.scrollHeight;
   bindStage(cur, isLive);
 }

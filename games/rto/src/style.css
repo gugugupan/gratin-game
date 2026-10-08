@@ -137,6 +137,16 @@ button:focus-visible, select:focus-visible, a:focus-visible, [tabindex]:focus-vi
 .ud { width: 8px; height: 8px; border-radius: 50%; background: var(--bad); flex: none; }
 .livetag { font-size: 10px; font-weight: 700; color: #fff; background: #ef4444; border-radius: 4px; padding: 0 5px; }
 @media (max-width: 720px) {
+  .split.acc .list { max-height: none; overflow: visible; border-bottom: 0; }
+  .split.acc .li[aria-expanded="true"] { box-shadow: inset 3px 0 0 var(--acc); }
+  .acc-body { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--win); color: var(--ink); }
+  .acc-body.enter { animation: accin .2s ease both; }
+  .chat .acc-body { border-color: rgba(255,255,255,.12); }
+  .acc-body.stage { background: var(--meet); color: #eef0f4; }
+  .acc-body .msgs { min-height: 0; max-height: 60vh; }
+  .acc-body .chan-title b { display: none; }
+  .acc-body .transcript { max-height: 55vh; }
+  @keyframes accin { from { opacity: 0; transform: translateY(-4px); } }
   .split { grid-template-columns: 1fr; min-height: 0; }
   .list { max-height: 190px; border-right: 0; border-bottom: 1px solid var(--line); }
 }
