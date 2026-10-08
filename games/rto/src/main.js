@@ -31,7 +31,6 @@ const UI = {
   target: T('目标', 'target', '目標'),
   undo: T('撤销', 'Undo', '元に戻す'),
   clear: T('清空', 'Clear', 'クリア'),
-  hint: T('提示', 'Hint', 'ヒント'),
   submit: T('提交排班', 'Submit schedule', 'シフトを提出'),
   submitted: T('已提交', 'SUBMITTED', '提出済'),
   requests: T('成员申请', 'Requests', '申請'),
@@ -462,7 +461,6 @@ function renderGrid() {
   if (n == null || n > maxWeek || n < 0) n = S.view.week = maxWeek;
   const lv = LEVELS[n], g = gridOf(n), P = lv.people.length;
   const editable = n === S.lv && !S.done.has(n);
-  if (!lv._sol) lv._sol = solve(lv, 1)[0];
   const dates = weekDates(n);
   const on = g.flat().filter(v => v === 1).length;
   const need = lv.people.reduce((s, p) => s + (p.quota ?? lv.quota), 0);
@@ -524,7 +522,6 @@ function renderGrid() {
         <div class="tools">
           ${editable ? `<button class="btn" id="undo" ${S.hist.length ? '' : 'disabled'}>${esc(u('undo'))}</button>
           <button class="btn" id="clear">${esc(u('clear'))}</button>
-          <button class="btn" id="hint">${esc(u('hint'))}</button>
           <span class="sp"></span>
           <button class="btn primary ${solved ? 'ready' : ''}" id="submit" ${solved ? '' : 'disabled'}>${esc(u('submit'))}</button>` : `<span class="sp"></span><span class="subbed">${esc(u('submitted'))}</span>`}
         </div>
@@ -571,7 +568,6 @@ function bindGrid(n, lv, editable) {
   if (editable) {
     $('undo').onclick = () => { if (!S.hist.length) return; S.grids[n] = JSON.parse(S.hist.pop()); save(); render(); };
     $('clear').onclick = () => { S.hist.push(JSON.stringify(gridOf(n))); S.grids[n] = null; gridOf(n); save(); render(); };
-    $('hint').onclick = () => hint(n, lv);
     $('submit').onclick = () => submit(n);
   }
   const reqs = $('reqs');
@@ -622,22 +618,6 @@ function togglePop(anchor, n) {
   showPop(anchor, n, true);
 }
 function closePop() { $('pop').innerHTML = ''; }
-
-function hint(n, lv) {
-  const g = gridOf(n), sol = lv._sol;
-  document.querySelectorAll('.cell.hint,.cell.wrong').forEach(e => e.classList.remove('hint', 'wrong'));
-  for (let p = 0; p < g.length; p++) for (let d = 0; d < 5; d++) {
-    if (g[p][d] !== null && g[p][d] !== sol[p][d]) { document.querySelector(`.cell[data-p="${p}"][data-d="${d}"]`).classList.add('wrong'); return; }
-  }
-  const empty = [];
-  for (let p = 0; p < g.length; p++) for (let d = 0; d < 5; d++) if (g[p][d] === null) empty.push([p, d]);
-  if (!empty.length) return;
-  const cs = allConstraints(lv);
-  const forced = empty.filter(([p, d]) => { const t = g.map(r => r.slice()); t[p][d] = 1 - sol[p][d]; return cs.some(c => evalC(c, t) === 'bad'); });
-  const [p, d] = (forced.length ? forced : empty)[0];
-  setCell(n, p, d, sol[p][d]);
-  document.querySelector(`.cell[data-p="${p}"][data-d="${d}"]`)?.classList.add('hint');
-}
 
 function submit(n) {
   S.grids[n] = asHome(gridOf(n));
