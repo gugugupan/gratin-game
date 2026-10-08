@@ -169,7 +169,7 @@ function renderDesktop() {
   const returning = S.feed.length > 1 || S.done.size > 0;
   const pending = S.feed.filter(f => !f.read).length + unreadOf('grid');
   $('desktop').innerHTML = `
-    <div class="menubar"><a class="home" href="../">← ${S.lang === 'en' ? 'Gratin Game' : 'グラタンゲーム'}</a><b>${esc(tr(COMPANY))}</b><span class="sp"></span><span class="clock">${esc(clock)}</span>
+    <div class="menubar"><b>${esc(tr(COMPANY))}</b><span class="sp"></span><span class="clock">${esc(clock)}</span>
       <button class="menu-btn" id="deskmenu" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="${esc(u('menu'))}">${ICON.menu}</button></div>
     <button class="notif" id="notif">${av('hr')}<div class="nh"><b>${esc(u('notifFrom'))}</b><span>${esc(u('notifNow'))}</span></div><p>${esc(u(returning ? 'notifBack' : 'notifNew'))}</p></button>
     <div class="deskmain">
@@ -945,11 +945,19 @@ if (import.meta.env.DEV) {
   Object.assign(window, { rto: { get S() { return S; }, freshState, render, advance, openItem, openApp, jumpTo, launch, gridOf, asHome, feedItem, kindOf, idOf, showPop, closePop, solve, LEVELS, CHATS } });
 }
 
-if (new URLSearchParams(location.search).has('cover')) {
+const COVER = new URLSearchParams(location.search).get('cover');
+if (COVER !== null) {
   S.tut = true; S.open = true;
   $('desktop').hidden = true; $('screen').hidden = false;
-  jumpTo(1);
-  const g = gridOf(1), sol = solve(LEVELS[1], 1)[0];
-  [[0, 0], [1, 2], [2, 2], [3, 2], [4, 3], [5, 1], [5, 2]].forEach(([p, d]) => { g[p][d] = sol[p][d]; });
+  if (COVER === 'meet') {
+    jumpTo(7);
+    feedItem('talk:abe').read = false;
+    S.view = { ...S.view, app: 'meet', meet: 'talk:abe' };
+    S.tk = { key: 'talk:abe', pos: 4, pick: null, end: false };
+  } else {
+    jumpTo(1);
+    const g = gridOf(1), sol = solve(LEVELS[1], 1)[0];
+    [[0, 0], [1, 2], [2, 2], [3, 2], [4, 3], [5, 1], [5, 2]].forEach(([p, d]) => { g[p][d] = sol[p][d]; });
+  }
   render();
 }
