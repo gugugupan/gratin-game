@@ -14,6 +14,16 @@ const UI = {
   notifNew: T('欢迎加入一个公司！你是开发二组的新任经理，手下有 6 名成员。打开「工作台」，开始今天的工作吧。', 'Welcome to A Company! You are the new manager of Dev Team 2, with six people on your team. Open Workspace to start your day.', 'ある会社へようこそ！あなたは開発2課の新任マネージャー、メンバーは6人です。「ワークスペース」を開いて、今日の仕事を始めましょう。'),
   notifBack: T('欢迎回来，经理。团队还在等你，打开「工作台」继续今天的工作。', 'Welcome back, manager. Your team is waiting. Open Workspace to pick up where you left off.', 'おかえりなさい、マネージャー。チームが待っています。「ワークスペース」を開いて仕事の続きを。'),
   apps: { grid: T('排班', 'WeekGrid', 'シフト'), mail: T('邮件', 'Mail', 'メール'), chat: T('聊天', 'Chat', 'チャット'), meet: T('会议', 'Meet', '会議') },
+  menu: T('菜单', 'Menu', 'メニュー'),
+  language: T('语言', 'Language', '言語'),
+  toDesktop: T('回到桌面', 'Back to desktop', 'デスクトップに戻る'),
+  replayTut: T('再看一次操作教学', 'Replay the tutorial', '操作チュートリアルをもう一度'),
+  restart: T('从头开始', 'Start over', '最初からやり直す'),
+  restartConfirm: T('进度会全部清空，确定吗？', 'This erases all progress. Are you sure?', '進行状況はすべて消えます。よろしいですか？'),
+  restartYes: T('清空并重新开始', 'Erase and start over', '消してやり直す'),
+  cancel: T('取消', 'Cancel', 'キャンセル'),
+  portal: T('グラタンゲーム 首页', 'Gratin Game home', 'グラタンゲーム トップ'),
+  privacy: T('隐私政策', 'Privacy policy', 'プライバシーポリシー'),
   ending: T('结局', 'Ending', 'エンディング'),
   week: T('第 {n} 周', 'Week {n}', '第{n}週'),
   team: T('开发二组', 'Dev Team 2', '開発2課'),
@@ -96,6 +106,7 @@ const ICON = {
   meet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg>',
   on: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 21V5l7-2v18M12 8h7v13M3 21h18"/></svg>',
   off: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 11l8-6 8 6v9H4z"/><path d="M10 20v-5h4v5"/></svg>',
+  menu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
   link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 14a4 4 0 0 0 6 0l3-3a4 4 0 0 0-6-6l-1 1M14 10a4 4 0 0 0-6 0l-3 3a4 4 0 0 0 6 6l1-1"/></svg>',
 };
 
@@ -159,14 +170,14 @@ function renderDesktop() {
   const pending = S.feed.filter(f => !f.read).length + unreadOf('grid');
   $('desktop').innerHTML = `
     <div class="menubar"><a class="home" href="../">← ${S.lang === 'en' ? 'Gratin Game' : 'グラタンゲーム'}</a><b>${esc(tr(COMPANY))}</b><span class="sp"></span><span class="clock">${esc(clock)}</span>
-      <div class="langs" id="dlangs" role="group" aria-label="Language"><button data-l="zh" aria-pressed="${S.lang === 'zh'}">中</button><button data-l="en" aria-pressed="${S.lang === 'en'}">EN</button><button data-l="ja" aria-pressed="${S.lang === 'ja'}">日</button></div></div>
+      <button class="menu-btn" id="deskmenu" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="${esc(u('menu'))}">${ICON.menu}</button></div>
     <button class="notif" id="notif">${av('hr')}<div class="nh"><b>${esc(u('notifFrom'))}</b><span>${esc(u('notifNow'))}</span></div><p>${esc(u(returning ? 'notifBack' : 'notifNew'))}</p></button>
     <div class="deskmain">
       <button class="appicon" id="appicon"><div class="tile2">${ICON.grid}${pending ? `<i class="badge">${pending}</i>` : ''}</div><span>${esc(u('appName'))}</span></button>
       <div class="wordmark" aria-hidden="true">${esc(u('title'))}</div>
     </div>`;
   $('appicon').onclick = $('notif').onclick = launch;
-  $('dlangs').onclick = e => { const b = e.target.closest('button'); if (!b) return; setLang(b.dataset.l); renderDesktop(); };
+  $('deskmenu').onclick = e => toggleMenu(e.currentTarget, 'desk');
 }
 function launch() {
   if (S.open) return;
@@ -259,22 +270,76 @@ function render(fresh) {
   document.documentElement.lang = S.lang === 'zh' ? 'zh-CN' : S.lang;
   document.title = u('title');
   $('brand').innerHTML = `${esc(u('title'))}<small>${esc(tr(COMPANY))}</small>`;
-  $('langs').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.l === S.lang));
+  $('appmenu').innerHTML = ICON.menu;
+  $('appmenu').setAttribute('aria-label', u('menu'));
   const cur = S.view.app;
   $('rail').innerHTML = ['grid', 'mail', 'chat', 'meet'].map(a => {
     const n = unreadOf(a);
     return `<button class="appi ${a === cur ? 'on' : ''}" data-app="${a}" style="--acc:var(--${a === 'meet' ? 'mail' : a})" aria-label="${esc(tr(UI.apps[a]))}${n ? ` (${n})` : ''}">${ICON[a]}<span>${esc(tr(UI.apps[a]))}</span>${n ? `<i class="badge">${a === 'grid' ? '!' : n}</i>` : ''}</button>`;
   }).join('');
-  renderChapters();
   if (fresh) window.scrollTo({ top: 0 });
   ({ grid: renderGrid, mail: renderMail, chat: renderChat, meet: renderMeet, end: renderEnd })[cur]();
   if (cur === 'grid') maybeTutorial();
 }
-function renderChapters() {
-  const opts = LEVELS.map((L, n) => `<option value="${n}">${esc(u('week', { n: n + 1 }))} · ${esc(tr(L.title))}${S.done.has(n) ? ' ✓' : ''}</option>`);
-  opts.push(`<option value="10">${esc(u('ending'))}</option>`);
-  $('chapter').innerHTML = opts.join('');
-  $('chapter').value = String(S.ended || S.done.size >= 10 ? 10 : Math.max(0, S.lv));
+/* ---------- menu ---------- */
+const LANG_LABEL = { ja: '日本語', zh: '中文', en: 'English' };
+const canReplayTut = () => S.open && S.lv >= 0 && !S.done.has(S.lv);
+function menuBody(ctx) {
+  const item = (act, label) => `<button class="mitem" type="button" role="menuitem" data-act="${act}">${esc(label)}</button>`;
+  const dev = import.meta.env.DEV
+    ? `<hr><label class="msec" for="devjump">DEV</label><select id="devjump"><option value="">—</option>${LEVELS.map((L, n) => `<option value="${n}">${esc(u('week', { n: n + 1 }))}</option>`).join('')}<option value="10">${esc(u('ending'))}</option></select>`
+    : '';
+  return `<div class="msec">${esc(u('language'))}</div>
+    <div class="mlangs">${['ja', 'zh', 'en'].map(l => `<button type="button" data-l="${l}" aria-pressed="${S.lang === l}">${LANG_LABEL[l]}</button>`).join('')}</div>
+    <hr>
+    ${ctx === 'app' ? item('desk', u('toDesktop')) : ''}
+    ${ctx === 'app' && canReplayTut() ? item('tut', u('replayTut')) : ''}
+    ${S.menuConfirm
+      ? `<div class="mconfirm"><p>${esc(u('restartConfirm'))}</p><div><button type="button" class="danger" data-act="restart-yes">${esc(u('restartYes'))}</button><button type="button" data-act="restart-no">${esc(u('cancel'))}</button></div></div>`
+      : item('restart', u('restart'))}
+    <hr>
+    <a class="mitem" role="menuitem" href="../">${esc(u('portal'))}</a>
+    <a class="mitem" role="menuitem" href="../privacy/">${esc(u('privacy'))}</a>${dev}`;
+}
+function openMenu(btn, ctx) {
+  S.menuCtx = ctx; S.menuBtn = btn;
+  $('menu-layer').innerHTML = `<div class="menu ${ctx}" id="menu" role="menu">${menuBody(ctx)}</div>`;
+  btn.setAttribute('aria-expanded', 'true');
+  const r = btn.getBoundingClientRect(), m = $('menu');
+  m.style.top = r.bottom + 6 + 'px';
+  m.style.left = Math.max(12, Math.min(r.right - m.offsetWidth, innerWidth - m.offsetWidth - 12)) + 'px';
+  m.onclick = onMenuClick;
+  const j = $('devjump');
+  if (j) j.onchange = () => { if (j.value === '') return; closeMenu(); launchIfNeeded(); jumpTo(+j.value); };
+}
+function closeMenu() {
+  if (!S.menuBtn) return;
+  S.menuBtn.setAttribute('aria-expanded', 'false');
+  $('menu-layer').innerHTML = ''; S.menuBtn = null; S.menuConfirm = false;
+}
+function toggleMenu(btn, ctx) { if (S.menuBtn === btn) closeMenu(); else { closeMenu(); openMenu(btn, ctx); } }
+function onMenuClick(e) {
+  const l = e.target.closest('[data-l]');
+  if (l) {
+    setLang(l.dataset.l); closePop();
+    const btn = S.menuBtn, ctx = S.menuCtx;
+    if (S.open) render(); else renderDesktop();
+    if ($('tut').innerHTML) showTut();
+    closeMenu(); openMenu(ctx === 'desk' ? $('deskmenu') : btn, ctx);
+    return;
+  }
+  const act = e.target.closest('[data-act]')?.dataset.act;
+  if (!act) return;
+  if (act === 'restart') { S.menuConfirm = true; $('menu').innerHTML = menuBody(S.menuCtx); return; }
+  if (act === 'restart-no') { S.menuConfirm = false; $('menu').innerHTML = menuBody(S.menuCtx); return; }
+  closeMenu();
+  if (act === 'desk') { closePop(); $('tut').innerHTML = ''; $('toasts').innerHTML = ''; showDesktop(); }
+  if (act === 'tut') { S.tut = false; S.tutForce = true; $('tut').innerHTML = ''; openApp('grid'); }
+  if (act === 'restart-yes') resetGame();
+}
+function launchIfNeeded() {
+  if (S.open) return;
+  S.open = true; $('desktop').hidden = true; $('screen').hidden = false;
 }
 function jumpTo(n) {
   const tut = S.tut;
@@ -604,7 +669,8 @@ function weekFlip(n, done) {
 
 /* ---------- tutorial ---------- */
 function maybeTutorial() {
-  if (S.tut || S.lv !== 0 || S.done.has(0) || S.view.week !== 0 || $('tut').innerHTML) return;
+  if (S.tut || $('tut').innerHTML) return;
+  if (S.tutForce ? S.view.week !== S.lv || S.done.has(S.lv) : S.lv !== 0 || S.done.has(0) || S.view.week !== 0) return;
   S.tutStep = 0;
   setTimeout(showTut, 350);
 }
@@ -635,7 +701,7 @@ function showTut() {
     if ($('tutskip')) $('tutskip').onclick = endTut;
   }, reduceMotion() ? 0 : 350);
 }
-function endTut() { S.tut = true; save(); $('tut').innerHTML = ''; }
+function endTut() { S.tut = true; S.tutForce = false; save(); $('tut').innerHTML = ''; }
 
 /* ---------- Mail ---------- */
 const shortDate = s => S.lang === 'en' ? s.split(', ')[1].split(' ·')[0] : s.split(' ')[0];
@@ -814,17 +880,21 @@ function renderEnd() {
     try { await navigator.clipboard.writeText(full); b.textContent = u('copied'); b.classList.add('copied'); }
     catch { const sp = document.createElement('span'); sp.textContent = full; b.after(sp); const r = document.createRange(); r.selectNodeContents(sp); getSelection().removeAllRanges(); getSelection().addRange(r); }
   };
-  $('again').onclick = () => {
-    const tut = S.tut;
-    Object.assign(S, freshState(S.lang), { tut });
-    S.done = new Set(); S.flashed = false; S.tk = null; S.anim = null;
-    $('overlay').innerHTML = ''; save(); showDesktop();
-  };
+  $('again').onclick = resetGame;
+}
+function resetGame() {
+  const tut = S.tut;
+  Object.assign(S, freshState(S.lang), { tut });
+  S.done = new Set(); S.flashed = false; S.tk = null; S.anim = null;
+  $('overlay').innerHTML = ''; $('toasts').innerHTML = ''; $('tut').innerHTML = ''; closePop();
+  save(); showDesktop();
 }
 
 function bindGlobal() {
-  $('langs').onclick = e => { const b = e.target.closest('button'); if (!b) return; setLang(b.dataset.l); closePop(); render(); if ($('tut').innerHTML) showTut(); };
-  $('chapter').onchange = e => jumpTo(+e.target.value);
+  $('appmenu').onclick = e => toggleMenu(e.currentTarget, 'app');
+  document.addEventListener('pointerdown', e => { if (S.menuBtn && !e.target.closest('.menu, .menu-btn')) closeMenu(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && S.menuBtn) { const b = S.menuBtn; closeMenu(); b.focus(); } });
+  addEventListener('resize', closeMenu);
   $('brand').onclick = () => { closePop(); $('tut').innerHTML = ''; $('toasts').innerHTML = ''; showDesktop(); };
   $('rail').onclick = e => { const b = e.target.closest('.appi'); if (b) openApp(b.dataset.app); };
   document.addEventListener('pointerdown', e => { if ($('popbox')?.classList.contains('touch') && !e.target.closest('.pop') && !e.target.closest('.who, .day')) closePop(); });

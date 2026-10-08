@@ -63,10 +63,23 @@ button:focus-visible, select:focus-visible, a:focus-visible, [tabindex]:focus-vi
 .brand { font-family: var(--f-display); font-size: 18px; letter-spacing: .02em; cursor: pointer; }
 .brand small { font-family: var(--f-ui); font-size: 11px; color: var(--ink-3); margin-left: 8px; letter-spacing: .04em; }
 .top .sp { flex: 1; }
-.chapter { border: 1px solid var(--line-strong); background: var(--win); border-radius: 7px; padding: 4px 8px; font-size: 12.5px; max-width: 220px; }
-.langs { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 7px; overflow: hidden; }
-.langs button { border: 0; background: transparent; padding: 4px 10px; font-size: 12px; cursor: pointer; }
-.langs button[aria-pressed="true"] { background: var(--ink); color: var(--win); }
+.menu-btn { width: 34px; height: 30px; display: grid; place-items: center; border: 1px solid var(--line-strong); background: var(--win); border-radius: 8px; cursor: pointer; padding: 0; color: var(--ink); }
+.menu-btn:hover, .menu-btn[aria-expanded="true"] { border-color: var(--ink-3); background: var(--chrome); }
+.menu-btn svg { width: 18px; height: 18px; }
+.menu { position: fixed; z-index: 60; width: 240px; max-width: calc(100vw - 24px); background: var(--win); color: var(--ink); border: 1px solid var(--line-strong); border-radius: 12px; box-shadow: var(--shadow); padding: 6px; display: grid; gap: 2px; animation: popin .12s ease both; }
+.menu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 2px; }
+.menu .msec { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); padding: 6px 8px 2px; font-weight: 600; }
+.menu .mlangs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 2px 4px 4px; }
+.menu .mlangs button { border: 1px solid var(--line-strong); background: var(--win); border-radius: 7px; padding: 5px 0; font-size: 12.5px; cursor: pointer; }
+.menu .mlangs button[aria-pressed="true"] { background: var(--ink); color: var(--win); border-color: var(--ink); }
+.menu .mitem { display: block; text-align: left; border: 0; background: transparent; border-radius: 7px; padding: 7px 8px; font-size: 13.5px; color: var(--ink); text-decoration: none; cursor: pointer; }
+.menu .mitem:hover, .menu .mitem:focus-visible { background: var(--chrome); }
+.menu .mconfirm { padding: 6px 8px; display: grid; gap: 8px; font-size: 13px; }
+.menu .mconfirm p { margin: 0; color: var(--bad); }
+.menu .mconfirm div { display: flex; gap: 6px; }
+.menu .mconfirm button { flex: 1; border: 1px solid var(--line-strong); background: var(--win); border-radius: 7px; padding: 5px 6px; font-size: 12.5px; cursor: pointer; }
+.menu .mconfirm .danger { background: var(--bad); border-color: var(--bad); color: #fff; }
+.menu select { margin: 0 8px 6px; font-size: 12.5px; }
 
 .shell { display: grid; grid-template-columns: 76px minmax(0, 1fr); min-height: 640px; }
 .rail { background: var(--chrome); border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; padding: 12px 8px; }
@@ -83,9 +96,8 @@ button:focus-visible, select:focus-visible, a:focus-visible, [tabindex]:focus-vi
   body { padding: 0 0 24px; }
   .screen { border-radius: 0; border-left: 0; border-right: 0; }
   .shell { grid-template-columns: 1fr; grid-template-rows: auto 1fr; min-height: 0; }
-  .brand { font-size: 15px; flex: 1 0 100%; }
+  .brand { font-size: 15px; flex: 1; }
   .top { gap: 8px; padding: 8px 12px; }
-  .chapter { flex: 1; max-width: none; min-width: 0; }
   .top .sp { display: none; }
   .rail { align-items: center; flex-direction: row; border-right: 0; border-bottom: 1px solid var(--line); padding: 6px 10px; justify-content: space-around; }
   .appi { grid-auto-flow: column; gap: 6px; padding: 6px 10px; }
@@ -398,9 +410,8 @@ button:focus-visible, select:focus-visible, a:focus-visible, [tabindex]:focus-vi
 .menubar b { font-family: var(--f-display); font-weight: 400; font-size: 14px; letter-spacing: .03em; }
 .menubar .sp { flex: 1; }
 .menubar .clock { font-family: var(--f-mono); font-size: 12px; opacity: .9; }
-.menubar .langs { border-color: rgba(255,255,255,.3); }
-.menubar .langs button { color: #f2f6f4; }
-.menubar .langs button[aria-pressed="true"] { background: #f2f6f4; color: #14382f; }
+.menubar .menu-btn { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.28); color: #f2f6f4; height: 26px; }
+.menubar .menu-btn:hover, .menubar .menu-btn[aria-expanded="true"] { background: rgba(255,255,255,.2); }
 .deskmain { position: relative; flex: 1; display: grid; place-items: center; padding: 40px 16px 80px; }
 .wordmark { position: absolute; left: 0; right: 0; bottom: 26px; text-align: center; font-family: var(--f-display); font-size: clamp(28px, 6vw, 64px); opacity: .1; letter-spacing: .04em; pointer-events: none; }
 .appicon { display: grid; justify-items: center; gap: 10px; background: transparent; border: 0; color: #fff; cursor: pointer; padding: 12px; border-radius: 18px; }
