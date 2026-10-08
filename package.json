@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "build:all": "npm run build && npm run build --workspaces && node scripts/assemble.mjs",
-    "test:all": "npm test && npm run verify-levels -w games/gridlands/web && npm test -w games/paper-quarantine",
+    "test:all": "npm test && npm run verify-levels -w games/gridlands/web && npm test -w games/paper-quarantine && npm test -w games/rto",
     "preview": "vite preview",
     "test": "vitest run",
     "brand": "node scripts/build-brand.mjs"
@@ -27,6 +27,7 @@
   },
   "workspaces": [
     "games/gridlands/web",
-    "games/paper-quarantine"
+    "games/paper-quarantine",
+    "games/rto"
   ]
 }

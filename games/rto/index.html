@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Return to Office</title>
+  <meta name="description" content="出社したくない6人を、週3出社させろ。シフト表パズルと、1on1で心をほどくストーリー。">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Return to Office">
+  <meta property="og:description" content="出社したくない6人を、週3出社させろ。シフト表パズルと、1on1で心をほどくストーリー。">
+  <meta property="og:url" content="%VITE_SITE_URL%rto/">
+  <meta property="og:image" content="%VITE_SITE_URL%covers/rto.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="../favicon.ico">
+  <script>
+    var gaId = "%VITE_GA_ID%";
+    if (gaId && location.href.indexOf("%VITE_SITE_URL%") === 0) {
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () { dataLayer.push(arguments); };
+      gtag("js", new Date());
+      gtag("config", gaId);
+      var ga = document.createElement("script");
+      ga.async = true;
+      ga.src = "https://www.googletagmanager.com/gtag/js?id=" + gaId;
+      document.head.appendChild(ga);
+    }
+  </script>
+</head>
+<body>
+<div class="desktop" id="desktop"></div>
+<div class="screen" id="screen" hidden>
+  <div class="top">
+    <div class="brand" id="brand"></div>
+    <div class="sp"></div>
+    <select class="chapter" id="chapter" aria-label="Chapter"></select>
+    <div class="langs" id="langs" role="group" aria-label="Language">
+      <button data-l="zh">中</button><button data-l="en">EN</button><button data-l="ja">日</button>
+    </div>
+  </div>
+  <div class="shell">
+    <nav class="rail" id="rail" aria-label="Apps"></nav>
+    <main class="app" id="app"></main>
+  </div>
+</div>
+<div id="overlay"></div>
+<div id="toasts"></div>
+<div id="tut"></div>
+<div id="pop"></div>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

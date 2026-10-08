@@ -101,5 +101,31 @@
     ],
     "status": "live",
     "added": "2026-10-07"
+  },
+  {
+    "id": "rto",
+    "title": {
+      "ja": "Return to Office",
+      "zh": "Return to Office",
+      "en": "Return to Office"
+    },
+    "tagline": {
+      "ja": "出社したくない6人を、週3出社させろ。シフト表パズルと、1on1で心をほどくストーリー。",
+      "zh": "让 6 个不想回办公室的人每周出社 3 天。排班推理解谜，加上一场场 1:1 谈心。",
+      "en": "Get six remote-loving engineers back to the office three days a week: a scheduling logic puzzle, plus 1:1s that untangle why they won't come in."
+    },
+    "url": "https://gratin-game.com/rto/",
+    "cover": "covers/rto.jpg",
+    "input": [
+      "mouse",
+      "touch"
+    ],
+    "languages": [
+      "ja",
+      "zh",
+      "en"
+    ],
+    "status": "live",
+    "added": "2026-10-08"
   }
 ]

@@ -1,0 +1,22 @@
+{
+  "name": "rto",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "node --test test/levels.test.js"
+  },
+  "dependencies": {
+    "@fontsource/dela-gothic-one": "^5.3.0",
+    "@fontsource/ibm-plex-mono": "^5.2.7",
+    "@fontsource/ibm-plex-sans": "^5.2.8",
+    "@fontsource/noto-sans-jp": "^5.3.0",
+    "@fontsource/noto-sans-sc": "^5.3.0",
+    "@fontsource/zcool-qingke-huangyou": "^5.2.6"
+  },
+  "devDependencies": {
+    "vite": "^8.3.2"
+  }
+}
