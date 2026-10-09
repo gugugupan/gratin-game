@@ -1,7 +1,7 @@
 import './style.css';
 import { solve, evalC, allConstraints, resolve } from './engine.js';
 import { T, ORDER, CAST, LEVELS, withNeeds } from './levels.js';
-import { COMPANY, EMAILS, CHATS, TALKS, FINALE, BEATS, MOOD_LINES } from './story.js';
+import { COMPANY, EMAILS, CHATS, TALKS, FINALE, BEATS, MOOD_LINES, MOOD_OPEN } from './story.js';
 import { loadLocale, saveLocale } from './locale.js';
 import { loadFonts } from './fonts.js';
 
@@ -260,7 +260,10 @@ function chatOf(id) {
   return {
     name: T(`第 ${n + 1} 周的大家`, `Week ${n + 1}, the team`, `第${n + 1}週のみんな`),
     channel: '#dev-2',
-    msgs: ORDER.map(p => [p, MOOD_LINES[p][res ? res.faces[p] : 'happy']]),
+    msgs: [['me', MOOD_OPEN], ...ORDER.flatMap(p => {
+      const face = res ? res.faces[p] : 'happy', [first, second] = MOOD_LINES[p][face];
+      return face === 'happy' && p !== ORDER[(n + 2) % ORDER.length] ? [[p, first]] : [[p, first], [p, second]];
+    })],
   };
 }
 function deliver(key) {
