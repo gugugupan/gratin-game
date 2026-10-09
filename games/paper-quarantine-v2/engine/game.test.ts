@@ -9,9 +9,9 @@ function blank(roles: V2State["roles"] = ["medic", "police"], cfg: Partial<V2Con
   return s;
 }
 
-test("a city at level 2 sends one carrier that lands a round later", () => {
+test("a city at level 3 sends one carrier that lands a round later", () => {
   const s = blank();
-  s.level[4 * 3 + 0] = 2;
+  s.level[4 * 3 + 0] = 3;
   s.endRound();
   assert.equal(s.carriers.length, 1);
   const k = s.carriers[0];
@@ -25,7 +25,7 @@ test("a city at level 2 sends one carrier that lands a round later", () => {
 
 test("a checkpoint intercepts the carrier, yields a sample and calms the target", () => {
   const s = blank();
-  s.level[4 * 3 + 0] = 2;
+  s.level[4 * 3 + 0] = 3;
   s.endRound();
   const k = s.carriers[0];
   s.level[4 * 3 + 0] = 0;
@@ -47,7 +47,7 @@ test("lockdown stops carriers in and out but raises panic every round", () => {
   s.endRound();
   assert.equal(s.carriers.filter((k) => k.from === 4).length, 0);
   assert.equal(s.panic[4], V2_CONFIG.panic.locked);
-  s.level[1 * 3 + 0] = 2;
+  s.level[1 * 3 + 0] = 3;
   for (let i = 0; i < 3; i++) s.endRound();
   assert.equal(s.lv(4, 0), 3);
   assert.ok(s.stats.blocked + s.carriers.filter((k) => k.to === 4).length > 0 || s.panic[4] >= 75);
@@ -65,7 +65,7 @@ test("police lockdown builds panic at half speed", () => {
 test("an outbreak sends a carrier down every link, departing next round", () => {
   const s = blank();
   s.level[2 * 3 + 0] = 3;
-  s.level[4 * 3 + 0] = 2;
+  s.level[4 * 3 + 0] = 3;
   s.carriers = [];
   s.endRound();
   const towardSealwell = s.carriers.find((k) => k.from === 4 && k.to === 2);

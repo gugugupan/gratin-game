@@ -30,6 +30,14 @@ jobs:
           VITE_GA_ID: G-8J5VSLTX1B
           VITE_WEB3FORMS_KEY: ${{ vars.VITE_WEB3FORMS_KEY }}
           VITE_BUILD_SHA: ${{ github.sha }}
+      - name: Build Paper Quarantine v2 preview (optional, never blocks the site)
+        continue-on-error: true
+        run: |
+          npm ci --prefix games/paper-quarantine-v2
+          npm test --prefix games/paper-quarantine-v2
+          npm run build --prefix games/paper-quarantine-v2
+          rm -rf dist/paper-quarantine-v2
+          cp -R games/paper-quarantine-v2/dist-web dist/paper-quarantine-v2
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}

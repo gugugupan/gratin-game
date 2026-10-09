@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>纸上防疫 v2（原型）</title>
+  <meta name="robots" content="noindex, nofollow">
+  <style>
+    .loading {
+      position: fixed; inset: 0; z-index: 50;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+      background: #2c5a4c; color: #f3ead8;
+      font-family: var(--font-body, sans-serif);
+      transition: opacity .45s ease;
+    }
+    .loading.done { opacity: 0; pointer-events: none; }
+    .loading-title { margin: 0; font-family: var(--font-display, serif); font-weight: 400; font-size: 40px; letter-spacing: .16em; }
+    .loading-track { width: 200px; height: 8px; border-radius: 99px; background: rgba(243, 234, 216, .2); overflow: hidden; }
+    #loading-bar { width: 0; height: 100%; background: #f5b935; transition: width .2s ease; }
+    #loading-text { margin: 0; font-size: 13px; letter-spacing: .08em; color: rgba(243, 234, 216, .75); }
+    .loading.failed #loading-text { color: #ffb4a2; }
+    @media (prefers-reduced-motion: reduce) { .loading { transition: none; } }
+  </style>
+</head>
+<body class="in-menu">
+  <div class="loading" id="loading" role="status" aria-live="polite">
+    <img class="loader" src="loader.svg" width="180" height="120" alt="">
+    <h1 class="loading-title" data-i18n="gameName"></h1>
+    <div class="loading-track"><div id="loading-bar"></div></div>
+    <p id="loading-text"></p>
+  </div>
+  <canvas id="stage" data-i18n-aria="stageLabel"></canvas>
+
+  <div class="hud">
+    <div class="top">
+      <div class="paper ap tape">
+        <span class="label" data-i18n="ap"></span>
+        <div class="punches" id="ap-punches" aria-live="polite"></div>
+      </div>
+      <div class="paper track tape" style="--tape-tilt: -6deg">
+        <span class="label" data-i18n="outbreaks"></span>
+        <div class="slots" id="outbreak-slots"></div>
+      </div>
+      <div class="paper rounds-left tape" id="rounds-left" hidden style="--tape-tilt: 4deg"><b></b></div>
+      <div class="paper cures tape">
+        <span class="label" data-i18n="cures"></span>
+        <div class="vials" id="cures"></div>
+      </div>
+      <div class="paper drawn tape" style="--tape-tilt: 5deg">
+        <span class="label" data-i18n="lastInfected"></span>
+        <div class="stubs" id="stubs"></div>
+      </div>
+      <button class="sticker help" id="help" type="button" data-i18n-aria="rules">?</button>
+      <button class="sticker" id="back-menu" type="button" data-i18n="menu"></button>
+    </div>
+    <div class="side" id="team-cards"></div>
+  </div>
+  <div class="act-menu" id="act-menu" role="menu" data-i18n-aria="chooseAction"></div>
+  <div class="city-card paper" id="city-card" hidden aria-live="polite"></div>
+  <div class="turn-ctrl" id="turn-ctrl">
+    <button class="sticker undo" id="undo" type="button" disabled data-i18n="undo"></button>
+    <button class="stamp-btn" id="end-turn" type="button" data-i18n="endTurn"></button>
+    <button class="sticker fast" id="fast" type="button" hidden data-i18n="fast"></button>
+  </div>
+  <div class="target-hint" id="target-hint" hidden>
+    <span id="target-text"></span>
+    <button class="text-btn dark" id="target-cancel" type="button" data-i18n="cancel"></button>
+  </div>
+  <div class="dialog" id="dialog" hidden>
+    <div class="dialog-card paper" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+      <h2 id="dialog-title"></h2>
+      <div class="dialog-body" id="dialog-body"></div>
+      <div class="dialog-actions" id="dialog-actions"></div>
+    </div>
+  </div>
+  <div class="news-pop paper" id="news-pop" hidden role="tooltip"></div>
+  <div class="toast" id="toast" role="status"></div>
+  <div class="epi-card" id="epi-card" aria-live="polite">
+    <img src="art/icons/epidemic.webp" alt="">
+    <div class="epi-text"><b data-i18n="epidemicBang"></b><span id="epi-detail"></span></div>
+  </div>
+
+  <div class="draft" id="draft" hidden>
+    <div class="draft-head">
+      <h2 data-i18n="draftTitle"></h2>
+      <p data-i18n="draftLead"></p>
+    </div>
+    <div class="draft-cards" id="draft-cards"></div>
+    <div class="draft-actions">
+      <button class="text-btn" id="draft-back" type="button" data-i18n="back"></button>
+      <span class="draft-count" id="draft-count"></span>
+      <button class="stamp-btn" id="draft-go" type="button" disabled data-i18n="draftGo"></button>
+    </div>
+  </div>
+  <div class="menu" id="menu">
+    <button class="index-card" id="start-game" type="button"><span class="stamp-text" data-i18n="startGame"></span><small data-i18n="startGameNote"></small></button>
+    <button class="index-card" id="continue-game" type="button" disabled><span class="stamp-text" data-i18n="continue"></span><small id="continue-note"></small></button>
+    <button class="index-card" id="open-rules" type="button"><span class="stamp-text" data-i18n="rules"></span><small data-i18n="rulesNote"></small></button>
+  </div>
+  <div class="report" id="report" hidden>
+    <article class="report-card paper" role="dialog" aria-modal="true" data-i18n-aria="report"></article>
+  </div>
+  <div class="rules" id="rules" hidden>
+    <article class="rules-card paper" role="dialog" aria-modal="true" aria-labelledby="rules-title">
+      <header>
+        <h2 id="rules-title" data-i18n="rulesTitle"></h2>
+        <button class="sticker" type="button" data-close data-i18n="close"></button>
+      </header>
+      <div class="rules-body"></div>
+    </article>
+  </div>
+  <div class="hint" data-i18n="hint"></div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

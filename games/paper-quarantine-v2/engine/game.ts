@@ -65,7 +65,7 @@ export const V2_CONFIG: V2Config = {
   engineerMaxCheckpoints: 3,
   capacity: { rail: 3, road: 2, sea: 1 },
   travel: { rail: 1, road: 1, sea: 2 },
-  spawn: [0, 0, 1, 2],
+  spawn: [0, 0, 0, 1],
   panic: { infect: 10, outbreak: 30, outbreakNeighbour: 15, locked: 25, policeLocked: 12, treat: 10, intercepted: 15, clean: 10, cure: 40, rumor: 15 },
   riotAt: 100,
   riotRecover: 60,
@@ -73,8 +73,8 @@ export const V2_CONFIG: V2Config = {
   supplyRounds: 2,
   officerUses: 2,
   cureMutations: [1, 2],
-  samplePerLevel: false,
-  lockRange: 0,
+  samplePerLevel: true,
+  lockRange: 1,
   news: NEWS_DECK,
 };
 
