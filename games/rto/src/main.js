@@ -336,7 +336,7 @@ const canReplayTut = () => S.open && S.lv >= 0 && !S.done.has(S.lv);
 function menuBody(ctx) {
   const item = (act, label) => `<button class="mitem" type="button" role="menuitem" data-act="${act}">${esc(label)}</button>`;
   const dev = import.meta.env.DEV
-    ? `<hr><label class="msec" for="devjump">DEV</label><select id="devjump"><option value="">—</option>${LEVELS.map((L, n) => `<option value="${n}">${esc(u('week', { n: n + 1 }))}</option>`).join('')}<option value="${LEVELS.length}">${esc(u('ending'))}</option></select>`
+    ? `<hr><label class="msec" for="devjump">DEV</label><select id="devjump"><option value="">—</option>${LEVELS.map((L, n) => `<option value="${n}">${esc(u('week', { n: n + 1 }))}</option>`).join('')}<option value="${LEVELS.length}">${esc(u('ending'))}</option></select>${ctx === 'app' && S.lv >= 0 && !S.done.has(S.lv) ? item('solve', '填入正确答案') : ''}`
     : '';
   return `<div class="msec">${esc(u('language'))}</div>
     <div class="mlangs">${['ja', 'zh', 'en'].map(l => `<button type="button" data-l="${l}" aria-pressed="${S.lang === l}">${LANG_LABEL[l]}</button>`).join('')}</div>
@@ -385,6 +385,11 @@ function onMenuClick(e) {
   if (act === 'desk') { closePop(); $('tut').innerHTML = ''; $('toasts').innerHTML = ''; showDesktop(); }
   if (act === 'tut') { S.tut = false; S.tutForce = true; $('tut').innerHTML = ''; openApp('grid'); }
   if (act === 'restart-yes') resetGame();
+  if (act === 'solve') {
+    const g = gridOf(S.lv);
+    solve(withNeeds(LEVELS[S.lv]), 1)[0].forEach((r, p) => r.forEach((v, d) => { g[p][d] = v; }));
+    S.hist = []; S.view.week = S.lv; save(); openApp('grid');
+  }
 }
 function launchIfNeeded() {
   if (S.open) return;
