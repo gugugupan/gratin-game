@@ -33,7 +33,7 @@ export const LEVELS = [
   {
     quota: 1,
     title: T('一周一次', 'Once a Week', '週1回'),
-    intro: T('新办公室开放了。这周每人来一次。大家按自己方便的日子交了申请，但和公司的安排有些冲突，调整一下再提交。', 'The new office is open. Everyone comes in once this week. They sent in the days that suit them, but some clash with company plans. Adjust before you submit.', '新オフィスがオープン。今週は全員1回。みんな都合のいい日を申請したが、会社の予定とぶつかるところがある。調整してから提出しよう。'),
+    intro: T('新办公室开放的第一周。', 'First week in the new office.', '新オフィス最初の週。'),
     people: {
       kobayashi: { wishes: [0] },
       sato: { wishes: [1] },
@@ -47,7 +47,7 @@ export const LEVELS = [
   {
     quota: 2,
     title: T('没人想来', 'Nobody Wants to Come', '誰も来たくない'),
-    intro: Z('出勤率目标 40%：每人 2 天。大家都交了「想哪天来」的申请，但申请只考虑了自己。'),
+    intro: Z('新出勤政策的第一周。'),
     people: {
       kobayashi: { wishes: [2, 3], need: [{ t: 'fixed', d: 2, v: 0 }], clue: 'kobayashi', needText: Z('周三必须在家（下午要接孩子）') },
       sato: { wishes: [0, 2], need: [{ t: 'fixed', d: 0, v: 0 }], needText: Z('周一在家（陪父亲去医院复健）') },
@@ -66,7 +66,7 @@ export const LEVELS = [
   {
     quota: 2,
     title: T('抽查', 'Spot Checks', '抜き打ちチェック'),
-    intro: Z('CFO 开始抽查出勤。申请照样各说各的。'),
+    intro: Z('销售部空出了一排工位。'),
     people: {
       kobayashi: { wishes: [2, 3], need: [{ t: 'fixed', d: 2, v: 0 }], clue: 'kobayashi', needText: Z('周三必须在家（下午要接孩子）') },
       sato: { wishes: [0, 3], need: [{ t: 'fixed', d: 0, v: 0 }], needText: Z('周一在家（陪父亲去医院复健）') },
