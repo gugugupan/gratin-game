@@ -876,7 +876,7 @@ function talkSeq(lines, picks = [], ask = null) {
     } else if (l.ask) {
       if (ask == null) { seq.push({ ask: l.ask }); return seq; }
       const o = l.ask.options[ask];
-      seq.push(['me', o.text], ...(o.ok ? l.ask.right : l.ask.wrong));
+      seq.push(...(o.ok ? l.ask.right : l.ask.wrong));
     } else seq.push(l);
   }
   return seq;
@@ -961,7 +961,7 @@ function finaleStage(isLive) {
     <div class="transcript" id="tsc">${shown.map(([w, t], i) => lineHtml(w, t, null, i === shown.length - 1, true)).join('')}</div>
     <div class="next-row"><button class="btn primary" id="adv">${esc(last ? u('takePhoto') : u('cont'))}</button></div>`;
 }
-const AUTO_LINE_MS = 4000;
+const AUTO_LINE_MS = CHAT_MSG_MS;
 function bindStage(key, isLive) {
   $('stage').querySelectorAll('.choices button[data-i]').forEach(b => b.onclick = () => { S.tk.picks.push(+b.dataset.i); render(); });
   $('stage').querySelectorAll('.choices button[data-a]').forEach(b => b.onclick = () => {
