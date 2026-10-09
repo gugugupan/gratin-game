@@ -30,10 +30,11 @@ const UI = {
   attend: T('出勤率', 'Attendance', '出社率'),
   target: T('目标', 'target', '目標'),
   undo: T('撤销', 'Undo', '元に戻す'),
-  clear: T('清空', 'Clear', 'クリア'),
+  clear: T('按申请重置', 'Reset to requests', '申請どおりに戻す'),
   submit: T('提交排班', 'Submit schedule', 'シフトを提出'),
   submitted: T('已提交', 'SUBMITTED', '提出済'),
-  requests: T('成员申请', 'Requests', '申請'),
+  requests: T('要求', 'Requirements', '条件'),
+  wishSay: T('「我想{d}来」', '"I\'d like to come in on {d}"', '「{d}に来たいです」'),
   met: T('已满足', 'met', '達成'),
   hq: T('HQ 规定', 'HQ policy', 'HQ規定'),
   office: T('办公室', 'Office', 'オフィス'),
@@ -113,11 +114,11 @@ const UI = {
   skipTut: T('跳过', 'Skip', 'スキップ'),
   done: T('开始排班', 'Start', 'はじめる'),
   tut: [
-    T('点一下格子安排「出社」，再点一下标成「在宅」，第三下清空。右键或长按直接标在宅。没排出社的格子提交时都算在宅，标出来只是方便你推理。', 'Click a cell to put someone in the office. Click again to mark remote, a third time to clear. Right-click or long-press marks remote directly. Unassigned cells count as remote when you submit; marking them just helps you think.', 'マスをクリックで「出社」、もう一度で「在宅」、3回目でクリア。右クリック／長押しで直接「在宅」。空いたマスは提出時に在宅扱い。印は推理用のメモです。'),
-    T('把鼠标移到成员上（手机上点一下），可以看到他的全部需求，✓ 表示全部满足，✕ 表示有冲突。星期几也一样，带橙色标记的日子有特殊安排。', 'Hover a member (tap on phones) to see everything they need: ✓ means all met, ✕ means a conflict. Day headers work the same way; orange-marked days have special arrangements.', 'メンバーにカーソルを合わせる（スマホはタップ）と条件が見えます。✓は全部達成、✕は矛盾あり。曜日も同じで、オレンジの印がある日は特別な条件があります。'),
-    T('这里是所有申请。满足后变绿，鼠标移上去会高亮相关的格子。', 'All requests live here. They turn green when met; hover one to highlight the cells it touches.', 'すべての申請はここ。達成すると緑に。カーソルを合わせると関係するマスが光ります。'),
-    T('出勤率目标在这里。每列底部是当天人数和上限。', 'Here is the attendance target. Column footers show headcount and limits for each day.', '出社率の目標はここ。列の下はその日の人数と上限です。'),
-    T('全部满足后提交排班。每周只有一个正确答案，靠推理就能找到。', 'When everything is met, submit. Every week has exactly one answer, and logic alone gets you there.', 'すべて達成したら提出。答えは毎週1つだけ、推理だけでたどり着けます。'),
+    T('排班表已经按大家的申请预先填好了。点一下格子切换「出社」和「在宅」，第三下清空。申请只考虑了他们自己，照单全收不一定是好事。', 'The schedule is pre-filled with everyone\'s requests. Click a cell to switch between office and remote; a third click clears it. Requests only think of the person who made them, so taking them all as-is is not always wise.', 'シフト表はみんなの申請で仮入力済み。マスをクリックで出社と在宅を切り替え、3回目でクリア。申請は本人の都合だけ。全部そのまま通すのが正解とは限らない。'),
+    T('鼠标移到成员上（手机上点一下），能看到他的申请、工作安排，以及你已经掌握的真实需求。真实需求要在 1:1 里才听得出来。', 'Hover a member (tap on phones) to see their request, work commitments and any real need you have uncovered. Real needs only come out in 1:1s.', 'メンバーにカーソルを合わせる（スマホはタップ）と、申請・業務予定・判明した本当の希望が見られる。本当の希望は1on1でしか分からない。'),
+    T('这里是必须遵守的要求。工位上限和工作安排不满足就不能提交；CFO 视察日人数不够也能提交，但算出勤率不达标。', 'These are the requirements. Desk limits and work commitments must be met to submit. A CFO visit day short of people can still be submitted, but counts as missing attendance.', 'ここは守るべき条件。席の上限と業務予定を満たさないと提出できない。CFO視察日の人数不足は提出できるが、出社率未達になる。'),
+    T('出勤率目标在这里。累计 3 周不达标，你就会被开除。', 'Here is the attendance target. Miss it in 3 weeks and you are out.', '出社率の目標はここ。3週未達でクビになる。'),
+    T('提交后会看到每个人的反应：满足了真实需求就是😊。大家的心情会一直累积下去。', 'After you submit you see how each person took it: meeting their real need earns a 😊. Moods carry over from week to week.', '提出すると全員の反応が見える。本当の希望を満たせば😊。気分は週をまたいで積み重なる。'),
   ],
 };
 const DAY = { zh: ['周一', '周二', '周三', '周四', '周五'], en: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], ja: ['月', '火', '水', '木', '金'] };
@@ -435,11 +436,11 @@ function ruleText(c, lv) {
 }
 
 /* ---------- level logic ---------- */
+const prefill = lv => lv.people.map(p => [0, 1, 2, 3, 4].map(d => (p.wishes || []).includes(d) ? 1 : null));
 function gridOf(n) {
   const lv = LEVELS[n];
   let g = S.grids[n];
-  if (!g || g.length !== lv.people.length) g = S.grids[n] = lv.people.map(() => Array(5).fill(null));
-  lv.people.forEach((p, i) => (p.locks || []).forEach(d => { g[i][d] = 0; }));
+  if (!g || g.length !== lv.people.length) g = S.grids[n] = prefill(lv);
   return g;
 }
 const lockedAt = (lv, p, d) => (lv.people[p].locks || []).includes(d);
@@ -482,8 +483,9 @@ function cards(lv) {
   const out = [{ head: `<b>HQ</b><span>${esc(u('hq'))}</span>`, items: [{ c: { t: 'quotaAll' } }] }];
   if (lv.rules.length) out.push({ head: `<b>${esc(u('office'))}</b><span>${esc(u('ga'))}</span>`, items: lv.rules.map(c => ({ c: resolve(lv, c), why: c.why })) });
   lv.people.forEach((p, i) => {
-    const items = personRules(lv, i).slice(1);
-    if (items.length) out.push({ head: `${av(p.id)}<b>${esc(nm(p.id))}</b><span>${esc(tr(CAST[p.id].role))}</span>`, items });
+    const items = personRules(lv, i).slice(1).filter(it => !it.wish);
+    const say = p.wishes?.length ? `<div class="say">${esc(u('wishSay', { d: dayList(p.wishes) }))}</div>` : '';
+    if (items.length || say) out.push({ head: `${av(p.id)}<b>${esc(nm(p.id))}</b><span>${esc(tr(CAST[p.id].role))}</span>`, say, items });
   });
   return out;
 }
@@ -573,7 +575,7 @@ function renderGrid() {
   const groups = cards(lv);
   let total = 0, ok = 0, r = '';
   groups.forEach((gr, gi) => {
-    r += `<div class="rq"><div class="rh">${gr.head}</div>`;
+    r += `<div class="rq"><div class="rh">${gr.head}</div>${gr.say || ''}`;
     gr.items.forEach((it, ii) => {
       const st = itemStatus(it, settled(lv, g), lv);
       if (!it.wish && !it.need) { total++; if (st === 'ok') ok++; }
@@ -675,7 +677,7 @@ function showPop(anchor, n, touch) {
   let body;
   if (key[0] === 'p') {
     const i = +anchor.dataset.who, p = lv.people[i];
-    body = `<div class="ph">${av(p.id)}<div><b>${esc(nm(p.id))}</b><span>${esc(tr(CAST[p.id].role))} · ${esc(u('moodTx', { v: (S.mood[p.id] > 0 ? '+' : '') + (S.mood[p.id] || 0) }))}</span></div></div>${personRules(lv, i).map(it => ruleRow(it, itemStatus(it, gv, lv), lv)).join('')}`;
+    body = `<div class="ph">${av(p.id)}<div><b>${esc(nm(p.id))}</b><span>${esc(tr(CAST[p.id].role))} · ${esc(u('moodTx', { v: (S.mood[p.id] > 0 ? '+' : '') + (S.mood[p.id] || 0) }))}</span></div></div>${p.wishes?.length ? `<div class="say">${esc(u('wishSay', { d: dayList(p.wishes) }))}</div>` : ''}${personRules(lv, i).filter(it => !it.wish).map(it => ruleRow(it, itemStatus(it, gv, lv), lv)).join('')}`;
   } else {
     const d = +anchor.dataset.day, items = dayItems(lv, d);
     const cnt = gv.filter(r => r[d] === 1).length;
