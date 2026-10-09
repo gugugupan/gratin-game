@@ -474,3 +474,13 @@ button:focus-visible, select:focus-visible, a:focus-visible, [tabindex]:focus-vi
 .stage.idle .empty { color: #8a93a3; }
 .stage.idle .empty b { color: #c8cdd6; }
 @media (max-width: 720px) { .split .convo:has(> .empty), .split .stage.idle { display: none; } }
+.lines { max-width: 900px; margin: 0 auto; }
+.lines h2 { font-family: var(--f-display); font-weight: 400; font-size: 24px; margin: 0 0 12px; }
+.lines table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.lines th, .lines td { border-bottom: 1px solid var(--line); padding: 8px; vertical-align: top; text-align: left; }
+.lines thead th { font-size: 18px; text-align: center; }
+.lines tbody th { white-space: nowrap; }
+.lines tbody th .av { width: 24px; height: 24px; font-size: 10px; display: inline-grid; vertical-align: middle; margin-right: 6px; }
+.lines tbody th small { display: block; color: var(--ink-2); font-weight: 400; }
+.lines td p { margin: 0 0 4px; }
+.lines-app { overflow: auto; }

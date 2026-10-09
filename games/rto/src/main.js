@@ -335,7 +335,7 @@ function render(fresh) {
     return `<button class="appi ${a === cur ? 'on' : ''}" data-app="${a}" style="--acc:var(--${a === 'meet' ? 'mail' : a})" aria-label="${esc(tr(UI.apps[a]))}${n ? ` (${n})` : ''}">${ICON[a]}<span>${esc(tr(UI.apps[a]))}</span>${n ? `<i class="badge">${a === 'grid' ? '!' : n}</i>` : ''}</button>`;
   }).join('');
   if (fresh) window.scrollTo({ top: 0 });
-  ({ grid: renderGrid, mail: renderMail, chat: renderChat, meet: renderMeet, end: renderEnd })[cur]();
+  ({ grid: renderGrid, mail: renderMail, chat: renderChat, meet: renderMeet, end: renderEnd, lines: renderLines })[cur]();
   if (cur === 'grid') maybeTutorial();
 }
 /* ---------- menu ---------- */
@@ -344,7 +344,7 @@ const canReplayTut = () => S.open && S.lv >= 0 && !S.done.has(S.lv);
 function menuBody(ctx) {
   const item = (act, label) => `<button class="mitem" type="button" role="menuitem" data-act="${act}">${esc(label)}</button>`;
   const dev = import.meta.env.DEV
-    ? `<hr><label class="msec" for="devjump">DEV</label><select id="devjump"><option value="">—</option>${LEVELS.map((L, n) => `<option value="${n}">${esc(u('week', { n: n + 1 }))}</option>`).join('')}<option value="${LEVELS.length}">${esc(u('ending'))}</option></select>${ctx === 'app' && S.lv >= 0 && !S.done.has(S.lv) ? item('solve', '填入正确答案') : ''}`
+    ? `<hr><label class="msec" for="devjump">DEV</label><select id="devjump"><option value="">—</option>${LEVELS.map((L, n) => `<option value="${n}">${esc(u('week', { n: n + 1 }))}</option>`).join('')}<option value="${LEVELS.length}">${esc(u('ending'))}</option><option value="fired">坏结局：被开除</option><option value="bankrupt">坏结局：破产</option><option value="story">全部剧情</option><option value="lines">心情台词一览</option></select>${ctx === 'app' && S.lv >= 0 && !S.done.has(S.lv) ? item('solve', '填入正确答案') : ''}`
     : '';
   return `<div class="msec">${esc(u('language'))}</div>
     <div class="mlangs">${['ja', 'zh', 'en'].map(l => `<button type="button" data-l="${l}" aria-pressed="${S.lang === l}">${LANG_LABEL[l]}</button>`).join('')}</div>
@@ -367,7 +367,13 @@ function openMenu(btn, ctx) {
   m.style.left = Math.max(12, Math.min(r.right - m.offsetWidth, innerWidth - m.offsetWidth - 12)) + 'px';
   m.onclick = onMenuClick;
   const j = $('devjump');
-  if (j) j.onchange = () => { if (j.value === '') return; closeMenu(); launchIfNeeded(); jumpTo(+j.value); };
+  if (j) j.onchange = () => {
+    const v = j.value;
+    if (v === '') return;
+    closeMenu(); launchIfNeeded();
+    const dev = { fired: devFired, bankrupt: devBankrupt, story: devStory, lines: devLines }[v];
+    if (dev) dev(); else jumpTo(+v);
+  };
 }
 function closeMenu() {
   if (!S.menuBtn) return;
@@ -420,6 +426,50 @@ function jumpTo(n) {
   S.tk = null; S.hist = []; S.anim = null; S.flashed = false;
   $('overlay').innerHTML = ''; $('toasts').innerHTML = ''; $('tut').innerHTML = ''; closePop();
   save(); render(true);
+}
+
+/* ---------- dev views ---------- */
+function devFired() {
+  jumpTo(6);
+  S.fails = 3;
+  [1, 3, 5].forEach(i => { S.results[i].ok = false; });
+  S.feed.push({ key: 'email:remind', read: true }, { key: 'email:warn', read: true });
+  S.outcome = 'fired'; S.view.app = 'end';
+  save(); render(true);
+}
+function devBankrupt() {
+  jumpTo(MORALE.week + 1);
+  const last = S.results[MORALE.week];
+  ['sato', 'tanaka', 'wang', 'abe'].forEach(id => { last.faces[id] = 'angry'; S.mood[id] = -1; });
+  S.outcome = 'bankrupt'; S.view.app = 'end';
+  save(); render(true);
+}
+function devStory() {
+  jumpTo(LEVELS.length);
+  const faces = Object.keys(FACE);
+  for (const n in S.results) {
+    const res = S.results[n];
+    for (const id in res.faces) res.faces[id] = faces[Math.floor(Math.random() * faces.length)];
+    res.voices = [...ORDER];
+  }
+  const keys = BEATS.flat().map(e => typeof e === 'string' ? e : e[0]);
+  S.feed = [...new Set(keys)].map(key => ({ key, read: true }));
+  S.view = { app: 'mail', mail: null, chat: null, meet: null, week: S.lv };
+  save(); render(true);
+}
+function devLines() {
+  S.view.app = 'lines';
+  render(true);
+}
+function renderLines() {
+  const app = $('app');
+  app.className = 'app lines-app';
+  const rows = Object.entries(MOOD_LINES).map(([key, set]) => {
+    const [id, from] = key.split('@');
+    const head = `${av(id)}<b>${esc(nm(id))}</b>${from ? `<small>${esc(u('week', { n: +from + 1 }))}起</small>` : ''}`;
+    return `<tr><th>${head}</th>${Object.keys(FACE).map(f => `<td>${set[f].map(l => `<p>${esc(tr(l))}</p>`).join('')}</td>`).join('')}</tr>`;
+  }).join('');
+  app.innerHTML = `<div class="lines"><h2>心情台词一览</h2><table><thead><tr><th></th>${Object.values(FACE).map(f => `<th>${f}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 /* ---------- rule text ---------- */
