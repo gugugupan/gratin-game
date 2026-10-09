@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { solve } from '../src/engine.js';
 import { LEVELS, CAST, withNeeds } from '../src/levels.js';
-import { BEATS, EMAILS, CHATS, TALKS } from '../src/story.js';
+import { BEATS, EMAILS, CHATS, TALKS, MOOD_CHATS, MOOD_LINES, FINALE } from '../src/story.js';
 
 test('every week after the tutorial has exactly one perfect plan', () => {
   assert.ok(solve(withNeeds(LEVELS[0]), 1).length, 'week 1 is solvable');
@@ -89,5 +89,19 @@ test('every text has all three languages', () => {
     }
     if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) walk(x, `${path}.${k}`);
   };
-  walk({ LEVELS, CAST, EMAILS, CHATS, TALKS }, 'root');
+  walk({ LEVELS, CAST, EMAILS, CHATS, TALKS, MOOD_CHATS, MOOD_LINES, FINALE }, 'root');
+});
+
+test('english and japanese are actually translated', () => {
+  const han = /[\u4e00-\u9fff]/;
+  const walk = (v, path) => {
+    if (v && typeof v === 'object' && 'zh' in v && 'en' in v) {
+      if (!han.test(v.zh)) return;
+      assert.ok(!han.test(v.en), `${path}.en is still Chinese: ${v.en}`);
+      if ([...v.zh].length > 4) assert.notEqual(v.ja, v.zh, `${path}.ja is still Chinese: ${v.ja}`);
+      return;
+    }
+    if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) walk(x, `${path}.${k}`);
+  };
+  walk({ LEVELS, CAST, EMAILS, CHATS, TALKS, MOOD_CHATS, MOOD_LINES, FINALE }, 'root');
 });
