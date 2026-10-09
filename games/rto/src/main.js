@@ -872,7 +872,7 @@ function pickItem(kind, key) {
 }
 
 /* ---------- Mail ---------- */
-const shortDate = s => S.lang === 'en' ? s.split(', ')[1].split(' ·')[0] : s.split(' ')[0];
+const shortDate = s => S.lang === 'en' && s.includes(', ') ? s.split(', ')[1].split(' ·')[0] : s.split(' ')[0];
 function renderMail() {
   const app = $('app');
   app.className = 'app mail';
