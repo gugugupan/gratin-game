@@ -26,6 +26,7 @@ export const EMAILS = {
       T('明天起，开发二组由其他人接手。工位上的私人物品请在本周内带走。', 'Starting tomorrow, someone else will run Dev Team 2. Please clear your personal belongings from your desk by the end of the week.', '明日から開発2課は別の者が担当します。デスクの私物は今週中に片付けてください。'),
       T('黑田', 'Kuroda', '黒田'),
     ],
+    ps: T('PS：从明天起，你可以每天在家办公了。', 'PS: From tomorrow, you can work from home every day.', '追伸：明日からは毎日在宅勤務できますよ。'),
     restart: true,
   },
   shutdown: {
