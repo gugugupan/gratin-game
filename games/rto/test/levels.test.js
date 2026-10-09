@@ -4,8 +4,9 @@ import { solve } from '../src/engine.js';
 import { LEVELS, CAST, withNeeds } from '../src/levels.js';
 import { BEATS, EMAILS, CHATS, TALKS } from '../src/story.js';
 
-test('every week has exactly one solution', () => {
-  LEVELS.forEach((L, i) => assert.equal(solve(withNeeds(L), 2).length, 1, `week ${i + 1}`));
+test('every week after the tutorial has exactly one perfect plan', () => {
+  assert.ok(solve(withNeeds(LEVELS[0]), 1).length, 'week 1 is solvable');
+  LEVELS.slice(1).forEach((L, i) => assert.equal(solve(withNeeds(L), 2).length, 1, `week ${i + 2}`));
 });
 
 const SOLS = LEVELS.map(L => solve(withNeeds(L), 1)[0]);
