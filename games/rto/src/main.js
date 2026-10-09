@@ -60,6 +60,7 @@ const UI = {
   clueGot: T('获得线索', 'CLUE FOUND', '手がかりを得た'),
   clueMiss: T('没有听出来', 'MISSED IT', '聞き出せなかった'),
   clueMissTx: T('没能听出{n}真正在意的事。只能从群聊和之后的反应里慢慢摸索。', 'You did not catch what {n} really needs. You will have to piece it together from the chat and how they react.', '{n}さんの本音は聞き出せなかった。チャットや反応から探るしかない。'),
+  typingNow: T('{n} 正在输入…', '{n} is typing…', '{n}さんが入力中…'),
   wishTag: T('想来', 'WANT', '希望'),
   wishLong: T('本人申请想这天出社', 'Requested to come in this day', '本人がこの日の出社を希望'),
   face_happy: T('心情不错', 'Happy', 'ご機嫌'),
@@ -822,6 +823,7 @@ function renderMail() {
 }
 
 /* ---------- Chat ---------- */
+const CHAT_MSG_MS = 1700;
 function renderChat() {
   const app = $('app');
   app.className = 'app chat';
@@ -835,7 +837,13 @@ function renderChat() {
   else if (!S.anim || S.anim.key !== cur) S.anim = { key: cur, n: 0 };
   const shownN = S.anim ? S.anim.n : c.msgs.length;
   const shown = c.msgs.slice(0, shownN);
-  const list = chats.map(f => { const x = chatOf(idOf(f.key)), last = x.msgs[x.msgs.length - 1], un = !f.read && f.key !== cur; return `<button class="li ${f.key === cur ? 'cur' : ''} ${un ? 'unread' : ''}" data-k="${f.key}"><div class="f"><span class="nm2">${un ? '<i class="ud"></i>' : ''}${esc(tr(x.name))}</span></div><div class="s">${esc(nm(last[0]))}: ${esc(tr(last[1]))}</div></button>`; }).join('');
+  const preview = (f, x) => {
+    const seen = f.read ? x.msgs.length : S.anim && S.anim.key === f.key ? S.anim.n : 0;
+    if (!seen) return esc(u('typingNow', { n: nm(x.msgs[0][0]) }));
+    const last = x.msgs[seen - 1];
+    return `${esc(nm(last[0]))}: ${esc(tr(last[1]))}`;
+  };
+  const list = chats.map(f => { const x = chatOf(idOf(f.key)), un = !f.read && f.key !== cur; return `<button class="li ${f.key === cur ? 'cur' : ''} ${un ? 'unread' : ''}" data-k="${f.key}"><div class="f"><span class="nm2">${un ? '<i class="ud"></i>' : ''}${esc(tr(x.name))}</span></div><div class="s">${preview(f, x)}</div></button>`; }).join('');
   app.innerHTML = `
     <div class="split">
       <div class="list"><div class="lh">${esc(tr(COMPANY))}</div><div class="sec">${esc(u('groups'))}</div>${list}</div>
@@ -850,7 +858,7 @@ function renderChat() {
   app.querySelectorAll('.li').forEach(b => b.onclick = () => { pickItem('chat', b.dataset.k); save(); render(); });
   if (S.anim) {
     if (S.anim.n >= c.msgs.length) { S.anim = null; markRead(cur); render(); }
-    else S.timer = setTimeout(() => { if (S.anim) S.anim.n++; render(); }, S.anim.n === 0 ? 400 : 950);
+    else S.timer = setTimeout(() => { if (S.anim) S.anim.n++; render(); }, S.anim.n === 0 ? 700 : CHAT_MSG_MS);
   }
 }
 
