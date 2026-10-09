@@ -115,7 +115,7 @@ const UI = {
   done: T('开始排班', 'Start', 'はじめる'),
   tut: [
     T('排班表已经按大家的申请预先填好了。点一下格子，就在「出社」和「在宅」之间切换。申请只考虑了他们自己，照单全收不一定行得通。', 'The schedule is pre-filled with everyone\'s requests. Click a cell to switch it between office and remote. Requests only think of the person who made them, so taking them as-is may not work.', 'シフト表はみんなの申請で仮入力済み。マスをクリックすると出社と在宅が切り替わる。申請は本人の都合だけ。そのまま通せるとは限らない。'),
-    T('鼠标移到成员上（手机上点一下），能看到他的申请、工作安排，以及你已经掌握的真实需求。真实需求要在 1:1 里才听得出来。', 'Hover a member (tap on phones) to see their request, work commitments and any real need you have uncovered. Real needs only come out in 1:1s.', 'メンバーにカーソルを合わせる（スマホはタップ）と、申請・業務予定・判明した本当の希望が見られる。本当の希望は1on1でしか分からない。'),
+    T('鼠标移到成员上（手机上点一下），能看到他的申请，以及你目前对他的了解。', 'Hover a member (tap on phones) to see their request and what you know about them so far.', 'メンバーにカーソルを合わせる（スマホはタップ）と、申請といま分かっていることが見られる。'),
     T('这里是公司的要求。工位上限和工作安排不满足就不能提交。', 'These are the company\'s requirements. Desk limits and work commitments have to be met before you can submit.', 'ここは会社からの条件。席の上限と業務予定を満たさないと提出できない。'),
     T('出勤率在这里。公司一直盯着这个数字。', 'Attendance is shown here. The company is watching this number.', '出社率はここ。会社はこの数字をずっと見ている。'),
     T('提交后会看到每个人的反应。大家的心情会一直累积下去。', 'After you submit, you will see how each person took it. Moods carry over from week to week.', '提出すると全員の反応が見える。気分は週をまたいで積み重なる。'),

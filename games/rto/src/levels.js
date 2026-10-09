@@ -3,12 +3,12 @@ export const ORDER = ['kobayashi', 'sato', 'tanaka', 'wang', 'abe', 'suzuki'];
 const ALL = [0, 1, 2, 3, 4];
 
 export const CAST = {
-  kobayashi: { name: T('小林', 'Kobayashi', '小林'), ini: T('林', 'Ko', '林'), role: T('PM · 两个孩子', 'PM · two kids', 'PM・二児の親'), hue: 18 },
-  sato: { name: T('佐藤', 'Sato', '佐藤'), ini: T('佐', 'Sa', '佐'), role: T('资深后端 · 导师', 'Senior backend · mentor', 'シニアBE・メンター'), hue: 212 },
-  tanaka: { name: T('田中', 'Tanaka', '田中'), ini: T('田', 'Ta', '田'), role: T('应届新人', 'New grad', '新卒'), hue: 150 },
-  wang: { name: T('老王', 'Wang', '王さん'), ini: T('王', 'Wa', '王'), role: T('夜猫子后端', 'Night-owl backend', '夜型バックエンド'), hue: 270 },
+  kobayashi: { name: T('小林', 'Kobayashi', '小林'), ini: T('林', 'Ko', '林'), role: T('PM', 'PM', 'PM'), hue: 18 },
+  sato: { name: T('佐藤', 'Sato', '佐藤'), ini: T('佐', 'Sa', '佐'), role: T('资深后端', 'Senior backend', 'シニアバックエンド'), hue: 212 },
+  tanaka: { name: T('田中', 'Tanaka', '田中'), ini: T('田', 'Ta', '田'), role: T('新人工程师', 'Junior engineer', '新人エンジニア'), hue: 150 },
+  wang: { name: T('老王', 'Wang', '王さん'), ini: T('王', 'Wa', '王'), role: T('后端', 'Backend', 'バックエンド'), hue: 270 },
   abe: { name: T('阿部', 'Abe', '阿部'), ini: T('阿', 'Ab', '阿'), role: T('UI 设计师', 'UI designer', 'UIデザイナー'), hue: 335 },
-  suzuki: { name: T('铃木', 'Suzuki', '鈴木'), ini: T('铃', 'Su', '鈴'), role: T('SRE · 住在长野', 'SRE · lives in Nagano', 'SRE・長野在住'), hue: 42 },
+  suzuki: { name: T('铃木', 'Suzuki', '鈴木'), ini: T('铃', 'Su', '鈴'), role: T('SRE', 'SRE', 'SRE'), hue: 42 },
   kuroda: { name: T('黑田', 'Kuroda', '黒田'), ini: T('黑', 'Ku', '黒'), role: T('CFO', 'CFO', 'CFO'), hue: 0, gray: true },
   mori: { name: T('森', 'Mori', '森'), ini: T('森', 'Mo', '森'), role: T('CEO', 'CEO', 'CEO'), hue: 190, gray: true },
   hr: { name: T('人事部', 'People Team', '人事部'), ini: T('人', 'HR', '人'), role: T('', '', ''), hue: 100, gray: true },
