@@ -56,6 +56,19 @@ test('the perfect plan meets attendance and gives every wish-ignoring trap a rea
   });
 });
 
+test('requests respect the requester\'s own needs but clash with company rules', async () => {
+  const { evalC, resolve } = await import('../src/engine.js');
+  LEVELS.slice(1).forEach((L, w) => {
+    const g = L.people.map(p => [0, 1, 2, 3, 4].map(d => (p.wishes || []).includes(d) ? 1 : 0));
+    L.people.forEach(p => (p.need || []).forEach(c => {
+      const rc = resolve(L, { ...(c.b !== undefined ? { a: p.id } : { p: p.id }), ...c });
+      assert.equal(evalC(rc, g), 'ok', `${p.id} request vs own need in week ${w + 2}`);
+    }));
+    const companyOk = L.rules.every(c => evalC(resolve(L, c), g) === 'ok');
+    assert.ok(!companyOk, `week ${w + 2} requests should clash with company rules`);
+  });
+});
+
 test('every speaker and sender is in the cast', () => {
   for (const e of Object.values(EMAILS)) assert.ok(CAST[e.from], e.from);
   for (const c of Object.values(CHATS)) for (const [who] of c.msgs) assert.ok(CAST[who], who);
