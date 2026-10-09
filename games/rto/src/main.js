@@ -43,11 +43,6 @@ const UI = {
   home_tx: T('在宅', 'Remote', '在宅'),
   reqTag: T('申请', 'REQ', '申請'),
   noDayReq: T('这一天没有特殊安排', 'Nothing special this day', 'この日は特別な条件なし'),
-  firedTitle: T('你被开除了', 'You were let go', 'あなたは解任された'),
-  firedTx: T('出勤率第三次没有达标。黑田只发来了一封很短的邮件：「明天起，开发二组由其他人接手。」', 'Attendance missed the target a third time. Kuroda sent one short email: "Starting tomorrow, someone else will run Dev Team 2."', '出社率が3回目の未達。黒田さんから届いたのは短いメールだけ。「明日から開発2課は別の者が担当します。」'),
-  bankTitle: T('评分没能回来', 'The rating never came back', '評価は戻らなかった'),
-  bankTx: T('最后一周作战室，开发二组只有 {g} 个人还撑着。修复没赶上，评分停在 3.2。三个月后，一个公司申请了破产。', 'In the last war-room week only {g} people on Dev Team 2 were still holding on. The fix did not make it and the rating stalled at 3.2. Three months later, A Company filed for bankruptcy.', '作戦室の最後の週、開発2課で持ちこたえていたのは{g}人だけ。修正は間に合わず、評価は3.2で止まった。3か月後、ある会社は破産を申請した。'),
-  retryWeek: T('重来这一周', 'Retry this week', 'この週をやり直す'),
   resTitle: T('本周大家的反应', "How the team took it", '今週のみんなの反応'),
   attOk: T('达标', 'target met', '達成'),
   attBad: T('未达标', 'target missed', '未達'),
@@ -329,6 +324,7 @@ function render(fresh) {
   $('brand').innerHTML = `${esc(u('title'))}<small>${esc(tr(COMPANY))}</small>`;
   $('appmenu').innerHTML = ICON.menu;
   $('appmenu').setAttribute('aria-label', u('menu'));
+  if (S.outcome && (S.view.app === 'grid' || S.view.app === 'end')) showEndMail();
   const cur = S.view.app;
   $('rail').innerHTML = ['grid', 'mail', 'chat', 'meet'].map(a => {
     const n = unreadOf(a);
@@ -428,21 +424,33 @@ function jumpTo(n) {
   save(); render(true);
 }
 
+/* ---------- bad endings ---------- */
+const END_MAIL = { fired: 'email:fired', bankrupt: 'email:shutdown' };
+function showEndMail() {
+  const key = END_MAIL[S.outcome];
+  if (!feedItem(key)) S.feed.push({ key, read: false });
+  S.view = { ...S.view, app: 'mail', mail: key };
+}
+function endWith(end) {
+  S.outcome = end;
+  showEndMail();
+  save(); render(true);
+}
+
 /* ---------- dev views ---------- */
 function devFired() {
   jumpTo(6);
   S.fails = 3;
   [1, 3, 5].forEach(i => { S.results[i].ok = false; });
   S.feed.push({ key: 'email:remind', read: true }, { key: 'email:warn', read: true });
-  S.outcome = 'fired'; S.view.app = 'end';
-  save(); render(true);
+  endWith('fired');
 }
 function devBankrupt() {
   jumpTo(MORALE.week + 1);
+  S.feed = S.feed.filter(f => !BEATS[MORALE.week + 1].includes(f.key));
   const last = S.results[MORALE.week];
   ['sato', 'tanaka', 'wang', 'abe'].forEach(id => { last.faces[id] = 'angry'; S.mood[id] = -1; });
-  S.outcome = 'bankrupt'; S.view.app = 'end';
-  save(); render(true);
+  endWith('bankrupt');
 }
 function devStory() {
   jumpTo(LEVELS.length);
@@ -764,7 +772,7 @@ function submit(n) {
   const ov = $('overlay');
   const next = () => {
     const end = S.fails >= 3 ? 'fired' : n === MORALE.week && ORDER.filter(id => S.mood[id] >= 1).length < MORALE.need ? 'bankrupt' : null;
-    if (end) { ov.innerHTML = ''; S.outcome = end; S.view.app = 'end'; save(); render(true); return; }
+    if (end) { ov.innerHTML = ''; endWith(end); return; }
     const finish = () => { ov.innerHTML = ''; render(); setTimeout(advance, 300); };
     if (reduceMotion()) finish(); else weekFlip(n, finish);
   };
@@ -884,10 +892,13 @@ function renderMail() {
         <div class="meta-row">${av(m.from)}<div class="who2"><b>${esc(nm(m.from))}${role ? ` · ${esc(role)}` : ''}</b><span>${esc(u('to'))}: ${esc(tr(m.to))}</span></div><div class="dt">${esc(tr(m.date))}</div></div>
         ${m.body.slice(0, -1).map(p => `<p>${esc(tr(p))}</p>`).join('')}${table}<p>${esc(tr(m.body[m.body.length - 1]))}</p>
         <p style="color:var(--ink-3)">— ${esc(nm(m.from))}${role ? ` (${esc(role)})` : ''}, ${esc(tr(COMPANY))}</p>
+        ${m.ps ? `<p class="ps">${esc(tr(m.ps))}</p>` : ''}
+        ${m.restart ? `<div class="share mrestart"><button id="again3" class="btn primary">${esc(u('again'))}</button></div>` : ''}
       </article>
     </div>`;
   accordion(app, 'mail', '.read');
   app.querySelectorAll('.li').forEach(b => b.onclick = () => { pickItem('mail', b.dataset.k); save(); render(); });
+  if ($('again3')) $('again3').onclick = resetGame;
   if (!feedItem(cur).read) { markRead(cur); $('rail').querySelector('[data-app="mail"] .badge')?.remove(); }
 }
 
@@ -1061,30 +1072,7 @@ function bindStage(key, isLive) {
 }
 
 /* ---------- ending ---------- */
-function renderOutcome() {
-  const app = $('app');
-  app.className = 'app photo-app';
-  const fired = S.outcome === 'fired';
-  const good = ORDER.filter(id => S.mood[id] >= 1).length;
-  const trail = ORDER.map(id => `<div class="trail">${av(id)}<b>${esc(nm(id))}</b><span>${Object.keys(S.results).sort().map(n => FACE[S.results[n].faces[id]]).join(' ')}</span><span class="mv ${S.mood[id] >= 1 ? 'ok' : S.mood[id] < 0 ? 'bad' : ''}">${esc(u('moodTx', { v: (S.mood[id] > 0 ? '+' : '') + S.mood[id] }))}</span>${S.clues[id] ? '<span class="cl">🔍</span>' : ''}</div>`).join('');
-  app.innerHTML = `<div class="outcome">
-    <h2>${esc(u(fired ? 'firedTitle' : 'bankTitle'))}</h2>
-    <p>${esc(u(fired ? 'firedTx' : 'bankTx', { g: good }))}</p>
-    <div class="trails">${trail}</div>
-    <p class="meta2">${esc(u('failCount', { n: S.fails }))}</p>
-    <div class="share">${S.checkpoint ? `<button id="retry" class="btn primary">${esc(u('retryWeek'))}</button>` : ''}<button id="again2" class="btn">${esc(u('again'))}</button></div>
-  </div>`;
-  if ($('retry')) $('retry').onclick = () => {
-    const cp = S.checkpoint;
-    Object.assign(S, JSON.parse(JSON.stringify(cp)), { checkpoint: cp });
-    S.done = new Set(S.done); S.outcome = null; S.tk = null; S.hist = [];
-    S.view = { ...S.view, app: 'grid', week: S.lv };
-    save(); render(true);
-  };
-  $('again2').onclick = resetGame;
-}
 function renderEnd() {
-  if (S.outcome) { renderOutcome(); return; }
   const app = $('app');
   app.className = 'app photo-app';
   const text = u('shareTx'), enc = encodeURIComponent;

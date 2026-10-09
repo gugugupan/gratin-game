@@ -17,6 +17,30 @@ export const EMAILS = {
     subject: Z('【警告】开发二组出勤率再次未达标'),
     body: [Z('开发二组的出勤率第二次没有达到目标。'), Z('如果再有一次，我将不得不重新评估你的岗位。'), Z('黑田')],
   },
+  fired: {
+    from: 'kuroda', date: T('周五 18:30', 'Fri 18:30', '金曜 18:30'),
+    to: T('开发二组经理', 'Dev Team 2 manager', '開発2課マネージャー'),
+    subject: T('关于开发二组经理一职', 'About the Dev Team 2 manager role', '開発2課マネージャー職について'),
+    body: [
+      T('出勤率第三次没有达到目标。', 'Attendance has missed the target for the third time.', '出社率の目標未達は、これで3回目です。'),
+      T('明天起，开发二组由其他人接手。工位上的私人物品请在本周内带走。', 'Starting tomorrow, someone else will run Dev Team 2. Please clear your personal belongings from your desk by the end of the week.', '明日から開発2課は別の者が担当します。デスクの私物は今週中に片付けてください。'),
+      T('黑田', 'Kuroda', '黒田'),
+    ],
+    restart: true,
+  },
+  shutdown: {
+    from: 'mori', date: T('周五 19:00', 'Fri 19:00', '金曜 19:00'),
+    to: T('全体员工', 'All staff', '全社員'),
+    subject: T('关于产品的重要通知', 'An important notice about our product', 'プロダクトに関する重要なお知らせ'),
+    body: [
+      T('各位：', 'Hi everyone,', '皆さま'),
+      T('很遗憾通知大家，过去两个月我们没能把评分拉回来。作战室的最后一周，大家已经尽了全力，但修复没能赶上。', 'I am sorry to tell you that we could not bring the rating back over the past two months. Everyone gave it everything in the last war-room week, but the fix did not make it in time.', '残念なお知らせです。この2か月、評価を取り戻すことはできませんでした。作戦室の最後の週、皆さんは全力を尽くしてくれましたが、修正は間に合いませんでした。'),
+      T('经董事会决定，公司将在月底关闭这个产品，相关团队随之解散。后续安排，人事部会逐一和大家沟通。', 'The board has decided to shut the product down at the end of the month, and the teams behind it will be disbanded. The People Team will talk with each of you about what comes next.', '取締役会の決定により、本プロダクトは月末で終了し、関連チームは解散となります。今後については人事部から個別にご連絡します。'),
+      T('谢谢每一位的付出。', 'Thank you, every one of you.', '一人ひとりの尽力に、心から感謝します。'),
+    ],
+    ps: T('PS：新办公室的咖啡机将捐给附近的大学。', 'PS: The coffee machine in the new office will be donated to a nearby university.', '追伸：新オフィスのコーヒーマシンは近くの大学に寄贈します。'),
+    restart: true,
+  },
   welcome: {
     from: 'hr', date: T('10月9日 周五 10:02', 'Fri, Oct 9 · 10:02', '10月9日(金) 10:02'),
     to: T('全体员工', 'All staff', '全社員'),
