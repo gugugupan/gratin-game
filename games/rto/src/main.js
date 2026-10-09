@@ -136,8 +136,8 @@ const ICON = {
 };
 
 const store = {
-  get(k, d) { try { const v = localStorage.getItem('rto:' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
-  set(k, v) { try { localStorage.setItem('rto:' + k, JSON.stringify(v)); } catch {} },
+  get(k, d) { try { const v = localStorage.getItem('rto-proto:' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem('rto-proto:' + k, JSON.stringify(v)); } catch {} },
 };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const $ = id => document.getElementById(id);
@@ -436,7 +436,7 @@ function ruleText(c, lv) {
 }
 
 /* ---------- level logic ---------- */
-const prefill = lv => lv.people.map(p => [0, 1, 2, 3, 4].map(d => (p.wishes || []).includes(d) ? 1 : null));
+const prefill = lv => lv.people.map(p => [0, 1, 2, 3, 4].map(d => (p.wishes || []).includes(d) ? 1 : 0));
 function gridOf(n) {
   const lv = LEVELS[n];
   let g = S.grids[n];
@@ -1038,8 +1038,7 @@ function renderEnd() {
   $('again').onclick = resetGame;
 }
 function resetGame() {
-  const tut = S.tut;
-  Object.assign(S, freshState(S.lang), { tut });
+  Object.assign(S, freshState(S.lang));
   S.done = new Set(); S.flashed = false; S.tk = null; S.anim = null;
   $('overlay').innerHTML = ''; $('toasts').innerHTML = ''; $('tut').innerHTML = ''; closePop();
   save(); showDesktop();
