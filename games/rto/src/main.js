@@ -881,6 +881,13 @@ function talkSeq(lines, picks = [], ask = null) {
   }
   return seq;
 }
+function shuffled(n, key) {
+  let h = 0;
+  for (const ch of key) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const out = [...Array(n).keys()];
+  for (let i = n - 1; i > 0; i--) { h = (h * 1103515245 + 12345) >>> 0; const j = h % (i + 1); [out[i], out[j]] = [out[j], out[i]]; }
+  return out;
+}
 const askOf = who => TALKS[who].lines.find(l => l.ask)?.ask;
 function renderMeet() {
   const app = $('app');
@@ -932,8 +939,8 @@ function talkStage(who, key, isLive) {
   return `<div class="meet-top"><span class="rec"></span><b>${esc(u('meeting', { n: nm(who) }))}</b><span class="tm">${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}</span></div>
     ${tiles(speaker, mood)}
     <div class="transcript" id="tsc">${shown.map(([w, t], i) => lineHtml(w, t, who, i === shown.length - 1)).join('')}</div>
-    ${atChoice ? `<div class="choices">${atChoice.map((c, i) => `<button data-i="${i}">${esc(tr(c.label))}</button>`).join('')}</div>` : ''}
-    ${atAsk ? `<div class="choices ask"><p class="askq">${esc(u('askPrompt', { n: nm(who) }))}</p>${atAsk.options.map((o, i) => `<button data-a="${i}">${esc(tr(o.text))}</button>`).join('')}</div>` : ''}
+    ${atChoice ? `<div class="choices">${shuffled(atChoice.length, who + S.tk.picks.length).map(i => `<button data-i="${i}">${esc(tr(atChoice[i].label))}</button>`).join('')}</div>` : ''}
+    ${atAsk ? `<div class="choices ask"><p class="askq">${esc(u('askPrompt', { n: nm(who) }))}</p>${shuffled(atAsk.options.length, who + 'ask').map(i => `<button data-a="${i}">${esc(tr(atAsk.options[i].text))}</button>`).join('')}</div>` : ''}
     ${S.tk.end ? unlockHtml(who, S.tk.ask) : ''}
     <div class="next-row">${atChoice || atAsk ? '' : S.tk.end ? `<button class="btn primary" id="leave">${esc(u('leave'))}</button>` : `<button class="btn primary" id="adv">${esc(last ? u('endcall') : u('cont'))}</button>`}</div>`;
 }
