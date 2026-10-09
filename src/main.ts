@@ -10,6 +10,9 @@ if (location.hash === "#privacy") location.replace("./privacy/");
 const state: { locale: Locale } = { locale: loadLocale() };
 const games = sortGames(GAMES);
 
+const canHoverPreview = () =>
+  matchMedia("(hover: hover) and (pointer: fine)").matches && !matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 const $ = <T extends Element>(sel: string) => document.querySelector(sel) as T;
 
 const esc = (s: string) =>
@@ -32,7 +35,11 @@ function card(g: Game, locale: Locale, now: Date): string {
     : isNew(g, now)
       ? `<span class="badge">${t(locale, "newBadge")}</span>`
       : "";
-  const cover = `<img src="./${esc(g.cover)}" alt="" loading="lazy" width="900" height="563">`;
+  const preview =
+    live && g.preview && canHoverPreview()
+      ? `<video class="preview" data-src="./${esc(g.preview)}" muted loop playsinline preload="none" aria-hidden="true"></video>`
+      : "";
+  const cover = `<img src="./${esc(g.cover)}" alt="" loading="lazy" width="900" height="563">${preview}`;
   const inputs = g.input
     .map((i) => `<li title="${esc(INPUTS[i][locale])}">${icon(i)}<span>${esc(INPUTS[i][locale])}</span></li>`)
     .join("");
@@ -74,6 +81,33 @@ function render(): void {
   $(".mail-address").textContent = FEEDBACK_EMAIL;
   $<HTMLAnchorElement>(".idea-mail").href = mailto(locale, "ideaSubject");
   $(".privacy-link").textContent = PRIVACY[locale].linkLabel;
+}
+
+function setPreview(card: Element, on: boolean): void {
+  const video = card.querySelector<HTMLVideoElement>("video.preview");
+  if (!video) return;
+  const cover = video.parentElement!;
+  if (!on) {
+    video.pause();
+    cover.classList.remove("playing");
+    return;
+  }
+  if (!video.src) {
+    video.src = video.dataset.src!;
+    video.addEventListener("playing", () => {
+      if (!video.paused) cover.classList.add("playing");
+    });
+  }
+  video.currentTime = 0;
+  video.play().catch(() => {});
+  if (video.readyState >= 3) cover.classList.add("playing");
+}
+
+for (const [type, on] of [["mouseover", true], ["mouseout", false]] as const) {
+  document.addEventListener(type, (e) => {
+    const card = (e.target as Element).closest?.(".card");
+    if (card && !card.contains(e.relatedTarget as Node | null)) setPreview(card, on);
+  });
 }
 
 document.addEventListener("click", (e) => {

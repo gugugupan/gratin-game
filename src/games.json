@@ -13,6 +13,7 @@
     },
     "url": "https://lemon-punch.gratin-game.com/",
     "cover": "covers/cc-lemon-battle.jpg",
+    "preview": "previews/cc-lemon-battle.mp4",
     "input": [
       "keyboard",
       "touch"
@@ -38,6 +39,7 @@
     },
     "url": "https://clickton.gratin-game.com/",
     "cover": "covers/clickton.jpg",
+    "preview": "previews/clickton.mp4",
     "input": [
       "mouse",
       "touch"
@@ -116,6 +118,7 @@
     },
     "url": "https://gratin-game.com/rto/",
     "cover": "covers/rto.jpg",
+    "preview": "previews/rto.mp4",
     "input": [
       "mouse",
       "touch"

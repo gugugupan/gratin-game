@@ -7,6 +7,7 @@ export type Game = {
   tagline: Localized;
   url: string;
   cover: string;
+  preview?: string;
   input: string[];
   languages: string[];
   status: "live" | "soon";
@@ -45,6 +46,7 @@ export function validateGames(games: Game[]): string[] {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(g.added)) errors.push(`${g.id}: added must be YYYY-MM-DD`);
     if (g.status !== "live" && g.status !== "soon") errors.push(`${g.id}: bad status`);
     for (const i of g.input) if (!INPUTS[i]) errors.push(`${g.id}: unknown input ${i}`);
+    if (g.preview !== undefined && !/^previews\/[\w-]+\.mp4$/.test(g.preview)) errors.push(`${g.id}: preview must be previews/<name>.mp4`);
   }
   return errors;
 }

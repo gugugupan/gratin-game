@@ -33,6 +33,12 @@ describe("games.json", () => {
       expect(fs.existsSync(path.join(import.meta.dirname, "../public", g.cover)), g.cover).toBe(true);
     }
   });
+
+  it("has the preview file for every game that lists one", () => {
+    for (const g of GAMES.filter((g) => g.preview)) {
+      expect(fs.existsSync(path.join(import.meta.dirname, "../public", g.preview!)), g.preview).toBe(true);
+    }
+  });
 });
 
 const game = (over: Partial<Game>): Game => ({
@@ -68,6 +74,7 @@ describe("library logic", () => {
     const errors = validateGames([game({ url: "http://x" }), game({})]);
     expect(errors).toContain("x: url must be https");
     expect(errors).toContain("x: duplicate id");
+    expect(validateGames([game({ preview: "covers/x.gif" })])).toContain("x: preview must be previews/<name>.mp4");
   });
 });
 
