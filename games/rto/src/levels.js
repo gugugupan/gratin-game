@@ -33,12 +33,12 @@ export const LEVELS = [
   {
     quota: 1,
     title: T('一周一次', 'Once a Week', '週1回'),
-    intro: T('新办公室开放了。这周每人来一次，大家都按自己方便的日子交了申请，排班表已经照着填好了。', 'The new office is open. Everyone comes in once this week; they sent in the days that suit them, and the schedule is pre-filled to match.', '新オフィスがオープン。今週は全員1回。みんな都合のいい日を申請してくれて、シフト表はそのとおり仮入力済み。'),
+    intro: T('新办公室开放了。这周每人来一次。大家按自己方便的日子交了申请，但和公司的安排有些冲突，调整一下再提交。', 'The new office is open. Everyone comes in once this week. They sent in the days that suit them, but some clash with company plans. Adjust before you submit.', '新オフィスがオープン。今週は全員1回。みんな都合のいい日を申請したが、会社の予定とぶつかるところがある。調整してから提出しよう。'),
     people: {
       kobayashi: { wishes: [0], rules: [{ t: 'fixed', d: 0, v: 1, why: T('周一产品例会', 'Monday product sync', '月曜はプロダクト定例') }] },
       sato: { wishes: [1], rules: [{ t: 'fixed', d: 1, v: 1, why: T('带新人参观办公室', 'giving the new hire a tour', '新人にオフィス案内') }] },
-      tanaka: { wishes: [1], rules: [{ t: 'with', b: 'sato', why: T('第一次来，跟着导师', 'first visit, sticking with his mentor', '初出社なのでメンターと一緒') }] },
-      wang: { wishes: [3], rules: [{ t: 'fixed', d: 3, v: 1, why: T('去机房看服务器', 'checking servers in the machine room', 'サーバールームの点検') }] },
+      tanaka: { wishes: [2], rules: [{ t: 'with', b: 'sato', why: T('第一次来，跟着导师', 'first visit, sticking with his mentor', '初出社なのでメンターと一緒') }] },
+      wang: { wishes: [4], rules: [{ t: 'fixed', d: 3, v: 1, why: T('去机房看服务器', 'checking servers in the machine room', 'サーバールームの点検') }] },
       abe: { wishes: [2], rules: [{ t: 'fixed', d: 2, v: 1, why: T('和外包设计师见面', 'meeting the agency designers', '外部デザイナーと打ち合わせ') }] },
       suzuki: { wishes: [2], rules: [{ t: 'fixed', d: 2, v: 1, why: T('来装监控大屏', 'installing the monitoring wall', '監視モニターの設置') }] },
     },

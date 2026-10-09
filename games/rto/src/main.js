@@ -114,11 +114,11 @@ const UI = {
   skipTut: T('跳过', 'Skip', 'スキップ'),
   done: T('开始排班', 'Start', 'はじめる'),
   tut: [
-    T('排班表已经按大家的申请预先填好了。点一下格子切换「出社」和「在宅」，第三下清空。申请只考虑了他们自己，照单全收不一定是好事。', 'The schedule is pre-filled with everyone\'s requests. Click a cell to switch between office and remote; a third click clears it. Requests only think of the person who made them, so taking them all as-is is not always wise.', 'シフト表はみんなの申請で仮入力済み。マスをクリックで出社と在宅を切り替え、3回目でクリア。申請は本人の都合だけ。全部そのまま通すのが正解とは限らない。'),
+    T('排班表已经按大家的申请预先填好了。点一下格子，就在「出社」和「在宅」之间切换。申请只考虑了他们自己，照单全收不一定行得通。', 'The schedule is pre-filled with everyone\'s requests. Click a cell to switch it between office and remote. Requests only think of the person who made them, so taking them as-is may not work.', 'シフト表はみんなの申請で仮入力済み。マスをクリックすると出社と在宅が切り替わる。申請は本人の都合だけ。そのまま通せるとは限らない。'),
     T('鼠标移到成员上（手机上点一下），能看到他的申请、工作安排，以及你已经掌握的真实需求。真实需求要在 1:1 里才听得出来。', 'Hover a member (tap on phones) to see their request, work commitments and any real need you have uncovered. Real needs only come out in 1:1s.', 'メンバーにカーソルを合わせる（スマホはタップ）と、申請・業務予定・判明した本当の希望が見られる。本当の希望は1on1でしか分からない。'),
-    T('这里是必须遵守的要求。工位上限和工作安排不满足就不能提交；CFO 视察日人数不够也能提交，但算出勤率不达标。', 'These are the requirements. Desk limits and work commitments must be met to submit. A CFO visit day short of people can still be submitted, but counts as missing attendance.', 'ここは守るべき条件。席の上限と業務予定を満たさないと提出できない。CFO視察日の人数不足は提出できるが、出社率未達になる。'),
-    T('出勤率目标在这里。累计 3 周不达标，你就会被开除。', 'Here is the attendance target. Miss it in 3 weeks and you are out.', '出社率の目標はここ。3週未達でクビになる。'),
-    T('提交后会看到每个人的反应：满足了真实需求就是😊。大家的心情会一直累积下去。', 'After you submit you see how each person took it: meeting their real need earns a 😊. Moods carry over from week to week.', '提出すると全員の反応が見える。本当の希望を満たせば😊。気分は週をまたいで積み重なる。'),
+    T('这里是公司的要求。工位上限和工作安排不满足就不能提交。', 'These are the company\'s requirements. Desk limits and work commitments have to be met before you can submit.', 'ここは会社からの条件。席の上限と業務予定を満たさないと提出できない。'),
+    T('出勤率在这里。公司一直盯着这个数字。', 'Attendance is shown here. The company is watching this number.', '出社率はここ。会社はこの数字をずっと見ている。'),
+    T('提交后会看到每个人的反应。大家的心情会一直累积下去。', 'After you submit, you will see how each person took it. Moods carry over from week to week.', '提出すると全員の反応が見える。気分は週をまたいで積み重なる。'),
   ],
 };
 const DAY = { zh: ['周一', '周二', '周三', '周四', '周五'], en: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], ja: ['月', '火', '水', '木', '金'] };
@@ -619,28 +619,14 @@ function bindGrid(n, lv, editable) {
   const grid = $('grid');
   $('prevw').onclick = () => { S.view.week = n - 1; S.hist = []; closePop(); save(); render(); };
   $('nextw').onclick = () => { S.view.week = n + 1; S.hist = []; closePop(); save(); render(); };
-  let press = null;
   grid.onclick = e => {
     const w = e.target.closest('.who, .day');
     if (w) { if (S.touch) togglePop(w, n, true); return; }
     const b = e.target.closest('.cell'); if (!b || !editable) return;
-    if (press?.fired) { press = null; return; }
-    const p = +b.dataset.p, d = +b.dataset.d, v = gridOf(n)[p][d];
-    setCell(n, p, d, v === null ? 1 : v === 1 ? 0 : null);
-  };
-  grid.oncontextmenu = e => {
-    const b = e.target.closest('.cell'); if (!b || !editable) return;
-    e.preventDefault();
     const p = +b.dataset.p, d = +b.dataset.d;
-    setCell(n, p, d, gridOf(n)[p][d] === 0 ? null : 0);
+    setCell(n, p, d, gridOf(n)[p][d] === 1 ? 0 : 1);
   };
-  grid.onpointerdown = e => {
-    S.touch = e.pointerType !== 'mouse';
-    const b = e.target.closest('.cell'); if (!b || !editable || e.pointerType === 'mouse') return;
-    press = { fired: false };
-    press.t = setTimeout(() => { press.fired = true; const p = +b.dataset.p, d = +b.dataset.d; setCell(n, p, d, gridOf(n)[p][d] === 0 ? null : 0); }, 450);
-  };
-  grid.onpointerup = grid.onpointercancel = () => { if (press && !press.fired) { clearTimeout(press.t); press = null; } };
+  grid.onpointerdown = e => { S.touch = e.pointerType !== 'mouse'; };
   grid.onpointerover = e => { if (e.pointerType !== 'mouse') return; const w = e.target.closest('.who, .day'); if (w) showPop(w, n, false); };
   grid.onpointerout = e => { if (e.pointerType !== 'mouse') return; const w = e.target.closest('.who, .day'); if (w && !w.contains(e.relatedTarget)) closePop(); };
   if (editable) {
