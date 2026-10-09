@@ -1,6 +1,6 @@
 import './style.css';
 import { solve, evalC, allConstraints, resolve } from './engine.js';
-import { T, ORDER, CAST, LEVELS, withNeeds } from './levels.js';
+import { T, ORDER, CAST, LEVELS, MORALE, withNeeds } from './levels.js';
 import { COMPANY, EMAILS, CHATS, TALKS, FINALE, BEATS, MOOD_LINES, MOOD_CHATS } from './story.js';
 import { loadLocale, saveLocale } from './locale.js';
 import { loadFonts } from './fonts.js';
@@ -45,8 +45,8 @@ const UI = {
   noDayReq: T('这一天没有特殊安排', 'Nothing special this day', 'この日は特別な条件なし'),
   firedTitle: T('你被开除了', 'You were let go', 'あなたは解任された'),
   firedTx: T('出勤率第三次没有达标。黑田只发来了一封很短的邮件：「明天起，开发二组由其他人接手。」', 'Attendance missed the target a third time. Kuroda sent one short email: "Starting tomorrow, someone else will run Dev Team 2."', '出社率が3回目の未達。黒田さんから届いたのは短いメールだけ。「明日から開発2課は別の者が担当します。」'),
-  protoTitle: T('原型到这里结束', 'End of the prototype', 'プロトタイプはここまで'),
-  protoTx: T('完整版里，评分回升那一周需要至少 5 人心情 ≥ +1。你现在有 {g} 人。', 'In the full game, at least 5 people need mood ≥ +1 in the week the rating recovers. You have {g}.', '完成版では、評価が回復する週に5人以上の気分が+1以上必要。いまは{g}人。'),
+  bankTitle: T('评分没能回来', 'The rating never came back', '評価は戻らなかった'),
+  bankTx: T('最后一周作战室，开发二组只有 {g} 个人还撑着。修复没赶上，评分停在 3.2。三个月后，一个公司申请了破产。', 'In the last war-room week only {g} people on Dev Team 2 were still holding on. The fix did not make it and the rating stalled at 3.2. Three months later, A Company filed for bankruptcy.', '作戦室の最後の週、開発2課で持ちこたえていたのは{g}人だけ。修正は間に合わず、評価は3.2で止まった。3か月後、ある会社は破産を申請した。'),
   retryWeek: T('重来这一周', 'Retry this week', 'この週をやり直す'),
   resTitle: T('本周大家的反应', "How the team took it", '今週のみんなの反応'),
   attOk: T('达标', 'target met', '達成'),
@@ -249,8 +249,6 @@ function advance() {
     save();
     toast('grid', u('newWeek'), u('weekOpen', { n: b + 1 }), () => openApp('grid'));
     render();
-  } else if (b >= LEVELS.length) {
-    S.outcome = 'proto'; S.view.app = 'end'; save(); render(true);
   }
 }
 function chatOf(id) {
@@ -263,7 +261,8 @@ function chatOf(id) {
     msgs: script.lines.flatMap(l => {
       if (l[0] !== 'mood') return [l];
       const [, p, i] = l, f = faceOf2(p);
-      return i === 1 && f === 'happy' ? [] : [[p, MOOD_LINES[p][f][i]]];
+      const v = Object.keys(MOOD_LINES).filter(k => k.startsWith(p + '@') && +k.split('@')[1] <= n).sort((a, b) => b.split('@')[1] - a.split('@')[1])[0] || p;
+      return i === 1 && f === 'happy' ? [] : [[p, MOOD_LINES[v][f][i]]];
     }),
   };
 }
@@ -402,7 +401,7 @@ function jumpTo(n) {
     for (const id in S.results[i].faces) S.mood[id] = Math.min(2, S.mood[id] + 1);
   }
   S.feed = BEATS.slice(0, n + 1).flat().filter(e => typeof e === 'string').map(key => ({ key, read: true }));
-  if (n >= LEVELS.length) { S.lv = LEVELS.length - 1; S.outcome = 'proto'; S.view = { app: 'end', week: S.lv, mail: null, chat: null, meet: null }; }
+  if (n >= LEVELS.length) { S.lv = LEVELS.length - 1; feedItem('finale').read = false; S.view = { app: 'meet', meet: 'finale', mail: null, chat: null, week: S.lv }; }
   else { S.lv = n; S.gridSeen[n] = true; S.view = { app: 'grid', week: n, mail: null, chat: null, meet: null }; }
   S.checkpoint = null; S.checkpoint = JSON.parse(JSON.stringify(snapshot()));
   S.tk = null; S.hist = []; S.anim = null; S.flashed = false;
@@ -478,7 +477,7 @@ const attendOk = (lv, g) => {
 };
 function hardOk(lv, g) {
   const h = asHome(g);
-  return lv.rules.filter(c => c.t !== 'min').every(c => evalC(resolve(lv, c), h) === 'ok') && lv.people.every(p => p.rules.every(c => evalC(own(lv, p, c), h) === 'ok'));
+  return lv.rules.filter(c => c.t !== 'min' || c.hard).every(c => evalC(resolve(lv, c), h) === 'ok') && lv.people.every(p => p.rules.every(c => evalC(own(lv, p, c), h) === 'ok'));
 }
 function faceOf(lv, i, g) {
   const p = lv.people[i], h = asHome(g);
@@ -701,7 +700,8 @@ function submit(n) {
   S.done.add(n); S.hist = []; closePop(); save();
   const ov = $('overlay');
   const next = () => {
-    if (S.fails >= 3) { ov.innerHTML = ''; S.outcome = 'fired'; S.view.app = 'end'; save(); render(true); return; }
+    const end = S.fails >= 3 ? 'fired' : n === MORALE.week && ORDER.filter(id => S.mood[id] >= 1).length < MORALE.need ? 'bankrupt' : null;
+    if (end) { ov.innerHTML = ''; S.outcome = end; S.view.app = 'end'; save(); render(true); return; }
     const finish = () => { ov.innerHTML = ''; render(); setTimeout(advance, 300); };
     if (reduceMotion()) finish(); else weekFlip(n, finish);
   };
@@ -1005,11 +1005,11 @@ function renderOutcome() {
   const good = ORDER.filter(id => S.mood[id] >= 1).length;
   const trail = ORDER.map(id => `<div class="trail">${av(id)}<b>${esc(nm(id))}</b><span>${Object.keys(S.results).sort().map(n => FACE[S.results[n].faces[id]]).join(' ')}</span><span class="mv ${S.mood[id] >= 1 ? 'ok' : S.mood[id] < 0 ? 'bad' : ''}">${esc(u('moodTx', { v: (S.mood[id] > 0 ? '+' : '') + S.mood[id] }))}</span>${S.clues[id] ? '<span class="cl">🔍</span>' : ''}</div>`).join('');
   app.innerHTML = `<div class="outcome">
-    <h2>${esc(u(fired ? 'firedTitle' : 'protoTitle'))}</h2>
-    <p>${esc(u(fired ? 'firedTx' : 'protoTx', { g: good }))}</p>
+    <h2>${esc(u(fired ? 'firedTitle' : 'bankTitle'))}</h2>
+    <p>${esc(u(fired ? 'firedTx' : 'bankTx', { g: good }))}</p>
     <div class="trails">${trail}</div>
     <p class="meta2">${esc(u('failCount', { n: S.fails }))}</p>
-    <div class="share">${fired && S.checkpoint ? `<button id="retry" class="btn primary">${esc(u('retryWeek'))}</button>` : ''}<button id="again2" class="btn">${esc(u('again'))}</button></div>
+    <div class="share">${S.checkpoint ? `<button id="retry" class="btn primary">${esc(u('retryWeek'))}</button>` : ''}<button id="again2" class="btn">${esc(u('again'))}</button></div>
   </div>`;
   if ($('retry')) $('retry').onclick = () => {
     const cp = S.checkpoint;

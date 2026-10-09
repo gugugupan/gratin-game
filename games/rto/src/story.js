@@ -48,7 +48,7 @@ export const EMAILS = {
     },
   },
   layoff: {
-    from: 'hr', date: T('10月30日 周五 17:30', 'Fri, Oct 30 · 17:30', '10月30日(金) 17:30'),
+    from: 'hr', date: T('10月23日 周五 17:30', 'Fri, Oct 23 · 17:30', '10月23日(金) 17:30'),
     to: T('全体员工', 'All staff', '全社員'),
     subject: T('组织调整通知', 'Organizational Changes', '組織変更のお知らせ'),
     body: [
@@ -58,7 +58,7 @@ export const EMAILS = {
     ],
   },
   perks: {
-    from: 'ga', date: T('11月6日 周五 12:00', 'Fri, Nov 6 · 12:00', '11月6日(金) 12:00'),
+    from: 'ga', date: T('10月30日 周五 12:00', 'Fri, Oct 30 · 12:00', '10月30日(金) 12:00'),
     to: T('全体员工', 'All staff', '全社員'),
     subject: T('福利制度调整', 'Changes to Employee Benefits', '福利厚生の見直しについて'),
     body: [
@@ -68,13 +68,24 @@ export const EMAILS = {
     ],
   },
   warroom: {
-    from: 'kuroda', date: T('11月20日 周五 21:15', 'Fri, Nov 20 · 21:15', '11月20日(金) 21:15'),
+    from: 'kuroda', date: T('11月13日 周五 21:15', 'Fri, Nov 13 · 21:15', '11月13日(金) 21:15'),
     to: T('开发部门全体', 'All Engineering', '開発部門全員'),
     subject: T('紧急：线下作战体制', 'URGENT: In-Office War Room', '【緊急】出社による対策体制について'),
     body: [
       T('鉴于产品评分急剧下滑，开发部门自下周起每周出社 3 天，直至应用评分恢复到 4.0 以上。', 'Given the sharp drop in our app rating, Engineering will work from the office 3 days a week starting next week, until the rating is back above 4.0.', 'アプリ評価の急落を受け、開発部門は来週より評価が4.0以上に回復するまで週3日出社とします。'),
       T('危机时刻，更需要面对面沟通。', 'In a crisis, we need to talk face to face.', '危機のときこそ対面でのコミュニケーションが必要です。'),
       T('各团队出勤率改为每日公示。', 'Team attendance will now be published daily.', 'チーム別出社率は毎日公開に変更します。'),
+    ],
+  },
+  deadline: {
+    from: 'mori', date: Z('12月4日 周五 22:40'),
+    to: Z('开发部门全体'),
+    subject: Z('下周五'),
+    body: [
+      Z('评分现在是 3.4。投资方说，如果下周五之前回不到 4.0，下一轮就不投了。'),
+      Z('我知道大家已经连着三周每周来三天，很多人很累。'),
+      Z('我能做的只有相信你们。也请各位经理，照顾好自己的人。'),
+      Z('森'),
     ],
   },
   allhands: {
@@ -134,33 +145,52 @@ export const CHATS = {
     ['suzuki', Z('我在新干线上把告警都处理完了。要是一趟能待两天就好了')],
     ['kobayashi', Z('大家注意身体。……我先下线了，三点要到幼儿园')],
   ] },
-  perks: { name: T('咖啡没了', 'No more coffee', 'コーヒーがない'), channel: '#dev-2', msgs: [
-    ['abe', T('咖啡机还在，咖啡没了', 'The coffee machine stays. The coffee goes', 'マシンは残る。コーヒーは消える')],
-    ['wang', T('你品，你细品', 'Let that sink in', '味わい深いね')],
-    ['suzuki', T('长野到东京新干线往返 1.6 万日元。3 万日元只够我来一次。', 'Nagano–Tokyo round trip on the shinkansen is ¥16,000. ¥30,000 covers one visit.', '長野〜東京の新幹線往復で1.6万円。3万円だと1回分にしかならない。')],
-    ['kobayashi', T('……那还要求每周来两次？', '...and they still want twice a week?', '……それで週2回来いって？')],
-    ['suzuki', T('我算了一下，每个月要倒贴 10 万日元。', 'I did the math. I\'d be paying ¥100,000 a month out of pocket.', '計算したら毎月10万円の持ち出し。')],
+  perks: { name: Z('咖啡没了'), channel: '#dev-2', msgs: [
+    ['abe', Z('咖啡机还在，咖啡没了')],
+    ['wang', Z('你品，你细品')],
+    ['kobayashi', Z('年末聚会也取消了……孩子们还说想见见大家')],
+    ['tanaka', Z('我带了挂耳包，大家要的话在我抽屉里')],
+    ['sato', Z('田中，谢谢。不过你自己也留几包')],
+    ['suzuki', Z('交通费上限 3 万日元。长野到东京新干线往返 1.6 万。')],
+    ['kobayashi', Z('……那还要求每周来两次？')],
+    ['suzuki', Z('我算了一下，一个月要倒贴将近 10 万日元。')],
+    ['suzuki', Z('来一次待两天的话，就只要一趟车钱。可是住一晚的酒店又得自己掏')],
+    ['abe', Z('分区熄灯也开始了。我那排下午四点就黑了')],
+    ['wang', Z('正好，我可以在黑暗里敲键盘')],
+    ['abe', Z('你敢')],
   ] },
-  reviews: { name: T('评分告急', 'Rating emergency', '評価がピンチ'), channel: '#general', msgs: [
-    ['nakamura', T('大家看一下应用商店，评分从 4.6 掉到 2.1 了', 'Everyone, check the app store. Our rating dropped from 4.6 to 2.1', '皆さんアプリストアを見てください。評価が4.6から2.1に落ちています')],
-    ['nakamura', T('「同步把我的笔记全删了」「更新后打不开」，一千多条', '"Sync deleted all my notes." "Won\'t open after the update." Over a thousand of these', '「同期でメモが全部消えた」「アップデート後に起動しない」が1000件以上')],
-    ['wang', T('是周三那次发版。我在查。', "It's Wednesday's release. I'm on it.", '水曜のリリースだ。調べてる。')],
-    ['sato', T('我来组织复盘。大家先修 bug。', "I'll run the postmortem. Everyone, fix first.", '振り返りは僕がやる。まずは修正を。')],
-    ['kuroda', T('各位，稍后会发邮件。', 'Everyone, an email is coming shortly.', '皆さん、のちほどメールを送ります。')],
-    ['abe', T('……我有不好的预感', '...I have a bad feeling about this', '……嫌な予感がする')],
+  reviews: { name: Z('评分告急'), channel: '#general', msgs: [
+    ['nakamura', Z('大家看一下应用商店，评分从 4.6 掉到 2.1 了')],
+    ['nakamura', Z('「同步把我的笔记全删了」「更新后打不开」，一千多条')],
+    ['wang', Z('是周三那次发版。迁移脚本在旧版本上跑了两遍。我在查。')],
+    ['sato', Z('我来组织复盘。大家先修 bug。')],
+    ['abe', Z('错误提示也得重写，现在用户看到的是一串英文代码')],
+    ['abe', Z('……文案和接口得跟老王当面对。远程对了三次，三次都对错了')],
+    ['kuroda', Z('各位，稍后会发邮件。')],
+    ['tanaka', Z('……我有不好的预感')],
+    ['suzuki', Z('监控我盯着。今晚不睡了')],
+    ['kobayashi', Z('客户那边我去道歉。你们专心修')],
   ] },
-  thaw: { name: T('评分回来了', 'The rating is back', '評価が戻った'), channel: '#general', msgs: [
-    ['nakamura', T('评分回到 4.3 了！🎉', 'Rating is back to 4.3! 🎉', '評価が4.3に戻りました！🎉')],
-    ['nakamura', T('有用户说新的错误提示「意外地很温柔」', 'One user said the new error messages are "surprisingly kind"', '新しいエラーメッセージが「意外とやさしい」とレビューされてます')],
-    ['abe', T('那是我和老王在办公室一起改的', 'Wang and I rewrote those together at the office', 'あれ、王さんとオフィスで一緒に直したやつ')],
-    ['wang', T('用的是静音键盘', 'On a silent keyboard', '静音キーボードでね')],
+  thaw: { name: Z('评分回来了'), channel: '#general', msgs: [
+    ['nakamura', Z('评分回到 4.3 了！🎉')],
+    ['nakamura', Z('有用户说新的错误提示「意外地很温柔」')],
+    ['abe', Z('那是我和老王在办公室一起改的')],
+    ['wang', Z('用的是静音键盘')],
+    ['abe', Z('……这次是真的静音的')],
+    ['sato', Z('复盘文档我整理完了。田中写了其中一节')],
+    ['tanaka', Z('是、是最短的那一节……')],
+    ['suzuki', Z('这周一次告警都没有。我想去睡一觉')],
+    ['kobayashi', Z('辛苦了，各位。周三我请大家吃点心，寄到你们家里')],
   ] },
-  ready: { name: T('All Hands 前夜', 'Night before All Hands', 'All Hands前夜'), channel: '#dev-2', msgs: [
-    ['kobayashi', T('周四我去，孩子拜托给婆婆了', "I'll be there Thursday. Grandma has the kids", '木曜は行くよ。子どもは義母にお願いした')],
-    ['suzuki', T('周三、周四的酒店订好了', 'Hotel booked for Wednesday and Thursday', '水・木のホテル取れた')],
-    ['tanaka', T('我可以坐在佐藤さん旁边吗', 'Can I sit next to Sato?', '佐藤さんの隣に座っていいですか')],
-    ['sato', T('可以', 'Sure', 'いいよ')],
-    ['wang', T('这周我连着来也行。为了合影。', "I'll do back-to-back days this week. For the photo.", '今週は連続でも行く。集合写真のために。')],
+  ready: { name: Z('All Hands 前夜'), channel: '#dev-2', msgs: [
+    ['kobayashi', Z('周四我去，孩子拜托给婆婆了')],
+    ['suzuki', Z('周三、周四的酒店订好了。这次算出差')],
+    ['tanaka', Z('我可以坐在佐藤さん旁边吗')],
+    ['sato', Z('可以。这次不复盘，只吃饭')],
+    ['wang', Z('这周我连着来也行。为了合影。')],
+    ['abe', Z('那你周一呢')],
+    ['wang', Z('周一照样补觉。我又不是变了一个人')],
+    ['abe', Z('那我带降噪耳机去合影')],
   ] },
 };
 
@@ -251,83 +281,185 @@ export const TALKS = {
   },
   suzuki: {
     lines: [
-      ['them', T('先说好，我不是不想见大家。', 'Just so you know, it\'s not that I don\'t want to see everyone.', '先に言っておくと、みんなに会いたくないわけじゃないんだ。')],
-      ['them', T('疫情的时候公司说可以全远程，我才搬回长野照顾父母。现在新干线的钱都不报了。', 'During the pandemic the company said full remote was fine, so I moved back to Nagano to look after my parents. Now they won\'t even cover the shinkansen.', 'コロナのとき会社がフルリモートOKって言ったから、親の面倒を見に長野に戻った。今は新幹線代も出ない。')],
-      ['me', T('嗯。你搬家是公司同意过的。', 'Right. The company signed off on that move.', 'うん。引っ越しは会社も認めてた。')],
+      ['them', Z('先说好，我不是不想见大家。')],
+      ['them', Z('疫情的时候公司说可以全远程，我才搬回长野照顾父母。现在交通费有了上限，新干线来回一趟就是 1.6 万。')],
+      ['me', Z('嗯。你搬家是公司同意过的。')],
       { choice: [
-        { label: T('你连续来两天，中间住一晚，我去申请出差住宿补贴。', 'Come two days in a row, stay one night, and I\'ll get it approved as a business trip.', '2日連続で来て1泊する形にしよう。出張として宿泊手当を申請する。'), reply: [
-          ['them', T('住宿算出差的话……一趟就能办两天的事。', 'If the hotel counts as a business trip... one trip covers two days.', '宿泊が出張扱いなら……1往復で2日分こなせる。')],
+        { tag: 'empathy', label: Z('每周跑两趟东京，身体吃得消吗？'), reply: [
+          ['them', Z('早上五点起，赶六点的新干线。晚上回去还要照顾我妈。')],
+          ['them', Z('说实话，跑两趟是最累的。来一趟能多待一天就好了。')],
         ] },
-        { label: T('干脆在长野开个分公司？你当分公司社长。', 'Why not open a Nagano branch? You can be branch president.', 'いっそ長野支社を作ろう。君が支社長だ。'), reply: [
-          ['them', T('（笑）社长兼保洁兼 SRE？', '(laughs) President, janitor and SRE?', '（笑）支社長兼清掃兼SRE？')],
-          ['them', T('其实……一次来两天就好，中间住一晚。', 'Honestly... two days per trip would do it. One night in between.', '実は……1回で2日来られればいい。間に1泊して。')],
-          ['me', T('那我去申请出差住宿补贴，按出差算。', "Then I'll file the hotel as a business trip.", 'じゃあ出張扱いで宿泊手当を申請するね。')],
+        { tag: 'solve', label: Z('那你申请的那两天，我都给你排上。'), reply: [
+          ['them', Z('……好啊。')],
+          ['them', Z('（他在手机上算着什么）嗯，没事。')],
+        ] },
+        { tag: 'wild', label: Z('干脆在长野开个分公司？你当分公司社长。'), reply: [
+          ['them', Z('（笑）社长兼保洁兼 SRE？')],
+          ['them', Z('……其实不用那么麻烦。一趟车能待两天，路费就省一半。')],
         ] },
       ] },
-      ['them', T('行，我会连着来两天。父母那边我安排一下。', "Okay. I'll come two days back-to-back. I'll sort things out with my parents.", 'わかった、2日連続で行く。親のほうは調整する。')],
+      { choice: [
+        { tag: 'empathy', label: Z('那待两天的话，晚上住哪？'), reply: [
+          ['them', Z('自己找酒店，自己掏钱。……要是能算出差就好了。')],
+        ] },
+        { tag: 'solve', label: Z('那你在新干线上尽量把活干完？'), reply: [
+          ['them', Z('告警我已经在新干线上处理了。问题不是干活，是一趟 1.6 万。')],
+        ] },
+        { tag: 'wild', label: Z('我去跟总务部说，新干线算团建。'), reply: [
+          ['them', Z('总务部会说，咖啡都停了还团建？')],
+          ['them', Z('（笑）我只要两天连着就行，中间住一晚。')],
+        ] },
+      ] },
+      ['them', Z('父母那边我会安排。你看着排吧。')],
+      { ask: {
+        options: [
+          { text: Z('出社日要连在一起'), ok: true },
+          { text: Z('一周只能来一天') },
+          { text: Z('只能周五来') },
+          { text: Z('一定要按申请的日子来') },
+        ],
+        right: [['me', Z('你来的两天我排在一起，中间那晚我去申请出差住宿补贴。')], ['them', Z('……那就一趟新干线办两天的事。谢谢。')]],
+        wrong: [['them', Z('……嗯，行吧。')], ['them', Z('（他关掉了摄像头）')]],
+      } },
     ],
-    unlock: { before: T('周一、周二 不想来', 'Mon, Tue: not coming', '月・火 行きたくない'), after: T('出社日必须连在一起（出差住宿补贴）', 'Office days must be back-to-back (hotel allowance)', '出社日は連続（出張宿泊手当）') },
   },
   tanaka: {
     lines: [
-      ['them', T('对不起……我最近把日历都锁了。', "I'm sorry... I've locked my whole calendar lately.", 'すみません……最近カレンダーを全部ロックしてて。')],
-      ['me', T('不用道歉。发生什么了吗？', 'No need to apologize. What happened?', '謝らなくていいよ。何かあった？')],
-      ['them', T('销售部的事之后，我在办公室总觉得大家在看我。我什么都不会，问问题又怕被觉得没用。', "Since the Sales thing, I feel like everyone's watching me at the office. I don't know anything, and I'm scared asking questions makes me look useless.", '営業部のことがあってから、オフィスでずっと見られてる気がして。何もできないし、質問したら使えないと思われそうで。')],
-      ['them', T('在家的话，至少可以偷偷 Google。', 'At home I can at least Google things quietly.', '家ならこっそりググれるので。')],
+      ['them', Z('对不起……我最近总是想在家。')],
+      ['me', Z('不用道歉。最近怎么样？')],
+      ['them', Z('销售部的事之后，我在办公室总觉得大家在看我。问问题又怕被觉得没用。')],
       { choice: [
-        { label: T('那每周有几天跟佐藤一起来吧，那几天有问题直接问他。他是你的导师。', 'Then share a few office days with Sato each week, and ask him anything on those days. That\'s what a mentor is for.', '毎週何日かは佐藤さんと一緒に来よう。その日は何でも聞けばいい。メンターなんだから。'), reply: [
-          ['them', T('佐藤さん在的话……我应该敢问。', 'If Sato is there... I think I could ask.', '佐藤さんがいれば……聞けると思います。')],
+        { tag: 'empathy', label: Z('在办公室的时候，最难受的是什么？'), reply: [
+          ['them', Z('一个人坐在那里，卡住了也不知道问谁。')],
+          ['them', Z('佐藤さん在的时候就不一样，他会自己走过来看。')],
         ] },
-        { label: T('我给你做个「问题扭蛋机」，问一个问题出一颗糖？', 'I\'ll build you a question gacha machine. One question, one candy.', '「質問ガチャ」を作ろう。1回質問したら飴が1個出る。'), reply: [
-          ['them', T('那我会胖 10 公斤的……', "I'd gain ten kilos...", '10キロ太っちゃいます……')],
-          ['them', T('不过，要是有个人可以随便问，我应该会好很多。', 'But if there were someone I could just ask, that would help a lot.', 'でも、気軽に聞ける人がいたら、だいぶ違うと思います。')],
-          ['me', T('那每周有几天跟佐藤一起来。他是你的导师。', "Then share a few office days with Sato each week. He's your mentor.", 'じゃあ毎週何日かは佐藤さんと一緒に来よう。メンターだし。')],
+        { tag: 'solve', label: Z('那你申请的日子我都排上，多来几次就习惯了。'), reply: [
+          ['them', Z('……嗯。')],
+          ['them', Z('（他低头看着键盘）多来几次……就会好吗。')],
+        ] },
+        { tag: 'wild', label: Z('我给你做个「问题扭蛋机」，问一个问题出一颗糖？'), reply: [
+          ['them', Z('那我会胖 10 公斤的……')],
+          ['them', Z('不过，要是佐藤さん在旁边，我应该敢问。')],
         ] },
       ] },
-      ['them', T('佐藤さん说过，他当新人的时候也问过「git 是什么」。', 'Sato once told me that as a new grad, he asked "what is git?"', '佐藤さん、新人のころ「gitって何ですか」って聞いたって言ってました。')],
+      { choice: [
+        { tag: 'empathy', label: Z('那每天都跟佐藤一起来？'), reply: [
+          ['them', Z('每天都跟着他……他会烦的吧。')],
+          ['them', Z('而且我也想试试自己行不行。一周有一天就够了。')],
+        ] },
+        { tag: 'solve', label: Z('那你在家多看看文档吧。'), reply: [
+          ['them', Z('文档我都看过了……看不懂的地方才想问人。')],
+          ['them', Z('攒一周的问题，找一天问佐藤さん，应该就够了。')],
+        ] },
+        { tag: 'wild', label: Z('要不我们给佐藤做个纸板立牌？'), reply: [
+          ['them', Z('（笑）那我可能真的会去问它。')],
+          ['them', Z('……其实一周有一天佐藤さん在就好，其他日子我想自己试试。')],
+        ] },
+      ] },
+      ['them', Z('佐藤さん说过，他当新人的时候也问过「git 是什么」。')],
+      { ask: {
+        options: [
+          { text: Z('和佐藤恰好有 1 天一起出社'), ok: true },
+          { text: Z('每天都要和佐藤一起出社') },
+          { text: Z('办公室里至少要有 3 个人他才肯来') },
+          { text: Z('一定要按申请的日子来') },
+        ],
+        right: [['me', Z('每周排一天你和佐藤一起，那天攒着问题问他。其他日子你自己试试。')], ['them', Z('……好。我会把问题记在本子上。')]],
+        wrong: [['them', Z('……好的，我会努力的。')], ['them', Z('（他的声音越来越小）')]],
+      } },
     ],
-    unlock: { before: T('周四、周五 不想来', 'Thu, Fri: not coming', '木・金 行きたくない'), after: T('和佐藤固定有几天一起出社', 'Shares a set number of office days with Sato', '佐藤さんと決まった日数だけ一緒に出社') },
   },
   abe: {
     lines: [
-      ['them', T('你知道办公室为什么吵吗？', 'Do you know why the office is so loud?', 'オフィスがなんでうるさいか知ってる？')],
-      ['me', T('……老王的键盘？', "...Wang's keyboard?", '……王さんのキーボード？')],
-      ['them', T('机械键盘，青轴。他一紧张就打得更快。现在全公司都很紧张。', 'Mechanical, clicky blue switches. He types faster when he\'s stressed. And right now everyone is stressed.', 'メカニカル、青軸。焦るとタイピングが速くなる。で、今は全社が焦ってる。')],
-      ['them', T('做设计要安静。在那种声音里，我画的按钮都像在尖叫。', 'I need quiet to design. In that noise, every button I draw looks like it\'s screaming.', 'デザインには静けさが要る。あの音の中だと、描くボタンが全部叫んでるみたいになる。')],
+      ['them', Z('你知道办公室为什么吵吗？')],
+      ['me', Z('……老王的键盘？')],
+      ['them', Z('青轴。他一紧张就打得更快。现在全公司都很紧张。')],
+      ['them', Z('可作战室一开，错误提示的文案和接口都得跟他对。远程对了三次，三次都对错了。')],
       { choice: [
-        { label: T('我给你申请降噪耳机，再把你们俩的排班错开。', "I'll get you noise-cancelling headphones and keep your days apart from his.", 'ノイキャンのヘッドホンを申請して、王さんとはシフトをずらすよ。'), reply: [
-          ['them', T('完全错开也不行，有些接口必须和他当面对……', 'Not completely apart, though. Some APIs I have to go over with him in person...', '完全にずらすのも困る。APIの仕様は直接すり合わせたいし……')],
+        { tag: 'empathy', label: Z('所以你其实需要跟他见面？'), reply: [
+          ['them', Z('……一周见一次就够。')],
+          ['them', Z('见多了，我的耳朵受不了。')],
         ] },
-        { label: T('我去把老王的键盘换成电子琴，至少好听一点。', "I'll swap Wang's keyboard for a piano keyboard. At least it'll sound nice.", '王さんのキーボードを電子ピアノに替えよう。少なくとも音はきれい。'), reply: [
-          ['them', T('（笑）那他会开始弹肖邦。', "(laughs) Then he'd start playing Chopin.", '（笑）ショパンを弾き始めるよ。')],
-          ['them', T('说真的，偶尔一起在比较好，有些接口要当面对。', "Honestly, being in together sometimes is good. Some APIs need a face-to-face.", '真面目に言うと、たまに一緒にいるのはいいんだ。APIは直接すり合わせたい。')],
+        { tag: 'solve', label: Z('那就把你们俩排在同一天，越多越好。'), reply: [
+          ['them', Z('越多越好？')],
+          ['them', Z('（她沉默了三秒）你是想让我画的按钮都尖叫吗。')],
+        ] },
+        { tag: 'wild', label: Z('我去把老王的键盘换成电子琴。'), reply: [
+          ['them', Z('（笑）那他会开始弹肖邦。')],
+          ['them', Z('……说真的，接口必须当面对。一周一天就好。')],
         ] },
       ] },
-      ['me', T('那就一周只有一天和老王同时在，那天专门对接口。', 'So one day a week with Wang, and that day is for API work.', 'じゃあ王さんと一緒の日は週1日だけ。その日はAPIのすり合わせ。')],
-      ['them', T('成交。再加一副降噪耳机。', 'Deal. Plus the headphones.', '決まり。ヘッドホンもね。')],
+      { choice: [
+        { tag: 'empathy', label: Z('那其他日子呢？'), reply: [
+          ['them', Z('其他日子我想离那个键盘远一点。在家画图最快。')],
+        ] },
+        { tag: 'solve', label: Z('我给你申请一副降噪耳机。'), reply: [
+          ['them', Z('耳机我有。戴一整天耳朵疼。')],
+          ['them', Z('一周一天的话，我可以忍。')],
+        ] },
+        { tag: 'wild', label: Z('要不你们俩用摩斯电码沟通？'), reply: [
+          ['them', Z('他会用青轴敲给我。')],
+          ['them', Z('……一周就一天，对完接口我就回家。')],
+        ] },
+      ] },
+      ['them', Z('降噪耳机还是要的。')],
+      { ask: {
+        options: [
+          { text: Z('和老王恰好 1 天同时出社'), ok: true },
+          { text: Z('永远不和老王同一天出社') },
+          { text: Z('每次出社都要和老王一起') },
+          { text: Z('一定要按申请的日子来') },
+        ],
+        right: [['me', Z('每周排一天你和老王一起，那天专门对接口。其他日子错开。')], ['them', Z('成交。再加一副降噪耳机。')]],
+        wrong: [['them', Z('……行吧。')], ['them', Z('（她把耳机戴上了）')]],
+      } },
     ],
-    unlock: { before: T('周四 不想来', 'Thu: not coming', '木 行きたくない'), after: T('和老王恰好 1 天同时出社', 'Exactly 1 office day together with Wang', '王さんと同じ日の出社はちょうど1日') },
   },
   sato: {
     lines: [
-      ['me', T('佐藤さん，你的日历最近也锁了。', 'Sato, your calendar is locked too these days.', '佐藤さん、最近カレンダーがロックされてますね。')],
-      ['them', T('……被你发现了。', '...You noticed.', '……バレたか。')],
-      ['them', T('事故以后，我每天复盘到 11 点，周末也在。一来办公室，大家都来问我。被需要我很高兴，可我一行代码都写不了。', "Since the incident I've been doing postmortems until 11 every night, weekends too. When I'm in the office everyone comes to me. I like being needed, but I can't write a single line of code.", '障害以来、毎晩23時まで振り返り、週末も。オフィスに行けばみんなが質問に来る。頼られるのは嬉しいけど、1行もコードが書けない。')],
-      ['them', T('当初是我第一个说「先按要求来吧」。我不想第一个说不行。', 'I was the first one to say "let\'s follow the policy." I didn\'t want to be the first to say I can\'t.', '最初に「ルール通りにやろう」と言ったのは僕だから。最初に「無理」とは言いたくなかった。')],
+      ['me', Z('佐藤さん，最近还好吗？')],
+      ['them', Z('……还好。')],
+      ['them', Z('我爸的复健上周结束了，周一终于不用跑医院了。')],
+      ['them', Z('只是事故以后，我每天复盘到 11 点，周末也在。一来办公室，大家都来问我。被需要我很高兴，可我一行代码都写不了。')],
       { choice: [
-        { label: T('每周五固定在家，那天谁都不许找你，包括我。', 'Fridays are yours, at home. No one contacts you that day. Including me.', '金曜は在宅固定。その日は誰も連絡しない。私も含めて。'), reply: [
-          ['them', T('包括你？', 'Including you?', '君も？')],
-          ['me', T('包括我。', 'Including me.', '私も。')],
+        { tag: 'empathy', label: Z('你上次好好写代码是什么时候？'), reply: [
+          ['them', Z('……不记得了。')],
+          ['them', Z('好像是事故前一周的周五。那天没有会，也没人找我。')],
         ] },
-        { label: T('做一个佐藤的纸板立牌放在办公室，让大家去问它。', "Let's put a cardboard cutout of you in the office. People can ask it instead.", '佐藤さんの等身大パネルをオフィスに置こう。質問はパネルにしてもらう。'), reply: [
-          ['them', T('田中大概真的会去问它。', 'Tanaka would actually ask it.', '田中くんは本当にパネルに聞くと思う。')],
-          ['them', T('……其实我只需要一天，安安静静地写代码。', '...Honestly, I just need one quiet day to write code.', '……本当は、静かにコードを書ける日が1日あればいい。')],
-          ['me', T('那每周五固定在家，谁都不许找你，包括我。', 'Then Fridays at home. No one contacts you. Including me.', 'じゃあ金曜は在宅固定。誰も連絡しない。私も含めて。')],
+        { tag: 'solve', label: Z('那周一也能来了，你申请的日子我都排上。'), reply: [
+          ['them', Z('嗯。周一周二周三都行。')],
+          ['them', Z('（他揉了揉眼睛）……只要别让我五天都在被人问就好。')],
+        ] },
+        { tag: 'wild', label: Z('做一个佐藤的纸板立牌放在办公室，让大家去问它。'), reply: [
+          ['them', Z('田中大概真的会去问它。')],
+          ['them', Z('……其实我只需要一天，安安静静地写代码。周五最好，周五没有会。')],
         ] },
       ] },
-      ['them', T('谢谢。这是我这个月第一次觉得能喘口气。', 'Thank you. That\'s the first time this month I feel like I can breathe.', 'ありがとう。今月初めて息ができる気がする。')],
+      { choice: [
+        { tag: 'empathy', label: Z('当初是你第一个说「先按要求来」的吧。'), reply: [
+          ['them', Z('是我。所以我不想第一个说不行。')],
+        ] },
+        { tag: 'solve', label: Z('再坚持一下，评分快回来了。'), reply: [
+          ['them', Z('……我知道。')],
+          ['them', Z('我只是想要一天，不用回答任何问题。')],
+        ] },
+        { tag: 'wild', label: Z('我们发明一个「佐藤免打扰日」，写进公司日历。'), reply: [
+          ['them', Z('（笑）黑田会问那天的出勤率是多少。')],
+          ['them', Z('……不过，要是周五能在家，我真的能喘口气。')],
+        ] },
+      ] },
+      ['them', Z('这些话我还没跟任何人说过。')],
+      { ask: {
+        options: [
+          { text: Z('周五在家，那天谁都别找他'), ok: true },
+          { text: Z('周一还是要在家陪父亲') },
+          { text: Z('一周最多来两天') },
+          { text: Z('一定要按申请的日子来') },
+        ],
+        right: [['me', Z('周五你在家，那天谁都不许找你，包括我。')], ['them', Z('包括你？')], ['me', Z('包括我。')], ['them', Z('……谢谢。这是我这个月第一次觉得能喘口气。')]],
+        wrong: [['them', Z('……嗯，我会撑住的。')], ['them', Z('（他笑了一下，但没有笑出声）')]],
+      } },
     ],
-    unlock: { before: T('周三 不想来', 'Wed: not coming', '水 行きたくない'), after: T('周五在家（深度工作日）', 'Home on Friday (deep-work day)', '金曜在宅（集中作業日）') },
   },
 };
 
@@ -367,6 +499,99 @@ export const MOOD_CHATS = {
     M('suzuki'), M('kobayashi'), M('wang'),
     ...ALL_SECOND,
   ] },
+  3: { name: Z('没有咖啡的一周'), lines: [
+    ['abe', Z('周四 CFO 带了三个董事来参观，在我工位后面站了好久')],
+    ['wang', Z('他们问我键盘是不是公司配的')],
+    ['abe', Z('你怎么说')],
+    ['wang', Z('我说是我自己的，青轴，很提神')],
+    M('abe'), M('wang'),
+    ['tanaka', Z('我的挂耳包已经被拿光了……')],
+    ['sato', Z('谁拿的自觉一点')],
+    M('tanaka'), M('sato'),
+    ['suzuki', Z('这个月的交通费报销单退回来了。超了上限')],
+    M('suzuki'),
+    ['kobayashi', Z('总务部说下个月连打印纸都要申请')],
+    M('kobayashi'),
+    ...ALL_SECOND,
+  ] },
+  4: { name: Z('出勤日报'), lines: [
+    ['kobayashi', Z('出勤率现在每天都贴在电梯口了')],
+    ['abe', Z('开发二组那一栏用的是红色字体')],
+    M('kobayashi'), M('abe'),
+    ['wang', Z('周三要发新版本，同步模块大改')],
+    ['sato', Z('迁移脚本多测一遍吧')],
+    ['wang', Z('测过了。……大概')],
+    M('wang'), M('sato'),
+    ['tanaka', Z('佐藤さん，周三我能在旁边看你们发版吗')],
+    M('tanaka'),
+    ['suzuki', Z('发版那天我盯监控。有事叫我')],
+    M('suzuki'),
+    ...ALL_SECOND,
+  ] },
+  5: { name: Z('作战室第一周'), lines: [
+    ['suzuki', Z('作战室的白板写满了。昨晚修了 14 个 bug')],
+    ['wang', Z('还剩 31 个')],
+    M('suzuki'), M('wang'),
+    ['tanaka', Z('佐藤さん今天被问了多少个问题啊')],
+    ['abe', Z('我数了，47 个。其中 12 个是你问的')],
+    ['tanaka', Z('……对不起')],
+    M('tanaka'), M('abe'),
+    ['kobayashi', Z('客户那边暂时稳住了。下周还要再去一次')],
+    M('kobayashi'),
+    ['sato', Z('没事。大家有问题随时问')],
+    M('sato'),
+    ...ALL_SECOND,
+  ] },
+  6: { name: Z('复盘会'), lines: [
+    ['abe', Z('佐藤さん昨天又是 11 点才下线')],
+    ['wang', Z('前天是 12 点')],
+    ['kobayashi', Z('他周末也在线。我看到他凌晨两点还在改复盘文档')],
+    M('abe'), M('wang'), M('kobayashi'),
+    ['tanaka', Z('我想帮忙，可是我连复盘文档都看不太懂……')],
+    M('tanaka'),
+    ['suzuki', Z('评分 2.6 了。在往上走')],
+    M('suzuki'),
+    ['sato', Z('……我没事。')],
+    M('sato'),
+    ...ALL_SECOND,
+  ] },
+  7: { name: Z('评分 3.4'), lines: [
+    ['suzuki', Z('评分 3.4。这周差评少了一半')],
+    ['abe', Z('新的错误提示上线了。用户说「终于看得懂了」')],
+    M('suzuki'), M('abe'),
+    ['tanaka', Z('我第一次一个人修好了一个 bug！')],
+    ['wang', Z('合进去之前我看过了。写得不错')],
+    M('tanaka'), M('wang'),
+    ['kobayashi', Z('听说森さん这周在跟投资方开会')],
+    M('kobayashi'),
+    ['sato', Z('……周五我会准时下线')],
+    M('sato'),
+    ...ALL_SECOND,
+  ] },
+  8: { name: Z('最后一周作战室'), lines: [
+    ['wang', Z('最后一个崩溃修掉了')],
+    ['suzuki', Z('监控全绿。我拍下来了')],
+    M('wang'), M('suzuki'),
+    ['abe', Z('作战室的白板谁来擦')],
+    ['tanaka', Z('我来！我想留一张照片再擦')],
+    M('abe'), M('tanaka'),
+    ['kobayashi', Z('评分……我不敢看')],
+    ['sato', Z('我也是')],
+    M('kobayashi'), M('sato'),
+    ...ALL_SECOND,
+  ] },
+  9: { name: Z('All Hands 当天'), lines: [
+    ['tanaka', Z('我是不是来太早了，会场只有我一个人')],
+    ['sato', Z('我也到了。在门口')],
+    M('tanaka'), M('sato'),
+    ['suzuki', Z('昨晚住的酒店离公司五分钟。这是我第一次走路上班')],
+    ['kobayashi', Z('孩子们说要看合影')],
+    M('suzuki'), M('kobayashi'),
+    ['wang', Z('我带了静音键盘过来。以防万一')],
+    ['abe', Z('以防什么万一')],
+    M('wang'), M('abe'),
+    ...ALL_SECOND,
+  ] },
 };
 
 export const MOOD_LINES = {
@@ -376,12 +601,25 @@ export const MOOD_LINES = {
   wang: { happy: [Z('这周作息没崩，难得'), Z('隔一天来一次，刚好')], meh: [Z('周初就来公司……我现在看代码是重影的'), Z('下次周一周二饶了我吧')], angry: [Z('我已经不知道今天星期几了'), Z('这周的班是谁排的')] },
   abe: { happy: [Z('这周耳根清净，图画得特别顺'), Z('设计稿提前一天交了')], meh: [Z('旁边一直有键盘声……算了'), Z('戴了一整天耳机，耳朵疼')], angry: [Z('青轴键盘陪了我一整天'), Z('我申请的日子也没给我')] },
   suzuki: { happy: [Z('这周一趟新干线办完两天的事，划算'), Z('晚上在东京吃了拉面')], meh: [Z('这周跑了两趟长野和东京，有点累'), Z('交通费又要超了')], angry: [Z('新干线来回两趟，这个月的交通费已经超了……'), Z('申请的日子也没排上，白跑一趟')] },
+  'tanaka@5': { happy: [Z('这周两天都有佐藤さん在，问题全清空了！'), Z('第三天我自己修了一个 bug')], meh: [Z('这周跟佐藤さん一起的日子不太对……'), Z('要么一个人卡着，要么一直跟着他')], angry: [Z('这周我好像一直是一个人……'), Z('申请的日子也没排上')] },
+  'wang@5': { happy: [Z('三天都没连着，作息还撑得住'), Z('难得')], meh: [Z('这周的排班，我的作息崩了'), Z('周一或者连着三天，哪个都要命')], angry: [Z('我已经不知道今天星期几了'), Z('这周的班是谁排的')] },
+  'abe@5': { happy: [Z('和老王当面对了一天接口，剩下的日子耳根清净'), Z('错误提示的文案改完了')], meh: [Z('接口还是没当面对好……'), Z('要么见不到老王，要么被键盘声包围好几天')], angry: [Z('这周不是见不到老王，就是天天听他的键盘'), Z('申请的日子也没给我')] },
+  'sato@7': { happy: [Z('周五在家写了一整天代码'), Z('没有人找我。谢谢')], meh: [Z('周五还是在办公室……被问了一天问题'), Z('下周再说吧')], angry: [Z('……这周有点累'), Z('周五也没能歇一下')] },
+  'wang@9': { happy: [Z('这周连着来也撑住了，为了合影'), Z('周一照样补了觉')], meh: [Z('周一还是来了……'), Z('合影里我大概是闭着眼的')], angry: [Z('我已经不知道今天星期几了'), Z('这周的班是谁排的')] },
 };
 
 const failed = n => S => S.fails >= n;
+const F = [['email:remind', failed(1)], ['email:warn', failed(2)]];
 export const BEATS = [
   ['email:welcome'],
-  ['chat:happy', 'email:cfo', ['email:remind', failed(1)], 'chat:complain', 'talk:kobayashi'],
-  ['chat:mood1', ['email:remind', failed(1)], ['email:warn', failed(2)], 'email:layoff', 'chat:layoff', 'talk:wang'],
-  ['chat:mood2', ['email:remind', failed(1)], ['email:warn', failed(2)]],
+  ['chat:happy', 'email:cfo', F[0], 'chat:complain', 'talk:kobayashi'],
+  ['chat:mood1', ...F, 'email:layoff', 'chat:layoff', 'talk:wang'],
+  ['chat:mood2', ...F, 'email:perks', 'chat:perks', 'talk:suzuki'],
+  ['chat:mood3', ...F, 'talk:tanaka'],
+  ['chat:mood4', ...F, 'chat:reviews', 'email:warroom', 'talk:abe'],
+  ['chat:mood5', ...F],
+  ['chat:mood6', ...F, 'talk:sato'],
+  ['chat:mood7', ...F, 'email:deadline'],
+  ['chat:mood8', ...F, 'chat:thaw', 'email:allhands', 'chat:ready'],
+  ['chat:mood9', 'finale'],
 ];

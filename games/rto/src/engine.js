@@ -61,6 +61,12 @@ export function evalC(c, g) {
       for (let d = first + 1; d < last; d++) if (r[d] === 0) return 'bad';
       return cnt(r, null) === 0 ? 'ok' : 'pending';
     }
+    case 'maxrun': {
+      const r = g[c.p];
+      let run = 0;
+      for (let d = 0; d < ND; d++) { run = r[d] === 1 ? run + 1 : 0; if (run > c.n) return 'bad'; }
+      return cnt(r, null) === 0 ? 'ok' : 'pending';
+    }
     case 'noconsec': {
       const r = g[c.p];
       let sure = true;
