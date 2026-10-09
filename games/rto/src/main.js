@@ -53,9 +53,6 @@ const UI = {
   attBad: T('未达标', 'target missed', '未達'),
   failCount: T('累计未达标 {n}/3', 'missed {n}/3', '未達 累計 {n}/3'),
   moodTx: T('心情 {v}', 'Mood {v}', '気分 {v}'),
-  tag_empathy: T('共情', 'EMPATHIZE', '寄り添う'),
-  tag_solve: T('解决问题', 'FIX IT', '解決する'),
-  tag_wild: T('天马行空', 'WILD IDEA', '突拍子もなく'),
   askPrompt: T('你觉得{n}真正在意的是什么？', 'What does {n} really need?', '{n}さんが本当に気にしているのは？'),
   clueGot: T('获得线索', 'CLUE FOUND', '手がかりを得た'),
   clueMiss: T('没有听出来', 'MISSED IT', '聞き出せなかった'),
@@ -935,7 +932,7 @@ function talkStage(who, key, isLive) {
   return `<div class="meet-top"><span class="rec"></span><b>${esc(u('meeting', { n: nm(who) }))}</b><span class="tm">${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}</span></div>
     ${tiles(speaker, mood)}
     <div class="transcript" id="tsc">${shown.map(([w, t], i) => lineHtml(w, t, who, i === shown.length - 1)).join('')}</div>
-    ${atChoice ? `<div class="choices">${atChoice.map((c, i) => `<button data-i="${i}"><span class="tag">${esc(u('tag_' + (c.tag || (i ? 'wild' : 'empathy'))))}</span>${esc(tr(c.label))}</button>`).join('')}</div>` : ''}
+    ${atChoice ? `<div class="choices">${atChoice.map((c, i) => `<button data-i="${i}">${esc(tr(c.label))}</button>`).join('')}</div>` : ''}
     ${atAsk ? `<div class="choices ask"><p class="askq">${esc(u('askPrompt', { n: nm(who) }))}</p>${atAsk.options.map((o, i) => `<button data-a="${i}">${esc(tr(o.text))}</button>`).join('')}</div>` : ''}
     ${S.tk.end ? unlockHtml(who, S.tk.ask) : ''}
     <div class="next-row">${atChoice || atAsk ? '' : S.tk.end ? `<button class="btn primary" id="leave">${esc(u('leave'))}</button>` : `<button class="btn primary" id="adv">${esc(last ? u('endcall') : u('cont'))}</button>`}</div>`;
