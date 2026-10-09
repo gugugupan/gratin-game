@@ -338,7 +338,36 @@ export const FINALE = [
   ['mori', T('既然今天大家都在，开发二组，来拍张合影吧！', "Since everyone's here today, Dev Team 2, let's take a group photo!", 'せっかく全員そろったし、開発2課、集合写真を撮ろう！')],
 ];
 
-export const MOOD_OPEN = Z('这周辛苦了，大家感觉怎么样？');
+const M = (who, i = 0) => ['mood', who, i];
+const ALL_SECOND = ['kobayashi', 'sato', 'tanaka', 'wang', 'abe', 'suzuki'].map(p => M(p, 1));
+export const MOOD_CHATS = {
+  1: { name: Z('周五 CFO 来了'), lines: [
+    ['abe', Z('CFO 真的来了，在工位区站了五分钟')],
+    ['tanaka', Z('她还问我在写什么……我说在写测试')],
+    ['sato', Z('写测试是好事')],
+    M('tanaka'),
+    ['wang', Z('她有没有看到我的键盘')],
+    ['abe', Z('看到了，她皱了一下眉')],
+    M('abe'), M('wang'),
+    ['suzuki', Z('网线终于布好了吗？上次来连 Wi-Fi 都断')],
+    M('suzuki'), M('kobayashi'),
+    ['sato', Z('听说下周开始要抽查了')],
+    M('sato'),
+    ...ALL_SECOND,
+  ] },
+  2: { name: Z('抽查周'), lines: [
+    ['wang', Z('CFO 这周抽查了三次。每次都站在门口数人头')],
+    ['abe', Z('数到我的时候还点了点头，莫名紧张')],
+    M('abe'),
+    ['tanaka', Z('销售部那边空了好多桌子……')],
+    ['sato', Z('山本さん那排已经被总务部贴上封条了')],
+    M('tanaka'), M('sato'),
+    ['kobayashi', Z('听说下个月咖啡也要停了？')],
+    ['suzuki', Z('那我只能从长野带茶包来了')],
+    M('suzuki'), M('kobayashi'), M('wang'),
+    ...ALL_SECOND,
+  ] },
+};
 
 export const MOOD_LINES = {
   kobayashi: { happy: [Z('这周按时接到孩子了🙏'), Z('下午还陪他们去游了泳')], meh: [Z('周三被排进来了……婆婆帮忙接的孩子'), Z('下次不一定找得到人帮忙')], angry: [Z('这周排的日子我都走不开'), Z('我再想想办法吧……')] },
