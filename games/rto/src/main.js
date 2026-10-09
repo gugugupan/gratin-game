@@ -58,7 +58,7 @@ const UI = {
   clueMiss: T('没有听出来', 'MISSED IT', '聞き出せなかった'),
   clueMissTx: T('没能听出{n}真正在意的事。只能从群聊和之后的反应里慢慢摸索。', 'You did not catch what {n} really needs. You will have to piece it together from the chat and how they react.', '{n}さんの本音は聞き出せなかった。チャットや反応から探るしかない。'),
   typingNow: T('{n} 正在输入…', '{n} is typing…', '{n}さんが入力中…'),
-  wishTag: T('想来', 'WANT', '希望'),
+  wishTag: T('申请', 'REQ', '申請'),
   wishLong: T('本人申请想这天出社', 'Requested to come in this day', '本人がこの日の出社を希望'),
   face_happy: T('心情不错', 'Happy', 'ご機嫌'),
   face_meh: T('还行', 'So-so', 'まあまあ'),
