@@ -57,6 +57,8 @@ const UI = {
   clueGot: T('获得线索', 'CLUE FOUND', '手がかりを得た'),
   clueMiss: T('没有听出来', 'MISSED IT', '聞き出せなかった'),
   clueMissTx: T('没能听出{n}真正在意的事。只能从群聊和之后的反应里慢慢摸索。', 'You did not catch what {n} really needs. You will have to piece it together from the chat and how they react.', '{n}さんの本音は聞き出せなかった。チャットや反応から探るしかない。'),
+  pickChat: T('选择一个群聊', 'Pick a group chat', 'グループを選んでください'),
+  pickMeet: T('选择一个会议', 'Pick a meeting', '会議を選んでください'),
   typingNow: T('{n} 正在输入…', '{n} is typing…', '{n}さんが入力中…'),
   wishTag: T('申请', 'REQ', '申請'),
   wishLong: T('本人申请想这天出社', 'Requested to come in this day', '本人がこの日の出社を希望'),
@@ -283,6 +285,8 @@ function markRead(key) {
 function openApp(a) {
   S.view.app = a;
   if (a === 'grid' && S.lv >= 0 && !S.done.has(S.lv)) { S.gridSeen[S.lv] = true; S.view.week = S.lv; }
+  if (a === 'chat') { S.view.chat = null; S.anim = null; }
+  if (a === 'meet') { S.view.meet = null; S.tk = null; }
   closePop(); save(); render(true);
 }
 function openItem(key) {
@@ -832,8 +836,9 @@ function renderChat() {
   const chats = S.feed.filter(f => kindOf(f.key) === 'chat').slice().reverse();
   if (!chats.length) { app.innerHTML = `<div class="empty">${ICON.chat}<b>${esc(u('emptyChat'))}</b><span>${esc(u('emptyHint'))}</span></div>`; return; }
   let cur = S.view.chat;
-  if (!cur || !feedItem(cur)) cur = S.view.chat = (chats.find(f => !f.read) || chats[0]).key;
-  const c = chatOf(idOf(cur)), fi = feedItem(cur);
+  if (cur && !feedItem(cur)) cur = S.view.chat = null;
+  if (!cur) S.anim = null;
+  const c = cur ? chatOf(idOf(cur)) : { name: '', channel: '', msgs: [] }, fi = cur ? feedItem(cur) : { read: true };
   const people = new Set(c.msgs.map(m => m[0]));
   if (fi.read || reduceMotion()) S.anim = null;
   else if (!S.anim || S.anim.key !== cur) S.anim = { key: cur, n: 0 };
@@ -849,13 +854,13 @@ function renderChat() {
   app.innerHTML = `
     <div class="split">
       <div class="list"><div class="lh">${esc(tr(COMPANY))}</div><div class="sec">${esc(u('groups'))}</div>${list}</div>
-      <div class="convo">
+      ${!cur ? `<div class="convo"><div class="empty">${ICON.chat}<b>${esc(u('pickChat'))}</b></div></div>` : `<div class="convo">
         <div class="chan-title"><b>${esc(tr(c.name))}</b><span>${c.channel} · ${esc(u('members', { n: people.size + 1 }))}</span></div>
         <div class="msgs" id="msgs">${shown.map(([who, tx], i) => `<div class="msg ${S.anim && i === shown.length - 1 ? 'new' : ''}">${av(who)}<div class="tx"><div class="who3">${esc(nm(who))}<span>${esc(tr(CAST[who].role))}</span></div>${esc(tr(tx))}</div></div>`).join('')}
         ${S.anim && shownN < c.msgs.length ? `<div class="typing"><i></i><i></i><i></i> ${esc(nm(c.msgs[shownN][0]))}</div>` : ''}</div>
-      </div>
+      </div>`}
     </div>`;
-  const box = $('msgs'); box.scrollTop = box.scrollHeight;
+  const box = $('msgs'); if (box) box.scrollTop = box.scrollHeight;
   accordion(app, 'chat', '.convo');
   app.querySelectorAll('.li').forEach(b => b.onclick = () => { pickItem('chat', b.dataset.k); save(); render(); });
   if (S.anim) {
@@ -897,10 +902,15 @@ function renderMeet() {
   if (!meets.length) { app.innerHTML = `<div class="empty">${ICON.meet}<b>${esc(u('emptyMeet'))}</b><span>${esc(u('emptyHint'))}</span></div>`; return; }
   const live = meets.filter(f => !f.read), recs = meets.filter(f => f.read).reverse();
   let cur = S.view.meet;
-  if (!cur || !feedItem(cur)) cur = S.view.meet = (live[0] || recs[0]).key;
+  if (cur && !feedItem(cur)) cur = S.view.meet = null;
   const title = key => key === 'finale' ? u('allhands') : u('meeting', { n: nm(idOf(key)) });
   const item = (f, isLive) => `<button class="li ${f.key === cur ? 'cur' : ''} ${isLive ? 'unread' : ''}" data-k="${f.key}"><div class="f"><span class="nm2">${esc(title(f.key))}</span>${isLive ? '<span class="livetag">LIVE</span>' : ''}</div><div class="s">${esc(isLive ? (f.key === 'finale' ? tr(COMPANY) : u('waiting', { n: nm(idOf(f.key)) })) : u('replay'))}</div></button>`;
   const list = `<div class="lh">${ICON.meet}${esc(tr(UI.apps.meet))}</div>${live.length ? `<div class="sec">${esc(u('live'))}</div>${live.map(f => item(f, true)).join('')}` : ''}${recs.length ? `<div class="sec">${esc(u('recordings'))}</div>${recs.map(f => item(f, false)).join('')}` : ''}`;
+  if (!cur) {
+    app.innerHTML = `<div class="split"><div class="list">${list}</div><div class="stage idle"><div class="empty">${ICON.meet}<b>${esc(u('pickMeet'))}</b></div></div></div>`;
+    app.querySelectorAll('.li').forEach(b => b.onclick = () => { S.tk = null; pickItem('meet', b.dataset.k); save(); render(); });
+    return;
+  }
   const isLive = !feedItem(cur).read;
   const stage = cur === 'finale' ? finaleStage(isLive) : talkStage(idOf(cur), cur, isLive);
   app.innerHTML = `<div class="split"><div class="list">${list}</div><div class="stage" id="stage">${stage}</div></div>`;

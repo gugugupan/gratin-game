@@ -471,3 +471,6 @@ button:focus-visible, select:focus-visible, a:focus-visible, [tabindex]:focus-vi
 .outcome .meta2 { font-size: 12.5px; }
 .say { position: relative; margin: 2px 0 6px 30px; padding: 5px 10px; background: color-mix(in srgb, var(--note) 12%, var(--win)); border: 1px solid color-mix(in srgb, var(--note) 35%, transparent); border-radius: 10px 10px 10px 2px; font-size: 13px; color: var(--ink); width: fit-content; max-width: calc(100% - 30px); }
 .pop .say { margin-left: 0; }
+.stage.idle .empty { color: #8a93a3; }
+.stage.idle .empty b { color: #c8cdd6; }
+@media (max-width: 720px) { .split .convo:has(> .empty), .split .stage.idle { display: none; } }
