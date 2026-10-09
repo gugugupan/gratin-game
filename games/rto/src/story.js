@@ -1,8 +1,22 @@
 import { T } from './levels.js';
 
+const Z = s => T(s, s, s);
+
 export const COMPANY = T('一个公司', 'A Company', 'ある会社');
 
 export const EMAILS = {
+  remind: {
+    from: 'kuroda', date: Z('周五 18:30'),
+    to: Z('开发二组经理'),
+    subject: Z('关于开发二组的出勤率'),
+    body: [Z('你好。'), Z('上周开发二组的出勤率没有达到目标。请多加留意。'), Z('黑田')],
+  },
+  warn: {
+    from: 'kuroda', date: Z('周五 18:30'),
+    to: Z('开发二组经理'),
+    subject: Z('【警告】开发二组出勤率再次未达标'),
+    body: [Z('开发二组的出勤率第二次没有达到目标。'), Z('如果再有一次，我将不得不重新评估你的岗位。'), Z('黑田')],
+  },
   welcome: {
     from: 'hr', date: T('10月9日 周五 10:02', 'Fri, Oct 9 · 10:02', '10月9日(金) 10:02'),
     to: T('全体员工', 'All staff', '全社員'),
@@ -83,24 +97,25 @@ export const CHATS = {
     ['kobayashi', T('一周来一次，刚刚好', 'Once a week feels just right', '週1回、ちょうどいいね')],
     ['suzuki', T('监控大屏装好了。下次见～', 'Monitoring wall is up. See you next time~', '監視モニター設置完了。またね〜')],
   ] },
-  complain: { name: T('出勤新政策', 'The new attendance policy', '新しい出社ポリシー'), channel: '#dev-2', msgs: [
-    ['wang', T('……2 天？', '...2 days?', '……週2？')],
-    ['kobayashi', T('我把邮件看了三遍，还是 2 天', 'I read the email three times. Still 2 days', 'メール3回読んだけど、やっぱり2日')],
-    ['suzuki', T('大家知道我住在长野吧', 'You all know I live in Nagano, right', '僕が長野に住んでるの、みんな知ってるよね')],
-    ['abe', T('办公室好吵', 'The office is so loud', 'オフィス、うるさいんだよね')],
-    ['tanaka', T('我都可以！……吧？', "I'm fine with it! ...I think?", '僕は大丈夫です！……たぶん')],
-    ['sato', T('先按要求来吧', "Let's just follow the policy for now", 'まずはルール通りにやろう')],
-    ['wang', T('我反正不想去', "Well, I don't want to go", 'とにかく行きたくない')],
-    ['kobayashi', T('+1', '+1', '+1')],
-    ['suzuki', T('+1', '+1', '+1')],
-    ['abe', T('+1', '+1', '+1')],
+  complain: { name: Z('出勤新政策'), channel: '#dev-2', msgs: [
+    ['wang', Z('……2 天？')],
+    ['kobayashi', Z('我把邮件看了三遍，还是 2 天')],
+    ['wang', Z('我周末又要发版。周一早上就别指望我了')],
+    ['suzuki', Z('大家知道我住在长野吧。新干线来回一趟 1.6 万，来一次最好多待两天')],
+    ['abe', Z('办公室好吵。尤其是某人的青轴键盘……他来的日子我能不来吗')],
+    ['tanaka', Z('我都可以！……就是一个人在办公室的时候，不知道该问谁')],
+    ['sato', Z('我哪天都行，先按要求来吧')],
+    ['kobayashi', Z('我也会配合的。……就是周三下午有点那个')],
+    ['wang', Z('我反正不想去')],
+    ['suzuki', Z('+1')],
+    ['abe', Z('+1')],
   ] },
-  layoff: { name: T('销售部的事', 'What happened in Sales', '営業部のこと'), channel: '#dev-2', msgs: [
-    ['tanaka', T('销售部的山本さん今天把桌子清空了……', 'Yamamoto from Sales cleared out his desk today...', '営業の山本さん、今日デスクを片付けてました……')],
-    ['wang', T('「其他部门暂无调整计划」。这句话我在三家公司都见过。', '"No plans for other departments." I\'ve read that line at three different companies.', '「その他の部門について現時点で計画はありません」。この一文、3社で見たことある。')],
-    ['tanaka', T('新人是不是会第一个……', 'Are new grads going to be the first...', '新人って真っ先に……')],
-    ['sato', T('别乱想。', "Don't go there.", '考えすぎだよ。')],
-    ['wang', T('现在去办公室，就是让人看看谁在、谁不在。', "Going to the office now just means letting them see who's there and who isn't.", '今オフィスに行くのは、誰がいて誰がいないかを見せるためだけ。')],
+  layoff: { name: Z('销售部的事'), channel: '#dev-2', msgs: [
+    ['tanaka', Z('销售部的山本さん今天把桌子清空了……')],
+    ['wang', Z('「其他部门暂无调整计划」。这句话我在三家公司都见过')],
+    ['tanaka', Z('我这周有佐藤さん在的那天，问问题都不紧张了。可是天天黏着他好像也不太好……')],
+    ['abe', Z('今天又是键盘交响乐的一天')],
+    ['wang', Z('连着两天早起，我现在看代码是重影的')],
   ] },
   perks: { name: T('咖啡没了', 'No more coffee', 'コーヒーがない'), channel: '#dev-2', msgs: [
     ['abe', T('咖啡机还在，咖啡没了', 'The coffee machine stays. The coffee goes', 'マシンは残る。コーヒーは消える')],
@@ -135,44 +150,87 @@ export const CHATS = {
 export const TALKS = {
   kobayashi: {
     lines: [
-      ['them', T('你找我？是出勤的事吧。', "You wanted to see me? It's about attendance, right?", '呼んだ？出社の件だよね。')],
-      ['me', T('嗯。不是来催你的，我想听听你的真实想法。', "Yes. I'm not here to push. I want to hear what's really going on.", 'うん。急かしに来たんじゃなくて、本音を聞きたくて。')],
-      ['them', T('……我家两个孩子，幼儿园下午 4 点关门。从办公室赶回去要一个小时。', '...I have two kids. Daycare closes at 4. It takes an hour to get there from the office.', '……子どもが2人いて、保育園は16時まで。オフィスからだと1時間かかる。')],
-      ['them', T('在家的话，4 点去接，晚上再补。来公司的话，就只能请假。', "At home I pick them up at 4 and catch up at night. If I'm at the office, I have to take leave.", '在宅なら16時にお迎えして夜に取り戻せる。出社すると休むしかない。')],
+      ['them', Z('你找我？是出勤的事吧。')],
+      ['me', Z('嗯。新政策下来了，我想先听听你的想法。')],
+      ['them', Z('……我会配合的。公司的决定嘛。')],
       { choice: [
-        { label: T('我帮你申请弹性工时，10 点到 3 点在办公室，可以吗？', 'What if I get you flex hours, in the office 10 to 3?', '時差出勤を申請しよう。10時〜15時でオフィス、どう？'), reply: [
-          ['them', T('3 点走……那来得及。', 'Leave at 3... I could make that.', '15時に出られるなら……間に合う。')],
+        { tag: 'empathy', label: Z('「配合」听起来有点勉强。有什么不方便的，可以直接跟我说。'), reply: [
+          ['them', Z('……你真想听？')],
+          ['them', Z('我家两个孩子，幼儿园下午四点就关门。从公司赶回去要一个小时。')],
         ] },
-        { label: T('要不把孩子带来？我在会议室开个托儿所。', 'Bring the kids! I\'ll turn a meeting room into a daycare.', 'お子さん連れてきたら？会議室を託児所にするよ。'), reply: [
-          ['them', T('（笑）你认真的？会议室本来就不够用。', '(laughs) Seriously? We barely have enough meeting rooms as it is.', '（笑）本気？会議室、ただでさえ足りないのに。')],
-          ['them', T('不过……要是能早点走，倒是可以。', 'But... if I could leave early, I could make it work.', 'でも……早く帰れるなら、なんとかなるかも。')],
-          ['me', T('那我去申请弹性工时，10 点到 3 点。', "Then I'll get you flex hours. 10 to 3.", 'じゃあ時差出勤を申請する。10時〜15時で。')],
+        { tag: 'solve', label: Z('那你申请想哪几天来，我尽量按申请排。'), reply: [
+          ['them', Z('好，我填了周三和周四。')],
+          ['them', Z('（她停了一下）……没事，就这两天吧。')],
+        ] },
+        { tag: 'wild', label: Z('要不我们把办公室搬到你家楼下？'), reply: [
+          ['them', Z('（笑）那房租 CFO 会先把你开了。')],
+          ['them', Z('不过……要是离家近一点就好了。孩子的事总是突然冒出来。')],
         ] },
       ] },
-      ['them', T('周三是孩子的游泳课，那天我还是得在家。其他日子都行。', "Wednesday is the kids' swim class, so I still need to be home that day. Any other day works.", '水曜は子どものプール教室だから在宅にさせて。ほかの日はOK。')],
-      ['them', T('谢谢你先问我，而不是先排我。', 'Thanks for asking me first, instead of just scheduling me.', '先にシフトを組むんじゃなくて、聞いてくれてありがとう。')],
+      { choice: [
+        { tag: 'empathy', label: Z('孩子平时是谁去接？'), reply: [
+          ['them', Z('一般是我。周三最麻烦，幼儿园三点就放学，还要赶游泳课。')],
+        ] },
+        { tag: 'solve', label: Z('那你那几天尽量早点走就好。'), reply: [
+          ['them', Z('早点走……也不是每天都走得开。算了，我再想想办法。')],
+        ] },
+        { tag: 'wild', label: Z('我可以给你做一个接孩子的机器人。'), reply: [
+          ['them', Z('老王应该会很感兴趣。……其实一周里最难的就是周三，三点就得到幼儿园。')],
+        ] },
+      ] },
+      ['them', Z('不管怎样，申请我就先那么填了。你看着排吧。')],
+      { ask: {
+        options: [
+          { text: Z('周三必须在家'), ok: true },
+          { text: Z('每周最多只能来 1 天') },
+          { text: Z('一定要按申请的周三、周四来') },
+          { text: Z('必须和佐藤同一天来') },
+        ],
+        right: [['me', Z('周三你就在家吧。申请上写的周三，我不会排。')], ['them', Z('……你听出来了啊。谢谢。其实我填周三，是怕被说不配合。')]],
+        wrong: [['them', Z('……嗯，好。')], ['them', Z('（她没再多说什么）')]],
+      } },
     ],
-    unlock: { before: T('周一、周四 不想来', 'Mon, Thu: not coming', '月・木 行きたくない'), after: T('只有周三在家（弹性工时 10:00–15:00）', 'Home only on Wednesday (flex hours 10:00–15:00)', '水曜だけ在宅（時差出勤 10:00〜15:00）') },
   },
   wang: {
     lines: [
-      ['them', T('你是来劝我去公司的吧。', "You're here to talk me into coming in.", '出社しろって説得しに来たんでしょ。')],
-      ['me', T('我是来听你为什么不想去的。', "I'm here to hear why you don't want to.", '行きたくない理由を聞きに来た。')],
-      ['them', T('我凌晨效率最高。值班、发版都在半夜。早上 9 点到公司，我就是一具会走路的僵尸。', "I'm sharpest after midnight. On-call and releases happen at night. At 9 a.m. in the office I'm a walking zombie.", '僕は深夜が一番はかどる。当番もリリースも夜中。朝9時にオフィスにいたら歩くゾンビだよ。')],
-      ['them', T('而且现在这种时候，坐在办公室就像在排队等面谈。', 'And right now, sitting in the office feels like waiting in line for an interview.', 'それに今オフィスに座ってると、面談の順番待ちみたいな気分になる。')],
+      ['them', Z('你是来劝我去公司的吧。')],
+      ['me', Z('我是来听你说的。')],
+      ['them', Z('没什么好说的，排就排呗。')],
       { choice: [
-        { label: T('你不用 9 点到。中午来，避开早高峰。', "You don't have to be in at 9. Come at noon, skip the rush hour.", '9時に来なくていい。昼から来て、ラッシュも避けよう。'), reply: [
-          ['them', T('中午……那早上我还能睡一会儿。', 'Noon... then I still get my morning sleep.', '昼から……なら朝は寝られる。')],
+        { tag: 'empathy', label: Z('上周你看起来挺累的。'), reply: [
+          ['them', Z('周末又发版，周日凌晨四点才睡。周一早上？别想了。')],
         ] },
-        { label: T('那在办公室装个吊床？白天睡，晚上写代码。', 'How about a hammock in the office? Sleep by day, code by night.', 'オフィスにハンモックを置こう。昼は寝て、夜コードを書く。'), reply: [
-          ['them', T('……总务部会先把你裁了。', '...General Affairs would lay you off first.', '……先に総務部にリストラされるよ。')],
-          ['them', T('不过你说到点子上了：问题在时间，不在地点。', "But you've got a point. The problem is the hours, not the place.", 'でも一理ある。問題は場所じゃなくて時間なんだ。')],
-          ['me', T('那就中午来，下午在办公室，晚上回家继续。', 'So come at noon, afternoons in the office, nights at home.', 'じゃあ昼に来て、午後はオフィス、夜は家で。')],
+        { tag: 'solve', label: Z('那你申请的那两天，我给你排上？'), reply: [
+          ['them', Z('随便。……反正排哪天我都是僵尸。')],
+        ] },
+        { tag: 'wild', label: Z('在办公室装个吊床？白天你睡，晚上写代码。'), reply: [
+          ['them', Z('总务部会先把你裁了。')],
+          ['them', Z('……不过你说到点子上了：问题在时间，不在地点。周一早上尤其不行。')],
         ] },
       ] },
-      ['them', T('行。但别连着两天，作息会崩。周一也放过我吧，周末刚发完版。', "Deal. But never two days in a row, or my sleep falls apart. And spare me Mondays, I ship on weekends.", 'わかった。でも2日連続はやめて、生活リズムが崩れる。月曜も勘弁して、週末にリリースしてるから。')],
+      { choice: [
+        { tag: 'empathy', label: Z('那连着两天来，会怎么样？'), reply: [
+          ['them', Z('来一天还行，第二天作息就全乱了。中间隔一天，我就能缓过来。')],
+        ] },
+        { tag: 'solve', label: Z('那就多喝点咖啡吧。'), reply: [
+          ['them', Z('咖啡？听说总务部要停了。')],
+        ] },
+        { tag: 'wild', label: Z('我们把周一改名叫周二怎么样？'), reply: [
+          ['them', Z('（笑）那我的周日就更短了。……其实只要别让我连着两天来，中间隔一天就行。')],
+        ] },
+      ] },
+      ['them', Z('这周机房要换硬盘，我总得去一天。其他的，你看着办。')],
+      { ask: {
+        options: [
+          { text: Z('周一在家，而且不连续两天出社'), ok: true },
+          { text: Z('只上夜班') },
+          { text: Z('不和阿部同一天出社') },
+          { text: Z('每周只来周三') },
+        ],
+        right: [['me', Z('周一你在家，来的日子我也会隔开排。')], ['them', Z('……行。那我尽量不在群里抱怨了。')]],
+        wrong: [['them', Z('……随你。')]],
+      } },
     ],
-    unlock: { before: T('周一、周三 不想来', 'Mon, Wed: not coming', '月・水 行きたくない'), after: T('周一在家 · 不连续两天出社（中午出社）', 'Home on Monday, never two days in a row (arrives at noon)', '月曜在宅・2日連続NG（昼出社）') },
   },
   suzuki: {
     lines: [
@@ -263,16 +321,19 @@ export const FINALE = [
   ['mori', T('既然今天大家都在，开发二组，来拍张合影吧！', "Since everyone's here today, Dev Team 2, let's take a group photo!", 'せっかく全員そろったし、開発2課、集合写真を撮ろう！')],
 ];
 
+export const MOOD_LINES = {
+  kobayashi: { happy: Z('这周按时接到孩子了，谢谢🙏'), meh: Z('周三被排进来了……婆婆帮忙接的孩子，下次不一定行'), angry: Z('这周排的日子我都走不开。我再想想办法吧') },
+  sato: { happy: Z('我哪天都行，这周也挺顺'), meh: Z('嗯，还行'), angry: Z('……这周有点累') },
+  tanaka: { happy: Z('佐藤さん在的那天，我问了好多问题！'), meh: Z('今天一个人在办公室，不知道该问谁……'), angry: Z('这周我好像一直是一个人……') },
+  wang: { happy: Z('这周作息没崩，难得'), meh: Z('周一早上来的……我现在看代码是重影的'), angry: Z('连着两天来，我已经不知道今天星期几了') },
+  abe: { happy: Z('这周耳根清净，图画得特别顺'), meh: Z('旁边一直有键盘声……算了'), angry: Z('青轴键盘陪了我一整天') },
+  suzuki: { happy: Z('这周一趟新干线办完两天的事，划算'), meh: Z('这周跑了两趟长野和东京，有点累'), angry: Z('新干线来回两趟，这个月的交通费已经超了……') },
+};
+
+const failed = n => S => S.fails >= n;
 export const BEATS = [
   ['email:welcome'],
-  ['chat:happy', 'email:cfo', 'chat:complain'],
-  ['talk:kobayashi'],
-  ['email:layoff', 'chat:layoff', 'talk:wang'],
-  ['email:perks', 'chat:perks', 'talk:suzuki'],
-  ['talk:tanaka'],
-  ['chat:reviews', 'email:warroom'],
-  ['talk:abe'],
-  ['talk:sato'],
-  ['chat:thaw', 'email:allhands', 'chat:ready'],
-  ['finale'],
+  ['chat:happy', 'email:cfo', ['email:remind', failed(1)], 'chat:complain', 'talk:kobayashi'],
+  ['chat:mood1', ['email:remind', failed(1)], ['email:warn', failed(2)], 'email:layoff', 'chat:layoff', 'talk:wang'],
+  ['chat:mood2', ['email:remind', failed(1)], ['email:warn', failed(2)]],
 ];

@@ -1,7 +1,7 @@
 import './style.css';
 import { solve, evalC, allConstraints, resolve } from './engine.js';
-import { T, ORDER, CAST, LEVELS } from './levels.js';
-import { COMPANY, EMAILS, CHATS, TALKS, FINALE, BEATS } from './story.js';
+import { T, ORDER, CAST, LEVELS, withNeeds } from './levels.js';
+import { COMPANY, EMAILS, CHATS, TALKS, FINALE, BEATS, MOOD_LINES } from './story.js';
 import { loadLocale, saveLocale } from './locale.js';
 import { loadFonts } from './fonts.js';
 
@@ -42,6 +42,31 @@ const UI = {
   home_tx: T('在宅', 'Remote', '在宅'),
   reqTag: T('申请', 'REQ', '申請'),
   noDayReq: T('这一天没有特殊安排', 'Nothing special this day', 'この日は特別な条件なし'),
+  firedTitle: T('你被开除了', 'You were let go', 'あなたは解任された'),
+  firedTx: T('出勤率第三次没有达标。黑田只发来了一封很短的邮件：「明天起，开发二组由其他人接手。」', 'Attendance missed the target a third time. Kuroda sent one short email: "Starting tomorrow, someone else will run Dev Team 2."', '出社率が3回目の未達。黒田さんから届いたのは短いメールだけ。「明日から開発2課は別の者が担当します。」'),
+  protoTitle: T('原型到这里结束', 'End of the prototype', 'プロトタイプはここまで'),
+  protoTx: T('完整版里，评分回升那一周需要至少 5 人心情 ≥ +1。你现在有 {g} 人。', 'In the full game, at least 5 people need mood ≥ +1 in the week the rating recovers. You have {g}.', '完成版では、評価が回復する週に5人以上の気分が+1以上必要。いまは{g}人。'),
+  retryWeek: T('重来这一周', 'Retry this week', 'この週をやり直す'),
+  resTitle: T('本周大家的反应', "How the team took it", '今週のみんなの反応'),
+  attOk: T('达标', 'target met', '達成'),
+  attBad: T('未达标', 'target missed', '未達'),
+  failCount: T('累计未达标 {n}/3', 'missed {n}/3', '未達 累計 {n}/3'),
+  moodTx: T('心情 {v}', 'Mood {v}', '気分 {v}'),
+  tag_empathy: T('共情', 'EMPATHIZE', '寄り添う'),
+  tag_solve: T('解决问题', 'FIX IT', '解決する'),
+  tag_wild: T('天马行空', 'WILD IDEA', '突拍子もなく'),
+  askPrompt: T('你觉得{n}真正在意的是什么？', 'What does {n} really need?', '{n}さんが本当に気にしているのは？'),
+  clueGot: T('获得线索', 'CLUE FOUND', '手がかりを得た'),
+  clueMiss: T('没有听出来', 'MISSED IT', '聞き出せなかった'),
+  clueMissTx: T('没能听出{n}真正在意的事。只能从群聊和之后的反应里慢慢摸索。', 'You did not catch what {n} really needs. You will have to piece it together from the chat and how they react.', '{n}さんの本音は聞き出せなかった。チャットや反応から探るしかない。'),
+  wishTag: T('想来', 'WANT', '希望'),
+  wishLong: T('本人申请想这天出社', 'Requested to come in this day', '本人がこの日の出社を希望'),
+  face_happy: T('心情不错', 'Happy', 'ご機嫌'),
+  face_meh: T('还行', 'So-so', 'まあまあ'),
+  face_angry: T('不开心', 'Upset', '不満'),
+  wishTx: T('申请：想 {d} 出社', 'Request: in on {d}', '申請：{d}に出社したい'),
+  needTx: T('真实需求：{t}', 'Real need: {t}', '本当の希望：{t}'),
+  needUnknown: T('真实需求：？（还不知道）', 'Real need: ? (unknown)', '本当の希望：？（まだ分からない）'),
   reqLong: T('本人申请在宅，不能更改', 'Remote at the member\'s request, cannot change', '本人の申請で在宅、変更不可'),
   inbox: T('收件箱', 'Inbox', '受信トレイ'),
   to: T('收件人', 'To', '宛先'),
@@ -140,10 +165,10 @@ function tile(id, { speak = false, listen = false, mood = '', bgId = id } = {}) 
 }
 
 function freshState(lang) {
-  return { lang, lv: -1, done: [], feed: [], picks: {}, grids: {}, tut: false, gridSeen: {}, ended: false, view: { app: 'grid', mail: null, chat: null, meet: null, week: null } };
+  return { lang, lv: -1, done: [], feed: [], picks: {}, grids: {}, tut: false, gridSeen: {}, ended: false, mood: Object.fromEntries(ORDER.map(id => [id, 0])), fails: 0, clues: {}, results: {}, checkpoint: null, outcome: null, view: { app: 'grid', mail: null, chat: null, meet: null, week: null } };
 }
 function snapshot() {
-  return { lang: S.lang, lv: S.lv, done: [...S.done], feed: S.feed, picks: S.picks, grids: S.grids, tut: S.tut, gridSeen: S.gridSeen, ended: S.ended, view: S.view };
+  return { lang: S.lang, lv: S.lv, done: [...S.done], feed: S.feed, picks: S.picks, grids: S.grids, tut: S.tut, gridSeen: S.gridSeen, ended: S.ended, mood: S.mood, fails: S.fails, clues: S.clues, results: S.results, checkpoint: S.checkpoint, outcome: S.outcome, view: S.view };
 }
 function start(data) {
   const saved = data && data.feed ? data : store.get('state', null);
@@ -206,25 +231,41 @@ const kindOf = key => key.split(':')[0];
 const idOf = key => key.split(':')[1];
 const APP_OF = { email: 'mail', chat: 'chat', talk: 'meet', finale: 'meet' };
 
+function beatKeys(b) {
+  return (BEATS[b] || []).flatMap(e => typeof e === 'string' ? [e] : (feedItem(e[0]) || e[1](S)) ? [e[0]] : []);
+}
 function advance() {
-  const b = S.done.size, beat = BEATS[b];
-  if (!beat || !S.open || $('overlay').innerHTML) return;
-  for (const key of beat) {
+  const b = S.done.size;
+  if (!BEATS[b] || !S.open || $('overlay').innerHTML || S.outcome) return;
+  for (const key of beatKeys(b)) {
     const f = feedItem(key);
     if (!f) { deliver(key); return; }
     if (!f.read) return;
   }
   if (b < LEVELS.length && S.lv < b) {
-    S.lv = b; save();
+    S.lv = b;
+    S.checkpoint = null; S.checkpoint = JSON.parse(JSON.stringify(snapshot()));
+    save();
     toast('grid', u('newWeek'), u('weekOpen', { n: b + 1 }), () => openApp('grid'));
     render();
+  } else if (b >= LEVELS.length) {
+    S.outcome = 'proto'; S.view.app = 'end'; save(); render(true);
   }
+}
+function chatOf(id) {
+  if (!id.startsWith('mood')) return CHATS[id];
+  const n = +id.slice(4), res = S.results[n];
+  return {
+    name: T(`第 ${n + 1} 周的大家`, `Week ${n + 1}, the team`, `第${n + 1}週のみんな`),
+    channel: '#dev-2',
+    msgs: ORDER.map(p => [p, MOOD_LINES[p][res ? res.faces[p] : 'happy']]),
+  };
 }
 function deliver(key) {
   S.feed.push({ key, read: false }); save();
   const k = kindOf(key), id = idOf(key);
   if (k === 'email') toast('mail', u('newMail'), `${nm(EMAILS[id].from)}: ${tr(EMAILS[id].subject)}`, () => openItem(key));
-  if (k === 'chat') toast('chat', u('newChat'), tr(CHATS[id].name), () => openItem(key));
+  if (k === 'chat') toast('chat', u('newChat'), tr(chatOf(id).name), () => openItem(key));
   if (k === 'talk') toast('meet', u('newMeet'), u('meeting', { n: nm(id) }), () => openItem(key));
   if (k === 'finale') toast('meet', u('newMeet'), u('allhands'), () => openItem(key));
   render();
@@ -288,7 +329,7 @@ const canReplayTut = () => S.open && S.lv >= 0 && !S.done.has(S.lv);
 function menuBody(ctx) {
   const item = (act, label) => `<button class="mitem" type="button" role="menuitem" data-act="${act}">${esc(label)}</button>`;
   const dev = import.meta.env.DEV
-    ? `<hr><label class="msec" for="devjump">DEV</label><select id="devjump"><option value="">—</option>${LEVELS.map((L, n) => `<option value="${n}">${esc(u('week', { n: n + 1 }))}</option>`).join('')}<option value="10">${esc(u('ending'))}</option></select>`
+    ? `<hr><label class="msec" for="devjump">DEV</label><select id="devjump"><option value="">—</option>${LEVELS.map((L, n) => `<option value="${n}">${esc(u('week', { n: n + 1 }))}</option>`).join('')}<option value="${LEVELS.length}">${esc(u('ending'))}</option></select>`
     : '';
   return `<div class="msec">${esc(u('language'))}</div>
     <div class="mlangs">${['ja', 'zh', 'en'].map(l => `<button type="button" data-l="${l}" aria-pressed="${S.lang === l}">${LANG_LABEL[l]}</button>`).join('')}</div>
@@ -346,14 +387,16 @@ function jumpTo(n) {
   const tut = S.tut;
   Object.assign(S, freshState(S.lang), { tut });
   S.done = new Set();
-  for (let i = 0; i < n && i < LEVELS.length; i++) { S.done.add(i); S.grids[i] = solve(LEVELS[i], 1)[0]; }
-  S.feed = BEATS.slice(0, n + 1).flat().map(key => ({ key, read: true }));
-  if (n >= 10) {
-    feedItem('finale').read = false;
-    S.lv = 9; S.view = { app: 'meet', meet: 'finale', mail: null, chat: null, week: 9 };
-  } else {
-    S.lv = n; S.gridSeen[n] = true; S.view = { app: 'grid', week: n, mail: null, chat: null, meet: null };
+  for (let i = 0; i < n && i < LEVELS.length; i++) {
+    const lv = LEVELS[i];
+    S.done.add(i); S.grids[i] = solve(withNeeds(lv), 1)[0];
+    S.results[i] = { faces: Object.fromEntries(lv.people.map((p, k) => [p.id, faceOf(lv, k, S.grids[i])])), ok: true };
+    for (const id in S.results[i].faces) S.mood[id] = Math.min(2, S.mood[id] + 1);
   }
+  S.feed = BEATS.slice(0, n + 1).flat().filter(e => typeof e === 'string').map(key => ({ key, read: true }));
+  if (n >= LEVELS.length) { S.lv = LEVELS.length - 1; S.outcome = 'proto'; S.view = { app: 'end', week: S.lv, mail: null, chat: null, meet: null }; }
+  else { S.lv = n; S.gridSeen[n] = true; S.view = { app: 'grid', week: n, mail: null, chat: null, meet: null }; }
+  S.checkpoint = null; S.checkpoint = JSON.parse(JSON.stringify(snapshot()));
   S.tk = null; S.hist = []; S.anim = null; S.flashed = false;
   $('overlay').innerHTML = ''; $('toasts').innerHTML = ''; $('tut').innerHTML = ''; closePop();
   save(); render(true);
@@ -400,12 +443,41 @@ function gridOf(n) {
   return g;
 }
 const lockedAt = (lv, p, d) => (lv.people[p].locks || []).includes(d);
+const own = (lv, p, c) => resolve(lv, { ...(c.b !== undefined ? { a: p.id } : { p: p.id }), ...c });
+const knowsNeed = p => !!(p.clue && S.clues[p.clue]);
 function personRules(lv, i) {
   const p = lv.people[i], out = [{ c: { t: 'quota', p: i, n: p.quota ?? lv.quota } }];
-  if (p.locks?.length) out.push({ c: { t: 'lock', p: i, days: p.locks }, fixed: true });
-  p.rules.forEach(c => out.push({ c: resolve(lv, { ...(c.b !== undefined ? { a: p.id } : { p: p.id }), ...c }), why: c.why }));
+  p.rules.forEach(c => out.push({ c: own(lv, p, c), why: c.why }));
+  if (p.wishes?.length) out.push({ c: { t: 'wish', p: i, days: p.wishes }, wish: true });
+  if (p.need) out.push({ c: { t: 'need', p: i }, need: true, known: knowsNeed(p) });
   return out;
 }
+function needStatus(lv, i, g) {
+  const p = lv.people[i];
+  if (!p.need) return 'ok';
+  const rs = p.need.map(c => evalC(own(lv, p, c), g));
+  return rs.includes('bad') ? 'bad' : rs.every(r => r === 'ok') ? 'ok' : 'pending';
+}
+function itemStatus(it, g, lv) {
+  if (it.wish) return it.c.days.some(d => g[it.c.p][d] === 1) ? 'ok' : '';
+  if (it.need) return it.known ? needStatus(lv, it.c.p, g) : '';
+  return statusOf(it.c, g, lv);
+}
+const attendNeed = lv => lv.people.reduce((s, p) => s + (p.quota ?? lv.quota), 0);
+const attendOk = (lv, g) => {
+  const h = asHome(g);
+  return h.flat().filter(v => v === 1).length >= attendNeed(lv) && lv.rules.filter(c => c.t === 'min').every(c => evalC(resolve(lv, c), h) === 'ok');
+};
+function hardOk(lv, g) {
+  const h = asHome(g);
+  return lv.rules.filter(c => c.t !== 'min').every(c => evalC(resolve(lv, c), h) === 'ok') && lv.people.every(p => p.rules.every(c => evalC(own(lv, p, c), h) === 'ok'));
+}
+function faceOf(lv, i, g) {
+  const p = lv.people[i], h = asHome(g);
+  if (needStatus(lv, i, h) === 'ok') return 'happy';
+  return (p.wishes || []).some(d => h[i][d] === 1) ? 'meh' : 'angry';
+}
+const FACE = { happy: '😊', meh: '😐', angry: '😠' };
 function cards(lv) {
   const out = [{ head: `<b>HQ</b><span>${esc(u('hq'))}</span>`, items: [{ c: { t: 'quotaAll' } }] }];
   if (lv.rules.length) out.push({ head: `<b>${esc(u('office'))}</b><span>${esc(u('ga'))}</span>`, items: lv.rules.map(c => ({ c: resolve(lv, c), why: c.why })) });
@@ -416,15 +488,12 @@ function cards(lv) {
   return out;
 }
 function statusOf(c, g, lv) {
-  if (c.t === 'quotaAll') {
-    const rs = lv.people.map((p, i) => evalC({ t: 'quota', p: i, n: p.quota ?? lv.quota }, g));
-    return rs.includes('bad') ? 'bad' : rs.every(r => r === 'ok') ? 'ok' : 'pending';
-  }
+  if (c.t === 'quotaAll') return attendOk(lv, g) ? 'ok' : 'pending';
   return evalC(c, g);
 }
 function rowStatus(lv, g, i) {
   const gv = settled(lv, g);
-  const rs = personRules(lv, i).filter(it => !it.fixed).map(it => evalC(it.c, gv));
+  const rs = personRules(lv, i).filter(it => !it.wish && !(it.need && !it.known)).map(it => itemStatus(it, gv, lv));
   return rs.includes('bad') ? 'bad' : rs.every(r => r === 'ok') ? 'ok' : '';
 }
 function cellsOf(c, lv) {
@@ -434,7 +503,7 @@ function cellsOf(c, lv) {
   switch (c.t) {
     case 'quotaAll': for (let p = 0; p < P; p++) row(p); break;
     case 'fixed': out.push([c.p, c.d]); break;
-    case 'lock': c.days.forEach(d => out.push([c.p, d])); break;
+    case 'lock': case 'wish': c.days.forEach(d => out.push([c.p, d])); break;
     case 'cap': case 'min': (c.days || [c.d]).forEach(col); break;
     case 'with': case 'apart': case 'overlap': row(c.a); row(c.b); break;
     default: row(c.p);
@@ -442,11 +511,16 @@ function cellsOf(c, lv) {
   return out;
 }
 const asHome = g => g.map(r => r.map(v => v ?? 0));
-const solvedNow = (lv, g) => allConstraints(lv).every(c => evalC(c, asHome(g)) === 'ok');
+
 const settled = (lv, g) => g.map((r, i) => r.filter(v => v === 1).length >= (lv.people[i].quota ?? lv.quota) ? r.map(x => x ?? 0) : r);
 function dayOf(n, i) { const d = new Date(2026, 9, 12 + 7 * n); d.setDate(d.getDate() + i); return d; }
 const weekDates = n => [0, 1, 2, 3, 4].map(i => new Intl.DateTimeFormat(LOC[S.lang], { month: 'numeric', day: 'numeric' }).format(dayOf(n, i)));
-const ruleRow = (it, st, lv, attrs = '', who) => `<div class="rule ${it.fixed ? 'fixedr' : st}" ${attrs}><span class="dot"></span><span class="tx">${who ? `<b>${esc(nm(who))}</b> · ` : ''}${esc(ruleText(it.c, lv))}</span>${it.why ? `<span class="why">${esc(tr(it.why))}</span>` : ''}</div>`;
+function itemText(it, lv) {
+  if (it.wish) return u('wishTx', { d: dayList(it.c.days) });
+  if (it.need) return it.known ? u('needTx', { t: tr(lv.people[it.c.p].needText) }) : u('needUnknown');
+  return ruleText(it.c, lv);
+}
+const ruleRow = (it, st, lv, attrs = '', who) => `<div class="rule ${it.fixed ? 'fixedr' : st} ${it.wish ? 'wishr' : ''} ${it.need ? (it.known ? 'needr' : 'needr unknown') : ''}" ${attrs}><span class="dot"></span><span class="tx">${who ? `<b>${esc(nm(who))}</b> · ` : ''}${esc(itemText(it, lv))}</span>${it.why ? `<span class="why">${esc(tr(it.why))}</span>` : ''}</div>`;
 
 /* ---------- WeekGrid ---------- */
 function renderGrid() {
@@ -477,13 +551,15 @@ function renderGrid() {
   lv.people.forEach((p, i) => {
     const q = p.quota ?? lv.quota, cnt = g[i].filter(v => v === 1).length;
     const qs = evalC({ t: 'quota', p: i, n: q }, settled(lv, g)), rs = rowStatus(lv, g, i);
-    h += `<button class="who c0" data-who="${i}" style="--h:${CAST[p.id].hue}">${av(p.id)}<div class="meta"><div class="nm">${esc(nm(p.id))}</div><div class="rl"><span class="qty ${qs}">${cnt}/${q}</span><span class="role">${esc(tr(CAST[p.id].role))}</span></div></div>${rs ? `<span class="mark ${rs}">${rs === 'ok' ? '✓' : '✕'}</span>` : ''}</button>`;
+    const res = S.results[n];
+    const mark = res ? `<span class="facek" title="${esc(u('face_' + res.faces[p.id]))}">${FACE[res.faces[p.id]]}</span>` : rs ? `<span class="mark ${rs}">${rs === 'ok' ? '✓' : '✕'}</span>` : '';
+    h += `<button class="who c0" data-who="${i}" style="--h:${CAST[p.id].hue}">${av(p.id)}<div class="meta"><div class="nm">${esc(nm(p.id))}</div><div class="rl"><span class="qty ${qs}">${cnt}/${q}</span><span class="role">${esc(tr(CAST[p.id].role))}</span></div></div>${mark}</button>`;
     for (let d = 0; d < 5; d++) {
-      const v = g[i][d], lk = lockedAt(lv, i, d);
-      const cls = (v === 1 ? 'on' : v === 0 ? 'off' : '') + (lk ? ' fixed' : '') + (editable ? '' : ' ro');
-      const inner = v === 1 ? `${ICON.on}<span class="tx">${esc(u('office_tx'))}</span>` : v === 0 ? `${ICON.off}<span class="tx">${esc(u('home_tx'))}</span>${lk ? `<span class="req">${esc(u('reqTag'))}</span>` : ''}` : '';
-      const lab = `${nm(p.id)} ${DAY[S.lang][d]}: ${v === 1 ? u('office_tx') : v === 0 ? u('home_tx') : '—'}${lk ? ' · ' + u('reqLong') : ''}`;
-      h += `<div class="slot"><button class="cell ${cls}" style="--h:${CAST[p.id].hue}" data-p="${i}" data-d="${d}" aria-label="${esc(lab)}" ${lk || !editable ? 'aria-disabled="true"' : ''} ${lk ? `title="${esc(u('reqLong'))}"` : ''}>${inner}</button></div>`;
+      const v = g[i][d], wish = (p.wishes || []).includes(d);
+      const cls = (v === 1 ? 'on' : v === 0 ? 'off' : '') + (wish ? ' wished' : '') + (editable ? '' : ' ro');
+      const inner = (v === 1 ? `${ICON.on}<span class="tx">${esc(u('office_tx'))}</span>` : v === 0 ? `${ICON.off}<span class="tx">${esc(u('home_tx'))}</span>` : '') + (wish ? `<span class="req">${esc(u('wishTag'))}</span>` : '');
+      const lab = `${nm(p.id)} ${DAY[S.lang][d]}: ${v === 1 ? u('office_tx') : v === 0 ? u('home_tx') : '—'}${wish ? ' · ' + u('wishLong') : ''}`;
+      h += `<div class="slot"><button class="cell ${cls}" style="--h:${CAST[p.id].hue}" data-p="${i}" data-d="${d}" aria-label="${esc(lab)}" ${!editable ? 'aria-disabled="true"' : ''}>${inner}</button></div>`;
     }
   });
   h += `<div class="ft c0"></div>`;
@@ -499,14 +575,14 @@ function renderGrid() {
   groups.forEach((gr, gi) => {
     r += `<div class="rq"><div class="rh">${gr.head}</div>`;
     gr.items.forEach((it, ii) => {
-      const st = it.fixed ? '' : statusOf(it.c, settled(lv, g), lv);
-      if (!it.fixed) { total++; if (st === 'ok') ok++; }
+      const st = itemStatus(it, settled(lv, g), lv);
+      if (!it.wish && !it.need) { total++; if (st === 'ok') ok++; }
       r += ruleRow(it, st, lv, `tabindex="0" data-g="${gi}" data-i="${ii}"`);
     });
     r += `</div>`;
   });
   S.groups = groups;
-  const solved = editable && solvedNow(lv, g);
+  const solved = editable && hardOk(lv, g);
   const waiting = !editable && n === maxWeek && S.done.size < LEVELS.length;
 
   app.innerHTML = `
@@ -599,11 +675,11 @@ function showPop(anchor, n, touch) {
   let body;
   if (key[0] === 'p') {
     const i = +anchor.dataset.who, p = lv.people[i];
-    body = `<div class="ph">${av(p.id)}<div><b>${esc(nm(p.id))}</b><span>${esc(tr(CAST[p.id].role))}</span></div></div>${personRules(lv, i).map(it => ruleRow(it, it.fixed ? '' : evalC(it.c, gv), lv)).join('')}`;
+    body = `<div class="ph">${av(p.id)}<div><b>${esc(nm(p.id))}</b><span>${esc(tr(CAST[p.id].role))} · ${esc(u('moodTx', { v: (S.mood[p.id] > 0 ? '+' : '') + (S.mood[p.id] || 0) }))}</span></div></div>${personRules(lv, i).map(it => ruleRow(it, itemStatus(it, gv, lv), lv)).join('')}`;
   } else {
     const d = +anchor.dataset.day, items = dayItems(lv, d);
     const cnt = gv.filter(r => r[d] === 1).length;
-    body = `<div class="ph"><div><b>${esc(DAY[S.lang][d])} · ${esc(weekDates(n)[d])}</b><span>${esc(u('office_tx'))} ${cnt}${esc(u('people'))}</span></div></div>${items.length ? items.map(it => ruleRow(it, it.fixed ? '' : evalC(it.c, gv), lv, '', it.who)).join('') : `<div class="rule"><span></span><span class="tx" style="color:var(--ink-3)">${esc(u('noDayReq'))}</span></div>`}`;
+    body = `<div class="ph"><div><b>${esc(DAY[S.lang][d])} · ${esc(weekDates(n)[d])}</b><span>${esc(u('office_tx'))} ${cnt}${esc(u('people'))}</span></div></div>${items.length ? items.map(it => ruleRow(it, itemStatus(it, gv, lv), lv, '', it.who)).join('') : `<div class="rule"><span></span><span class="tx" style="color:var(--ink-3)">${esc(u('noDayReq'))}</span></div>`}`;
   }
   $('pop').innerHTML = `<div class="pop ${touch ? 'touch' : ''}" id="popbox" data-k="${key}">${body}</div>`;
   const box = $('popbox'), r = anchor.getBoundingClientRect(), w = box.offsetWidth, h = box.offsetHeight;
@@ -620,14 +696,36 @@ function togglePop(anchor, n) {
 function closePop() { $('pop').innerHTML = ''; }
 
 function submit(n) {
+  const lv = LEVELS[n];
   S.grids[n] = asHome(gridOf(n));
+  const faces = Object.fromEntries(lv.people.map((p, i) => [p.id, faceOf(lv, i, S.grids[n])]));
+  const ok = attendOk(lv, S.grids[n]);
+  for (const id in faces) S.mood[id] = Math.max(-2, Math.min(2, (S.mood[id] || 0) + { happy: 1, meh: 0, angry: -1 }[faces[id]]));
+  if (!ok) S.fails++;
+  S.results[n] = { faces, ok };
   S.done.add(n); S.hist = []; closePop(); save();
   const ov = $('overlay');
-  const finish = () => { ov.innerHTML = ''; render(); setTimeout(advance, 300); };
-  if (reduceMotion()) { render(); finish(); return; }
-  ov.innerHTML = `<div class="ov"><div class="stamp">${esc(u('submitted'))}</div></div>`;
+  const next = () => {
+    if (S.fails >= 3) { ov.innerHTML = ''; S.outcome = 'fired'; S.view.app = 'end'; save(); render(true); return; }
+    const finish = () => { ov.innerHTML = ''; render(); setTimeout(advance, 300); };
+    if (reduceMotion()) finish(); else weekFlip(n, finish);
+  };
+  const showResult = () => { ov.innerHTML = resultCard(n); $('rescont').onclick = next; $('rescont').focus(); };
   render();
-  setTimeout(() => weekFlip(n, finish), 900);
+  if (reduceMotion()) { showResult(); return; }
+  ov.innerHTML = `<div class="ov"><div class="stamp">${esc(u('submitted'))}</div></div>`;
+  setTimeout(showResult, 900);
+}
+function resultCard(n) {
+  const lv = LEVELS[n], res = S.results[n], g = S.grids[n];
+  const pct = Math.round(g.flat().filter(v => v === 1).length / (lv.people.length * 5) * 100), tgt = Math.round(attendNeed(lv) / (lv.people.length * 5) * 100);
+  const rows = lv.people.map(p => `<div class="resrow">${av(p.id)}<b>${esc(nm(p.id))}</b><span class="facebig">${FACE[res.faces[p.id]]}</span><span class="resl">${esc(u('face_' + res.faces[p.id]))}</span></div>`).join('');
+  return `<div class="ov"><div class="rescard" role="dialog" aria-label="${esc(u('resTitle'))}">
+    <h3>${esc(u('week', { n: n + 1 }))} · ${esc(u('resTitle'))}</h3>
+    <div class="resgrid">${rows}</div>
+    <div class="resatt ${res.ok ? 'ok' : 'bad'}">${esc(u('attend'))} ${pct}% / ${esc(u('target'))} ${tgt}% · ${esc(u(res.ok ? 'attOk' : 'attBad'))}${S.fails ? ` · ${esc(u('failCount', { n: S.fails }))}` : ''}</div>
+    <button class="btn primary" id="rescont">${esc(u('cont'))}</button>
+  </div></div>`;
 }
 function weekFlip(n, done) {
   const ov = $('overlay');
@@ -743,13 +841,13 @@ function renderChat() {
   if (!chats.length) { app.innerHTML = `<div class="empty">${ICON.chat}<b>${esc(u('emptyChat'))}</b><span>${esc(u('emptyHint'))}</span></div>`; return; }
   let cur = S.view.chat;
   if (!cur || !feedItem(cur)) cur = S.view.chat = (chats.find(f => !f.read) || chats[0]).key;
-  const c = CHATS[idOf(cur)], fi = feedItem(cur);
+  const c = chatOf(idOf(cur)), fi = feedItem(cur);
   const people = new Set(c.msgs.map(m => m[0]));
   if (fi.read || reduceMotion()) S.anim = null;
   else if (!S.anim || S.anim.key !== cur) S.anim = { key: cur, n: 0 };
   const shownN = S.anim ? S.anim.n : c.msgs.length;
   const shown = c.msgs.slice(0, shownN);
-  const list = chats.map(f => { const x = CHATS[idOf(f.key)], last = x.msgs[x.msgs.length - 1], un = !f.read && f.key !== cur; return `<button class="li ${f.key === cur ? 'cur' : ''} ${un ? 'unread' : ''}" data-k="${f.key}"><div class="f"><span class="nm2">${un ? '<i class="ud"></i>' : ''}${esc(tr(x.name))}</span></div><div class="s">${esc(nm(last[0]))}: ${esc(tr(last[1]))}</div></button>`; }).join('');
+  const list = chats.map(f => { const x = chatOf(idOf(f.key)), last = x.msgs[x.msgs.length - 1], un = !f.read && f.key !== cur; return `<button class="li ${f.key === cur ? 'cur' : ''} ${un ? 'unread' : ''}" data-k="${f.key}"><div class="f"><span class="nm2">${un ? '<i class="ud"></i>' : ''}${esc(tr(x.name))}</span></div><div class="s">${esc(nm(last[0]))}: ${esc(tr(last[1]))}</div></button>`; }).join('');
   app.innerHTML = `
     <div class="split">
       <div class="list"><div class="lh">${esc(tr(COMPANY))}</div><div class="sec">${esc(u('groups'))}</div>${list}</div>
@@ -769,14 +867,23 @@ function renderChat() {
 }
 
 /* ---------- Meet ---------- */
-function talkSeq(lines, pick) {
+function talkSeq(lines, picks = [], ask = null) {
   const seq = [];
+  let k = 0;
   for (const l of lines) {
-    if (l.choice) { if (pick == null) { seq.push({ choice: l.choice }); break; } seq.push(['me', l.choice[pick].label], ...l.choice[pick].reply); }
-    else seq.push(l);
+    if (l.choice) {
+      const p = picks[k++];
+      if (p == null) { seq.push({ choice: l.choice }); return seq; }
+      seq.push(['me', l.choice[p].label], ...l.choice[p].reply);
+    } else if (l.ask) {
+      if (ask == null) { seq.push({ ask: l.ask }); return seq; }
+      const o = l.ask.options[ask];
+      seq.push(['me', o.text], ...(o.ok ? l.ask.right : l.ask.wrong));
+    } else seq.push(l);
   }
   return seq;
 }
+const askOf = who => TALKS[who].lines.find(l => l.ask)?.ask;
 function renderMeet() {
   const app = $('app');
   app.className = 'app meet';
@@ -797,34 +904,40 @@ function renderMeet() {
   bindStage(cur, isLive);
 }
 const lineHtml = (w, t, other, isNew, named) => `<div class="line ${w === 'me' ? 'me' : ''} ${isNew ? 'new' : ''}">${av(w === 'me' ? 'me' : (other || w))}<div class="bub">${named ? `<b>${esc(nm(w))}</b> ` : ''}${esc(tr(t))}</div></div>`;
-function unlockHtml(who) {
-  const tk = TALKS[who];
-  return `<div class="unlock" role="status"><h4>${esc(u('unlocked'))}</h4><div class="from">${esc(nm(who))}: ${esc(tr(tk.unlock.before))}</div><div class="to">${esc(nm(who))}: ${esc(tr(tk.unlock.after))}</div></div>`;
+function unlockHtml(who, askIdx) {
+  const ask = askOf(who);
+  if (!ask) return '';
+  const o = ask.options[askIdx];
+  return o?.ok
+    ? `<div class="unlock" role="status"><h4>${esc(u('clueGot'))}</h4><div class="to">${esc(nm(who))}: ${esc(tr(o.text))}</div></div>`
+    : `<div class="unlock miss" role="status"><h4>${esc(u('clueMiss'))}</h4><div class="from">${esc(u('clueMissTx', { n: nm(who) }))}</div></div>`;
 }
 function talkStage(who, key, isLive) {
   const tk = TALKS[who];
   const tiles = (sp, mood) => `<div class="tiles">${tile(who, { speak: sp === 'them', listen: sp === 'me', mood })}${tile('me', { speak: sp === 'me' })}</div>`;
   if (!isLive) {
-    const seq = talkSeq(tk.lines, S.picks[who] ?? 0);
+    const rec = S.picks[who] || { picks: [], ask: null };
+    const seq = talkSeq(tk.lines, rec.picks, rec.ask).filter(l => Array.isArray(l));
     return `<div class="meet-top"><span class="rec pb"></span><b>${esc(u('meeting', { n: nm(who) }))}</b><span class="tm">${esc(u('replay'))}</span></div>
       ${tiles('')}
       <div class="transcript" id="tsc">${seq.map(([w, t]) => lineHtml(w, t, who)).join('')}</div>
-      ${unlockHtml(who)}`;
+      ${unlockHtml(who, rec.ask)}`;
   }
-  if (!S.tk || S.tk.key !== key) S.tk = { key, pos: 0, pick: null, end: false };
-  const seq = talkSeq(tk.lines, S.tk.pick);
-  const shown = seq.slice(0, S.tk.pos + 1).filter(l => !l.choice);
-  const atChoice = seq[S.tk.pos]?.choice;
-  const last = S.tk.pos >= seq.length - 1 && !atChoice;
+  if (!S.tk || S.tk.key !== key) S.tk = { key, pos: 0, picks: [], ask: null, end: false };
+  const seq = talkSeq(tk.lines, S.tk.picks, S.tk.ask);
+  const shown = seq.slice(0, S.tk.pos + 1).filter(l => Array.isArray(l));
+  const atChoice = seq[S.tk.pos]?.choice, atAsk = seq[S.tk.pos]?.ask;
+  const last = S.tk.pos >= seq.length - 1 && !atChoice && !atAsk;
   const speaker = shown.length ? shown[shown.length - 1][0] : 'them';
   const mood = shown.length ? moodOf(shown[shown.length - 1][1]) : '';
   const mm = 2 + S.tk.pos, ss = (17 + S.tk.pos * 23) % 60;
   return `<div class="meet-top"><span class="rec"></span><b>${esc(u('meeting', { n: nm(who) }))}</b><span class="tm">${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}</span></div>
     ${tiles(speaker, mood)}
     <div class="transcript" id="tsc">${shown.map(([w, t], i) => lineHtml(w, t, who, i === shown.length - 1)).join('')}</div>
-    ${atChoice ? `<div class="choices">${atChoice.map((c, i) => `<button data-i="${i}"><span class="tag">${esc(u(i ? 'choiceB' : 'choiceA'))}</span>${esc(tr(c.label))}</button>`).join('')}</div>` : ''}
-    ${S.tk.end ? unlockHtml(who) : ''}
-    <div class="next-row">${atChoice ? '' : S.tk.end ? `<button class="btn primary" id="leave">${esc(u('leave'))}</button>` : `<button class="btn primary" id="adv">${esc(last ? u('endcall') : u('cont'))}</button>`}</div>`;
+    ${atChoice ? `<div class="choices">${atChoice.map((c, i) => `<button data-i="${i}"><span class="tag">${esc(u('tag_' + (c.tag || (i ? 'wild' : 'empathy'))))}</span>${esc(tr(c.label))}</button>`).join('')}</div>` : ''}
+    ${atAsk ? `<div class="choices ask"><p class="askq">${esc(u('askPrompt', { n: nm(who) }))}</p>${atAsk.options.map((o, i) => `<button data-a="${i}">${esc(tr(o.text))}</button>`).join('')}</div>` : ''}
+    ${S.tk.end ? unlockHtml(who, S.tk.ask) : ''}
+    <div class="next-row">${atChoice || atAsk ? '' : S.tk.end ? `<button class="btn primary" id="leave">${esc(u('leave'))}</button>` : `<button class="btn primary" id="adv">${esc(last ? u('endcall') : u('cont'))}</button>`}</div>`;
 }
 function finaleStage(isLive) {
   const crowd = ['mori', 'kuroda', ...ORDER, 'me'];
@@ -844,7 +957,13 @@ function finaleStage(isLive) {
 }
 const AUTO_LINE_MS = 4000;
 function bindStage(key, isLive) {
-  $('stage').querySelectorAll('.choices button').forEach(b => b.onclick = () => { S.tk.pick = +b.dataset.i; render(); });
+  $('stage').querySelectorAll('.choices button[data-i]').forEach(b => b.onclick = () => { S.tk.picks.push(+b.dataset.i); render(); });
+  $('stage').querySelectorAll('.choices button[data-a]').forEach(b => b.onclick = () => {
+    const who = idOf(key), i = +b.dataset.a;
+    S.tk.ask = i;
+    if (askOf(who).options[i].ok) S.clues[who] = true;
+    save(); render();
+  });
   if ($('photo')) $('photo').onclick = () => { S.view.app = 'end'; save(); render(true); };
   if (!isLive) return;
   const autoNext = () => { S.timer = setTimeout(() => { if (S.tk?.key === key) { S.tk.pos++; render(); } }, AUTO_LINE_MS); };
@@ -856,14 +975,37 @@ function bindStage(key, isLive) {
     if (S.tk.pos < FINALE.length - 1) autoNext();
     return;
   }
-  const who = idOf(key), seq = talkSeq(TALKS[who].lines, S.tk.pick);
+  const who = idOf(key), seq = talkSeq(TALKS[who].lines, S.tk.picks, S.tk.ask);
   if ($('adv')) $('adv').onclick = () => { if (S.tk.pos >= seq.length - 1) S.tk.end = true; else S.tk.pos++; render(); };
   if ($('adv') && S.tk.pos < seq.length - 1) autoNext();
-  if ($('leave')) $('leave').onclick = () => { S.picks[who] = S.tk.pick ?? 0; S.tk = null; markRead(key); render(); };
+  if ($('leave')) $('leave').onclick = () => { S.picks[who] = { picks: S.tk.picks, ask: S.tk.ask }; S.tk = null; markRead(key); render(); };
 }
 
 /* ---------- ending ---------- */
+function renderOutcome() {
+  const app = $('app');
+  app.className = 'app photo-app';
+  const fired = S.outcome === 'fired';
+  const good = ORDER.filter(id => S.mood[id] >= 1).length;
+  const trail = ORDER.map(id => `<div class="trail">${av(id)}<b>${esc(nm(id))}</b><span>${Object.keys(S.results).sort().map(n => FACE[S.results[n].faces[id]]).join(' ')}</span><span class="mv ${S.mood[id] >= 1 ? 'ok' : S.mood[id] < 0 ? 'bad' : ''}">${esc(u('moodTx', { v: (S.mood[id] > 0 ? '+' : '') + S.mood[id] }))}</span>${S.clues[id] ? '<span class="cl">🔍</span>' : ''}</div>`).join('');
+  app.innerHTML = `<div class="outcome">
+    <h2>${esc(u(fired ? 'firedTitle' : 'protoTitle'))}</h2>
+    <p>${esc(u(fired ? 'firedTx' : 'protoTx', { g: good }))}</p>
+    <div class="trails">${trail}</div>
+    <p class="meta2">${esc(u('failCount', { n: S.fails }))}</p>
+    <div class="share">${fired && S.checkpoint ? `<button id="retry" class="btn primary">${esc(u('retryWeek'))}</button>` : ''}<button id="again2" class="btn">${esc(u('again'))}</button></div>
+  </div>`;
+  if ($('retry')) $('retry').onclick = () => {
+    const cp = S.checkpoint;
+    Object.assign(S, JSON.parse(JSON.stringify(cp)), { checkpoint: cp });
+    S.done = new Set(S.done); S.outcome = null; S.tk = null; S.hist = [];
+    S.view = { ...S.view, app: 'grid', week: S.lv };
+    save(); render(true);
+  };
+  $('again2').onclick = resetGame;
+}
 function renderEnd() {
+  if (S.outcome) { renderOutcome(); return; }
   const app = $('app');
   app.className = 'app photo-app';
   const text = u('shareTx'), enc = encodeURIComponent;
@@ -934,10 +1076,10 @@ if (COVER !== null) {
   S.tut = true; S.open = true;
   $('desktop').hidden = true; $('screen').hidden = false;
   if (COVER === 'meet') {
-    jumpTo(7);
-    feedItem('talk:abe').read = false;
-    S.view = { ...S.view, app: 'meet', meet: 'talk:abe' };
-    S.tk = { key: 'talk:abe', pos: 4, pick: null, end: false };
+    jumpTo(1);
+    feedItem('talk:kobayashi').read = false;
+    S.view = { ...S.view, app: 'meet', meet: 'talk:kobayashi' };
+    S.tk = { key: 'talk:kobayashi', pos: 3, picks: [], ask: null, end: false };
   } else {
     jumpTo(1);
     const g = gridOf(1), sol = solve(LEVELS[1], 1)[0];
