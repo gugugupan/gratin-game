@@ -5,7 +5,7 @@ import { COMPANY, EMAILS, CHATS, TALKS, FINALE, BEATS, MOOD_LINES, MOOD_CHATS } 
 import { loadLocale, saveLocale } from './locale.js';
 import { loadFonts } from './fonts.js';
 
-const SHARE_URL = `${import.meta.env.VITE_SITE_URL || 'https://gratin-game.com/'}rto/`;
+const SITE_URL = import.meta.env.VITE_SITE_URL || 'https://gratin-game.com/';
 const UI = {
   title: T('Return to Office', 'Return to Office', 'Return to Office'),
   appName: T('工作台', 'Workspace', 'ワークスペース'),
@@ -1075,7 +1075,7 @@ function bindStage(key, isLive) {
 function renderEnd() {
   const app = $('app');
   app.className = 'app photo-app';
-  const text = u('shareTx'), enc = encodeURIComponent;
+  const text = u('shareTx'), enc = encodeURIComponent, SHARE_URL = `${SITE_URL}rto/share/${S.lang}/`;
   const links = [
     ['X', `https://twitter.com/intent/tweet?text=${enc(text)}&url=${enc(SHARE_URL)}`],
     ['Facebook', `https://www.facebook.com/sharer/sharer.php?u=${enc(SHARE_URL)}`],

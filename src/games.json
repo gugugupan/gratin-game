@@ -110,9 +110,9 @@
       "en": "Return to Office"
     },
     "tagline": {
-      "ja": "出社したくない6人を、週3出社させろ。シフト表パズルと、1on1で心をほどくストーリー。",
-      "zh": "让 6 个不想回办公室的人每周出社 3 天。排班推理解谜，加上一场场 1:1 谈心。",
-      "en": "Get six remote-loving engineers back to the office three days a week: a scheduling logic puzzle, plus 1:1s that untangle why they won't come in."
+      "ja": "出社したくない6人のシフトを組む。申請の裏にある本当の事情は、1on1とSlackから読み解くしかない。",
+      "zh": "给 6 个不想回办公室的人排班。申请背后的真实难处，只能从 1:1 和 Slack 里一点点读出来。",
+      "en": "Schedule six people who don't want to come back to the office. What they really need isn't on the request form: read it from 1:1s and Slack."
     },
     "url": "https://gratin-game.com/rto/",
     "cover": "covers/rto.jpg",
