@@ -1,9 +1,9 @@
-import { EDGE_KIND, POPULATION, V2_CONFIG, V2State, type NewsId, type V2Action, type V2Config, type V2Event } from "../../engine/game.js";
-import { CITIES, CITY_COUNT, EDGES, LINKS, STRAINS } from "../../engine/map.js";
-import { ROLE_NAMES, ROLES, type RoleId } from "../../engine/roles.js";
+import { EDGE_KIND, POPULATION, V2_CONFIG, V2State, type NewsId, type V2Action, type V2Config, type V2Event } from "../../../engine/game.js";
+import { CITIES, CITY_COUNT, EDGES, LINKS, STRAINS } from "../../../engine/map.js";
+import { ROLE_NAMES, ROLES, type RoleId } from "../../../engine/roles.js";
 import { POS2D } from "./layout";
 
-const PLAYTEST: V2Config = { ...V2_CONFIG, spawn: [0, 0, 0, 1], setup: [3, 3, 2, 2, 1, 1], samplePerLevel: true, lockRange: 1 };
+const PLAYTEST: V2Config = V2_CONFIG;
 
 const COLORS = ["#c4472f", "#2f6d8c", "#c9951a"];
 const TINT = ["#f2d3c8", "#cfe0e6", "#f2e2b8"];
