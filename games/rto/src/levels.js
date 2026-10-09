@@ -103,7 +103,7 @@ export const LEVELS = [
     title: Z('没有咖啡的一周'),
     intro: Z('咖啡停了，交通费有了上限。'),
     people: {
-      kobayashi: { ...P.kob, wishes: [3, 4], rules: biz(1, '周二要和客户当面过需求') },
+      kobayashi: { ...P.kob, wishes: [1, 4], rules: biz(1, '周二要和客户当面过需求') },
       sato: { ...P.satoMon, wishes: [3, 4] },
       tanaka: { ...P.tan1, wishes: [0, 3] },
       wang: { ...P.wang2, wishes: [1, 3] },
@@ -124,8 +124,8 @@ export const LEVELS = [
       kobayashi: { ...P.kob, wishes: [1, 4] },
       sato: { ...P.satoMon, wishes: [3, 4] },
       tanaka: { ...P.tan1, wishes: [2, 4] },
-      wang: { ...P.wang2, wishes: [1, 4] },
-      abe: { ...P.abeApart, wishes: [0, 3], rules: biz(4, '周五和市场部当面评审设计稿') },
+      wang: { ...P.wang2, wishes: [1, 3] },
+      abe: { ...P.abeApart, wishes: [2, 4], rules: biz(4, '周五和市场部当面评审设计稿') },
       suzuki: { ...P.suz, wishes: [1, 2] },
     },
     rules: [
@@ -144,7 +144,7 @@ export const LEVELS = [
       tanaka: { ...P.tan2, wishes: [1, 2, 3] },
       wang: { ...P.wang3, wishes: [1, 3, 4] },
       abe: { ...P.abeWith, wishes: [0, 2, 3] },
-      suzuki: { ...P.suz, ...SUZ2, wishes: [2, 3], rules: biz(4, '周五机房换服务器') },
+      suzuki: { ...P.suz, ...SUZ2, wishes: [3, 4], rules: biz(4, '周五机房换服务器') },
     },
     rules: [
       { t: 'cap', d: 1, n: 1, why: Z('公关危机小组征用了会议室') },
@@ -160,8 +160,8 @@ export const LEVELS = [
       kobayashi: { ...P.kob, wishes: [0, 3, 4] },
       sato: { ...P.satoMon, wishes: [1, 2, 3] },
       tanaka: { ...P.tan2, wishes: [0, 1, 2] },
-      wang: { ...P.wang3, wishes: [1, 2, 4], rules: biz(3, '周四要在机房回滚数据') },
-      abe: { ...P.abeWith, wishes: [0, 1, 3] },
+      wang: { ...P.wang3, wishes: [1, 3, 4], rules: biz(3, '周四要在机房回滚数据') },
+      abe: { ...P.abeWith, wishes: [0, 2, 3] },
       suzuki: { ...P.suz, ...SUZ2, wishes: [2, 3] },
     },
     rules: [
@@ -178,8 +178,8 @@ export const LEVELS = [
       kobayashi: { ...P.kob, wishes: [1, 3, 4] },
       sato: { ...P.satoFri, wishes: [0, 1, 2] },
       tanaka: { ...P.tan2, wishes: [0, 1, 4] },
-      wang: { ...P.wang3, wishes: [1, 3, 4], rules: biz(2, '周三要去机房发修复版') },
-      abe: { ...P.abeWith, wishes: [0, 1, 2] },
+      wang: { ...P.wang3, wishes: [1, 2, 4], rules: biz(2, '周三要去机房发修复版') },
+      abe: { ...P.abeWith, wishes: [0, 2, 3] },
       suzuki: { ...P.suz, ...SUZ2, wishes: [2, 3] },
     },
     rules: [
@@ -196,8 +196,8 @@ export const LEVELS = [
       kobayashi: { ...P.kob, wishes: [0, 1, 3] },
       sato: { ...P.satoFri, wishes: [0, 1, 2] },
       tanaka: { ...P.tan2, wishes: [1, 2, 4] },
-      wang: { ...P.wang3, wishes: [1, 2, 4], rules: biz(3, '周四机房演练') },
-      abe: { ...P.abeWith, wishes: [0, 1, 3] },
+      wang: { ...P.wang3, wishes: [1, 3, 4], rules: biz(3, '周四机房演练') },
+      abe: { ...P.abeWith, wishes: [0, 1, 2] },
       suzuki: { ...P.suz, ...SUZ2, wishes: [1, 2] },
     },
     rules: [
@@ -212,7 +212,7 @@ export const LEVELS = [
     intro: Z('周四 All Hands，全员到场。'),
     people: {
       kobayashi: { ...P.kob, wishes: [0, 3, 4] },
-      sato: { ...P.satoFri, wishes: [0, 2, 3], rules: biz(1, '周二彩排 All Hands 的演示') },
+      sato: { ...P.satoFri, wishes: [0, 1, 2], rules: biz(1, '周二彩排 All Hands 的演示') },
       tanaka: { ...P.tan2, wishes: [1, 2, 3] },
       wang: { ...P.wangAH, wishes: [2, 3, 4] },
       abe: { ...P.abeWith, wishes: [0, 1, 4], rules: biz(1, '周二彩排 All Hands 的演示') },

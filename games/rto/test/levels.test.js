@@ -69,6 +69,12 @@ test('requests respect the requester\'s own needs but clash with company rules',
   });
 });
 
+test('requests include the requester\'s own required office days', () => {
+  LEVELS.forEach((L, w) => L.people.forEach(p => {
+    for (const r of p.rules || []) if (r.t === 'fixed' && r.v === 1) assert.ok((p.wishes || []).includes(r.d), `${p.id} in week ${w + 1} must request day ${r.d}`);
+  }));
+});
+
 test('every speaker and sender is in the cast', () => {
   for (const e of Object.values(EMAILS)) assert.ok(CAST[e.from], e.from);
   for (const c of Object.values(CHATS)) for (const [who] of c.msgs) assert.ok(CAST[who], who);
