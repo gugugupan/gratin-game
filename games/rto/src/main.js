@@ -251,16 +251,24 @@ function advance() {
     render();
   }
 }
+function pickVoices() {
+  const a = [...ORDER];
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a.slice(0, 2);
+}
 function chatOf(id) {
   if (!id.startsWith('mood')) return CHATS[id];
   const n = +id.slice(4), res = S.results[n], script = MOOD_CHATS[n];
   const faceOf2 = p => res ? res.faces[p] : 'happy';
+  if (res && !res.voices) { res.voices = pickVoices(); save(); }
+  const voices = res ? res.voices : ORDER;
   return {
     name: script.name,
     channel: '#dev-2',
     msgs: script.lines.flatMap(l => {
       if (l[0] !== 'mood') return [l];
       const [, p, i] = l, f = faceOf2(p);
+      if (!voices.includes(p)) return [];
       const v = Object.keys(MOOD_LINES).filter(k => k.startsWith(p + '@') && +k.split('@')[1] <= n).sort((a, b) => b.split('@')[1] - a.split('@')[1])[0] || p;
       return i === 1 && f === 'happy' ? [] : [[p, MOOD_LINES[v][f][i]]];
     }),
@@ -402,7 +410,7 @@ function jumpTo(n) {
   for (let i = 0; i < n && i < LEVELS.length; i++) {
     const lv = LEVELS[i];
     S.done.add(i); S.grids[i] = solve(withNeeds(lv), 1)[0];
-    S.results[i] = { faces: Object.fromEntries(lv.people.map((p, k) => [p.id, faceOf(lv, k, S.grids[i])])), ok: true };
+    S.results[i] = { faces: Object.fromEntries(lv.people.map((p, k) => [p.id, faceOf(lv, k, S.grids[i])])), ok: true, voices: pickVoices() };
     for (const id in S.results[i].faces) S.mood[id] = Math.min(2, S.mood[id] + 1);
   }
   S.feed = BEATS.slice(0, n + 1).flat().filter(e => typeof e === 'string').map(key => ({ key, read: true }));
@@ -701,7 +709,7 @@ function submit(n) {
   const ok = attendOk(lv, S.grids[n]);
   for (const id in faces) S.mood[id] = Math.max(-2, Math.min(2, (S.mood[id] || 0) + { happy: 1, meh: 0, angry: -1 }[faces[id]]));
   if (!ok) S.fails++;
-  S.results[n] = { faces, ok };
+  S.results[n] = { faces, ok, voices: pickVoices() };
   S.done.add(n); S.hist = []; closePop(); save();
   const ov = $('overlay');
   const next = () => {
