@@ -33,6 +33,8 @@ const STRINGS = {
   ideaSubject: { ja: "【グラタンゲーム】ゲームのアイデア", zh: "【グラタンゲーム】游戏点子", en: "[Gratin Game] Game idea" },
   contact: { ja: "お問い合わせ：", zh: "联系我们：", en: "Contact: " },
   footer: { ja: "すべて手づくり、ブラウザですぐ遊べます。", zh: "全部手工制作，打开浏览器就能玩。", en: "Handmade, and playable right in your browser." },
+  sister: { ja: "姉妹サイト：", zh: "姊妹网站：", en: "Sister site: " },
+  sisterLink: { ja: "新弾ナビ（TCG・トレカ新弾 発売日カレンダー）", zh: "新弾ナビ（TCG 新弹发售日历）", en: "Shindan Navi (TCG release calendar)" },
 } satisfies Record<string, Localized>;
 
 export const INPUTS: Record<string, Localized> = {
