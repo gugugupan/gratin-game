@@ -59,6 +59,76 @@ function clipPass(ctx: Ctx, p: Pass, x0: number, y0: number) {
   }
 }
 
+const passKey = (p: Pass) => `${p.c},${p.r},${p.a},${p.b}`;
+
+/** Clips to the part of the pass the rake has swept so far (t in 0..1). */
+function clipProgress(ctx: Ctx, p: Pass, x0: number, y0: number, t: number) {
+  if (t >= 1) return;
+  const S = PX;
+  ctx.beginPath();
+  if (p.kind === 'turn') {
+    const [pu, pv] = PIVOTS[p.pivot];
+    const px = x0 + pu * S;
+    const py = y0 + pv * S;
+    const mid = (s: string) => ({ N: [0.5, 0], S: [0.5, 1], W: [0, 0.5], E: [1, 0.5] })[s]!;
+    const [au, av] = mid(p.a);
+    const [bu, bv] = mid(p.b!);
+    const a0 = Math.atan2(av - pv, au - pu);
+    let a1 = Math.atan2(bv - pv, bu - pu);
+    while (a1 - a0 > Math.PI) a1 -= Math.PI * 2;
+    while (a0 - a1 > Math.PI) a1 += Math.PI * 2;
+    ctx.moveTo(px, py);
+    ctx.arc(px, py, S * 1.5, a0, a0 + (a1 - a0) * t, a1 < a0);
+    ctx.closePath();
+  } else {
+    const reach = (p.kind === 'half' ? 0.5 : 1) * t * S;
+    if (p.a === 'W') ctx.rect(x0, y0, reach, S);
+    else if (p.a === 'E') ctx.rect(x0 + S - reach, y0, reach, S);
+    else if (p.a === 'N') ctx.rect(x0, y0, S, reach);
+    else ctx.rect(x0, y0 + S - reach, S, reach);
+  }
+  ctx.clip();
+}
+
+function drawPass(cc: Ctx, bc: Ctx, p: Pass, t: number) {
+  const S = PX;
+  const x0 = p.c * S;
+  const y0 = p.r * S;
+  const lines = groovePoints(p, x0, y0);
+  cc.save();
+  clipPass(cc, p, x0, y0);
+  clipProgress(cc, p, x0, y0, t);
+  cc.fillStyle = SAND;
+  cc.fillRect(x0 - 1, y0 - 1, S + 2, S + 2);
+  cc.lineCap = 'round';
+  for (const pts of lines) {
+    cc.save();
+    cc.translate(0.8, 0.9);
+    cc.strokeStyle = 'rgba(88,86,80,.62)';
+    cc.lineWidth = 1.5;
+    polyline(cc, pts);
+    cc.restore();
+    cc.save();
+    cc.translate(-0.6, -0.7);
+    cc.strokeStyle = 'rgba(255,255,255,.95)';
+    cc.lineWidth = 1.2;
+    polyline(cc, pts);
+    cc.restore();
+  }
+  cc.restore();
+  bc.save();
+  clipPass(bc, p, x0, y0);
+  clipProgress(bc, p, x0, y0, t);
+  bc.fillStyle = '#b4b4b4';
+  bc.fillRect(x0 - 1, y0 - 1, S + 2, S + 2);
+  bc.lineCap = 'round';
+  bc.strokeStyle = '#4a4a4a';
+  bc.lineWidth = (S / TINES) * 0.42;
+  bc.filter = 'blur(1.6px)';
+  for (const pts of lines) polyline(bc, pts);
+  bc.restore();
+}
+
 /** Paints the sand as a printed tile texture plus a matching bump map. */
 export class SandPainter {
   readonly color = document.createElement('canvas');
@@ -179,48 +249,49 @@ export class SandPainter {
       }
   }
 
-  paint(passes: Pass[]) {
-    const cc = this.color.getContext('2d')!;
-    const bc = this.bump.getContext('2d')!;
-    cc.drawImage(this.baseColor, 0, 0);
-    bc.drawImage(this.baseBump, 0, 0);
-    const S = PX;
-    for (const p of passes) {
-      const x0 = p.c * S;
-      const y0 = p.r * S;
-      const lines = groovePoints(p, x0, y0);
-      cc.save();
-      clipPass(cc, p, x0, y0);
-      cc.fillStyle = SAND;
-      cc.fillRect(x0 - 1, y0 - 1, S + 2, S + 2);
-      cc.lineCap = 'round';
-      for (const pts of lines) {
-        cc.save();
-        cc.translate(0.8, 0.9);
-        cc.strokeStyle = 'rgba(88,86,80,.62)';
-        cc.lineWidth = 1.5;
-        polyline(cc, pts);
-        cc.restore();
-        cc.save();
-        cc.translate(-0.6, -0.7);
-        cc.strokeStyle = 'rgba(255,255,255,.95)';
-        cc.lineWidth = 1.2;
-        polyline(cc, pts);
-        cc.restore();
-      }
-      cc.restore();
-      bc.save();
-      clipPass(bc, p, x0, y0);
-      bc.fillStyle = '#b4b4b4';
-      bc.fillRect(x0 - 1, y0 - 1, S + 2, S + 2);
-      bc.lineCap = 'round';
-      bc.strokeStyle = '#4a4a4a';
-      bc.lineWidth = (S / TINES) * 0.42;
-      bc.filter = 'blur(1.6px)';
-      for (const pts of lines) polyline(bc, pts);
-      bc.restore();
+  private cacheColor = document.createElement('canvas');
+  private cacheBump = document.createElement('canvas');
+  private cacheKeys: string[] = [];
+  private overlayColor = document.createElement('canvas');
+  private overlayBump = document.createElement('canvas');
+  private overlayReady = false;
+
+  /** Paints all `passes`, plus `partial` swept up to fraction `t` along its rake line. */
+  paint(passes: Pass[], partial?: { pass: Pass; t: number }) {
+    if (!this.overlayReady) this.buildOverlay();
+    const keys = passes.map(passKey);
+    const cc = this.cacheColor.getContext('2d')!;
+    const cb = this.cacheBump.getContext('2d')!;
+    const prefix = this.cacheKeys.length <= keys.length && this.cacheKeys.every((k, i) => k === keys[i]);
+    if (!prefix) {
+      cc.drawImage(this.baseColor, 0, 0);
+      cb.drawImage(this.baseBump, 0, 0);
+      this.cacheKeys = [];
     }
+    for (let i = this.cacheKeys.length; i < passes.length; i++) drawPass(cc, cb, passes[i], 1);
+    this.cacheKeys = keys;
+    const oc = this.color.getContext('2d')!;
+    const ob = this.bump.getContext('2d')!;
+    oc.drawImage(this.cacheColor, 0, 0);
+    ob.drawImage(this.cacheBump, 0, 0);
+    if (partial && partial.t > 0) drawPass(oc, ob, partial.pass, Math.min(1, partial.t));
+    oc.drawImage(this.overlayColor, 0, 0);
+    ob.drawImage(this.overlayBump, 0, 0);
+    this.colorTex.needsUpdate = true;
+    this.bumpTex.needsUpdate = true;
+  }
+
+  private buildOverlay() {
+    for (const c of [this.cacheColor, this.cacheBump, this.overlayColor, this.overlayBump]) {
+      c.width = this.color.width;
+      c.height = this.color.height;
+    }
+    this.cacheColor.getContext('2d')!.drawImage(this.baseColor, 0, 0);
+    this.cacheBump.getContext('2d')!.drawImage(this.baseBump, 0, 0);
+    const cc = this.overlayColor.getContext('2d')!;
+    const bc = this.overlayBump.getContext('2d')!;
     this.paintRoundCorners(cc, bc);
+    const S = PX;
     cc.strokeStyle = 'rgba(90,80,60,.16)';
     cc.lineWidth = 1.6;
     for (let i = 1; i < this.map.cols; i++) {
@@ -235,8 +306,7 @@ export class SandPainter {
       cc.lineTo(this.map.cols * S, j * S);
       cc.stroke();
     }
-    this.colorTex.needsUpdate = true;
-    this.bumpTex.needsUpdate = true;
+    this.overlayReady = true;
   }
 
   private paintRoundCorners(cc: Ctx, bc: Ctx) {

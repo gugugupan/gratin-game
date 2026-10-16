@@ -18,6 +18,7 @@ import {
 import {
   DELTA,
   OPP,
+  PIVOTS,
   inGrid,
   isRock,
   passesOf,
@@ -30,6 +31,8 @@ import {
   stars,
   type Cell,
   type GardenMap,
+  type Pass,
+  type Side,
   type SizeKey,
 } from './engine';
 import { LEVELS, type Level } from './levels';
@@ -176,79 +179,188 @@ function startGame(mode: Mode, opts: { level?: Level; size?: SizeKey; seed?: num
     path: [],
     done: false,
   };
-  placeMonkIdle();
-  monk.rake.visible = true;
   setupHud();
   refresh();
+  resetVisual();
   beginIntro();
 }
 
-const rakePos = new Vector3();
-const rakeTarget = new Vector3();
 let monkAngle = 0;
 let monkAngleTarget = 0;
-const MONK_OFFSET = 0.72;
 let walkSpeed = 0;
 let hold: Vector3 | null = null;
+const rakeShown = new Vector3();
+const monkShown = new Vector3();
+let drawnKeys: string[] = [];
+let sweep = 0;
+let paintDirty = true;
+let finishTimer = -1;
 
-function dirVec(s: keyof typeof DELTA) {
+const RAKE_LEAD = 0.55;
+const SWEEP_SPEED = 3;
+
+interface Seg {
+  len: number;
+  at(s: number): Vector3;
+}
+
+const lineSeg = (p0: Vector3, p1: Vector3): Seg => ({
+  len: p0.distanceTo(p1),
+  at: (s) => p0.clone().lerp(p1, p0.distanceTo(p1) ? s / p0.distanceTo(p1) : 0),
+});
+
+const arcSeg = (c: Vector3, r: number, a0: number, a1: number): Seg => ({
+  len: Math.abs(a1 - a0) * r,
+  at: (s) => {
+    const a = a0 + (a1 - a0) * (s / (Math.abs(a1 - a0) * r));
+    return new Vector3(c.x + Math.cos(a) * r, 0, c.z + Math.sin(a) * r);
+  },
+});
+
+const EDGE: Record<Side, [number, number]> = { N: [0.5, 0], S: [0.5, 1], W: [0, 0.5], E: [1, 0.5] };
+
+function cellPoint(map: GardenMap, c: number, r: number, u: number, v: number) {
+  return new Vector3(c - map.cols / 2 + u, 0, r - map.rows / 2 + v);
+}
+
+function passSeg(map: GardenMap, p: Pass): Seg {
+  const [au, av] = EDGE[p.a];
+  const from = cellPoint(map, p.c, p.r, au, av);
+  if (p.kind === 'half') return lineSeg(from, cellPoint(map, p.c, p.r, 0.5, 0.5));
+  const [bu, bv] = EDGE[p.b!];
+  if (p.kind === 'straight') return lineSeg(from, cellPoint(map, p.c, p.r, bu, bv));
+  const [pu, pv] = PIVOTS[p.pivot];
+  const a0 = Math.atan2(av - pv, au - pu);
+  let a1 = Math.atan2(bv - pv, bu - pu);
+  while (a1 - a0 > Math.PI) a1 -= Math.PI * 2;
+  while (a0 - a1 > Math.PI) a1 += Math.PI * 2;
+  return arcSeg(cellPoint(map, p.c, p.r, pu, pv), 0.5, a0, a1);
+}
+
+/** The rake's track: walk-in from the entry gate, one segment per raked cell, then the head cell. */
+function track(g: Game, passes: Pass[]) {
+  const segs: Seg[] = [];
+  const { map, path } = g;
+  if (map.entry) {
+    const [u, v] = EDGE[map.entry.side];
+    const mid = cellPoint(map, map.entry.cell[0], map.entry.cell[1], u, v);
+    segs.push(lineSeg(mid.clone().addScaledVector(dirVec(map.entry.side), 1.2), mid));
+  }
+  const first = segs.length;
+  for (const p of passes) segs.push(passSeg(map, p));
+  const n = path.length;
+  if (n && !g.done) {
+    const head = path[n - 1];
+    const a: Side = n > 1 ? sideTo(head, path[n - 2]) : map.entry ? map.entry.side : 'W';
+    const [u, v] = EDGE[a];
+    segs.push(lineSeg(cellPoint(map, head[0], head[1], u, v), cellPoint(map, head[0], head[1], 0.5, 0.5)));
+  } else if (g.done && map.exit) {
+    const [u, v] = EDGE[map.exit.side];
+    const mid = cellPoint(map, map.exit.cell[0], map.exit.cell[1], u, v);
+    segs.push(lineSeg(mid, mid.clone().addScaledVector(dirVec(map.exit.side), 1.3)));
+  }
+  return { segs, first };
+}
+
+function pointAt(segs: Seg[], s: number) {
+  let rest = Math.max(0, s);
+  for (const sg of segs) {
+    if (rest <= sg.len || sg === segs[segs.length - 1]) return sg.at(Math.min(rest, sg.len));
+    rest -= sg.len;
+  }
+  return new Vector3();
+}
+
+function dirVec(s: Side) {
   return new Vector3(DELTA[s][0], 0, DELTA[s][1]);
 }
 
-function placeMonkIdle() {
-  const g = game!;
-  const gate = g.map.entry;
-  if (gate) {
-    const c = g.garden.cellCenter(gate.cell[0], gate.cell[1]);
-    const out = dirVec(gate.side);
-    rakeTarget.copy(c).addScaledVector(out, 0.9);
-    monkAngleTarget = Math.atan2(-out.x, -out.z);
-  } else {
-    rakeTarget.copy(g.garden.cellCenter(0, g.map.rows - 1)).add(new Vector3(-0.9, 0, 0));
-    monkAngleTarget = Math.PI / 2;
-  }
-  rakePos.copy(rakeTarget);
-  monkAngle = monkAngleTarget;
+function resetVisual() {
+  drawnKeys = [];
+  sweep = 0;
+  paintDirty = true;
   hold = null;
+  finishTimer = -1;
+  monk.rake.visible = true;
+  updateVisual(0, true);
 }
 
-function updateMonkTarget() {
+const keyOf = (p: Pass) => `${p.c},${p.r},${p.a},${p.b}`;
+
+function updateVisual(dt: number, snap = false) {
   const g = game!;
-  const n = g.path.length;
-  if (!n) {
-    placeMonkIdle();
-    return;
+  const passes = passesOf(g.map, g.path, g.done);
+  const keys = passes.map(keyOf);
+  let common = 0;
+  while (common < drawnKeys.length && common < keys.length && drawnKeys[common] === keys[common]) common++;
+  if (common < drawnKeys.length) {
+    drawnKeys = drawnKeys.slice(0, common);
+    sweep = 0;
+    paintDirty = true;
   }
-  const head = g.path[n - 1];
-  const c = g.garden.cellCenter(head[0], head[1]);
-  let travel: Vector3;
-  if (g.done && g.map.exit) travel = dirVec(g.map.exit.side);
-  else if (n > 1) travel = dirVec(sideTo(g.path[n - 2], head));
-  else if (g.map.entry) travel = dirVec(OPP[g.map.entry.side]);
-  else travel = new Vector3(1, 0, 0);
-  rakeTarget.copy(c);
-  if (g.done && g.map.exit) rakeTarget.addScaledVector(travel, 0.95);
-  monkAngleTarget = Math.atan2(-travel.x, -travel.z);
-}
-
-function animateMonk(dt: number) {
-  const before = rakePos.clone();
-  const k = 1 - Math.exp(-dt * 9);
-  rakePos.lerp(rakeTarget, k);
+  const backlog = passes.length - drawnKeys.length;
+  const { segs, first } = track(g, passes);
+  if (backlog > 0) {
+    const len = segs[first + drawnKeys.length].len || 0.5;
+    sweep += (dt * SWEEP_SPEED * (1 + 0.7 * (backlog - 1))) / len;
+    if (snap) sweep = 1;
+    if (sweep >= 1) {
+      drawnKeys.push(keys[drawnKeys.length]);
+      sweep = drawnKeys.length < passes.length && snap ? 1 : 0;
+      if (snap) return updateVisual(0, true);
+    }
+    paintDirty = true;
+  }
+  if (paintDirty) {
+    const n = drawnKeys.length;
+    g.painter.paint(passes.slice(0, n), n < passes.length ? { pass: passes[n], t: sweep } : undefined);
+    paintDirty = false;
+  }
+  let rakeS = 0;
+  for (let i = 0; i < first + drawnKeys.length; i++) rakeS += segs[i].len;
+  if (drawnKeys.length < passes.length) rakeS += sweep * segs[first + drawnKeys.length].len;
+  const total = segs.reduce((t, sg) => t + sg.len, 0);
+  let rakeAt: Vector3;
+  let monkAt: Vector3;
+  if (!segs.length) {
+    rakeAt = cellPoint(g.map, 0, g.map.rows - 1, -0.9, 0.5);
+    monkAt = rakeAt.clone().add(new Vector3(-0.55, 0, 0));
+  } else {
+    rakeAt = pointAt(segs, rakeS);
+    monkAt = pointAt(segs, Math.min(total, rakeS + RAKE_LEAD));
+  }
+  const tangent = pointAt(segs, rakeS + 0.03).sub(pointAt(segs, rakeS - 0.03));
+  if (hold) monkAt = hold;
+  const k = snap ? 1 : 1 - Math.exp(-dt * 18);
+  const before = monkShown.clone();
+  rakeShown.lerp(rakeAt, k);
+  monkShown.lerp(monkAt, k);
+  if (!hold) {
+    const look = rakeShown.clone().sub(monkShown);
+    if (look.lengthSq() > 0.01) monkAngleTarget = Math.atan2(look.x, look.z);
+  }
   let da = monkAngleTarget - monkAngle;
   while (da > Math.PI) da -= Math.PI * 2;
   while (da < -Math.PI) da += Math.PI * 2;
-  monkAngle += da * (1 - Math.exp(-dt * 10));
-  const facing = new Vector3(Math.sin(monkAngle), 0, Math.cos(monkAngle));
-  if (hold) monk.root.position.copy(hold);
-  else monk.root.position.copy(rakePos).addScaledVector(facing, -MONK_OFFSET);
+  monkAngle = snap ? monkAngleTarget : monkAngle + da * (1 - Math.exp(-dt * 12));
+  monk.root.position.copy(monkShown);
   monk.root.rotation.y = monkAngle;
-  monk.rake.position.copy(rakePos);
-  monk.rake.position.y = 0;
-  monk.rake.rotation.y = monkAngle;
-  const v = before.distanceTo(rakePos) / Math.max(dt, 1e-3);
+  monk.rake.position.copy(rakeShown);
+  if (tangent.lengthSq() > 1e-6) monk.rake.rotation.y = Math.atan2(tangent.x, tangent.z);
+  const v = before.distanceTo(monkShown) / Math.max(dt, 1e-3);
   walkSpeed += (v - walkSpeed) * Math.min(1, dt * 8);
   monk.update(dt, walkSpeed > 0.15 ? Math.min(1.2, walkSpeed) : 0);
+
+  if (phase === 'play' && g.done && drawnKeys.length === passes.length) {
+    if (finishTimer < 0) finishTimer = 0;
+    finishTimer += dt;
+    if (finishTimer > 0.35) {
+      finishTimer = -1;
+      const s = score(sampleCodes(g.map, passes), g.target);
+      const ok = g.mode === 'puzzle' ? s.match >= 1 : s.clean >= 1 || g.mode === 'free';
+      if (ok) beginOutro(s.clean, s.match);
+    }
+  } else finishTimer = -1;
 }
 
 function setupHud() {
@@ -259,8 +371,8 @@ function setupHud() {
     g.mode === 'puzzle'
       ? g.level!.hint
       : g.mode === 'random'
-        ? '从朱色入口按住拖动，耙到整齐度 100% 后从出口离开。'
-        : '在任意砂格按住拖动开始，画好后点「完成」。';
+        ? '方向键、点击相邻格子或拖动来耙砂；耙到整齐度 100% 后从出口离开。'
+        : '点任意砂格开始，用方向键、点击或拖动作画，画好后点「完成」。';
   $('hud-match-wrap').classList.toggle('hidden', g.mode !== 'puzzle');
   $('btn-peek').classList.toggle('hidden', g.mode !== 'puzzle');
   $('btn-finish').classList.toggle('hidden', g.mode !== 'free');
@@ -322,7 +434,6 @@ let peeking = false;
 function refresh() {
   const g = game!;
   const passes = passesOf(g.map, g.path, g.done);
-  g.painter.paint(passes);
   const s = score(sampleCodes(g.map, passes), g.target);
   $('hud-steps').textContent = g.limit === Infinity ? String(g.path.length) : `${g.path.length} / ${g.limit}`;
   $('hud-clean').textContent = `${Math.floor(s.clean * 100)}%`;
@@ -333,17 +444,12 @@ function refresh() {
     if (g.mode === 'random' && s.clean < 1) msg = '还留着乱砂，撤销后再试。';
   } else if (g.path.length >= g.limit) msg = '耙程已用尽。';
   $('hud-msg').textContent = msg;
-  updateMonkTarget();
   const sandM = g.garden.sand.material as MeshStandardMaterial;
   const src = peeking && g.targetPainter ? g.targetPainter : g.painter;
   if (sandM.map !== src.colorTex) {
     sandM.map = src.colorTex;
     sandM.bumpMap = src.bumpTex;
     sandM.needsUpdate = true;
-  }
-  if (g.done && phase === 'play') {
-    const ok = g.mode === 'puzzle' ? s.match >= 1 : s.clean >= 1;
-    if (ok) setTimeout(() => game === g && g.done && beginOutro(s.clean, s.match), 650);
   }
 }
 
@@ -359,36 +465,76 @@ function pointerCell(e: PointerEvent): Cell | null {
 }
 
 let dragging = false;
+
+function startAt(c: Cell | null) {
+  const g = game!;
+  const cell = c ?? (g.map.entry ? g.map.entry.cell : firstFree(g.map));
+  const ok = g.map.entry ? sameCell(cell, g.map.entry.cell) : inGrid(g.map, cell) && !isRock(g.map, cell);
+  if (!ok) {
+    $('hud-msg').textContent = g.map.entry ? '从朱色标记的入口格开始。' : '';
+    return false;
+  }
+  g.path = [cell];
+  refresh();
+  return true;
+}
+
+function firstFree(map: GardenMap): Cell {
+  for (let r = map.rows - 1; r >= 0; r--) for (let c = 0; c < map.cols; c++) if (!isRock(map, [c, r])) return [c, r];
+  return [0, 0];
+}
+
+/** One step from the monk's cell; stepping back onto the previous cell undoes it. */
+function tryMove(d: Side) {
+  const g = game;
+  if (!g || phase !== 'play') return false;
+  if (!g.path.length) return startAt(null);
+  const ex = g.map.exit;
+  if (g.done) {
+    if (ex && d === OPP[ex.side]) {
+      g.done = false;
+      refresh();
+      return true;
+    }
+    return false;
+  }
+  const last = g.path[g.path.length - 1];
+  const step: Cell = [last[0] + DELTA[d][0], last[1] + DELTA[d][1]];
+  if (!inGrid(g.map, step)) {
+    if (ex && sameCell(last, ex.cell) && d === ex.side) {
+      g.done = true;
+      refresh();
+      return true;
+    }
+    return false;
+  }
+  if (g.path.length > 1 && sameCell(step, g.path[g.path.length - 2])) g.path.pop();
+  else if (isRock(g.map, step)) return false;
+  else if (g.path.length >= g.limit) {
+    $('hud-msg').textContent = '耙程已用尽。';
+    return false;
+  } else g.path.push(step);
+  refresh();
+  return true;
+}
+
+function dirToward(from: Cell, to: Cell): Side | null {
+  const dx = to[0] - from[0];
+  const dy = to[1] - from[1];
+  if (!dx && !dy) return null;
+  return Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 'E' : 'W') : dy > 0 ? 'S' : 'N';
+}
+
 function stepToward(cell: Cell) {
   const g = game!;
   for (let guard = 0; guard < 12; guard++) {
     const last = g.path[g.path.length - 1];
-    if (sameCell(last, cell)) return;
-    const dx = cell[0] - last[0];
-    const dy = cell[1] - last[1];
-    if (dx !== 0 && dy !== 0 && Math.abs(dx) + Math.abs(dy) > 1) {
-      if (Math.abs(dx) + Math.abs(dy) > 2) return;
-    }
-    const step: Cell = Math.abs(dx) >= Math.abs(dy) ? [last[0] + Math.sign(dx), last[1]] : [last[0], last[1] + Math.sign(dy)];
-    if (g.done) {
-      if (inGrid(g.map, step) || !g.map.exit) return;
-      return;
-    }
-    if (!inGrid(g.map, step)) {
-      const ex = g.map.exit;
-      if (ex && sameCell(last, ex.cell) && sameCell(step, [last[0] + DELTA[ex.side][0], last[1] + DELTA[ex.side][1]])) {
-        g.done = true;
-        refresh();
-      }
-      return;
-    }
-    if (g.path.length > 1 && sameCell(step, g.path[g.path.length - 2])) {
-      g.path.pop();
-    } else {
-      if (isRock(g.map, step) || g.path.length >= g.limit) return;
-      g.path.push(step);
-    }
-    refresh();
+    if (!last) return;
+    const dx = Math.abs(cell[0] - last[0]);
+    const dy = Math.abs(cell[1] - last[1]);
+    if (dx && dy && dx + dy > 2) return;
+    const d = dirToward(last, cell);
+    if (!d || !tryMove(d) || g.done) return;
   }
 }
 
@@ -401,25 +547,17 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
   const c = pointerCell(e);
   if (!c) return;
   const g = game;
-  if (g.done) {
-    if (sameCell(c, g.path[g.path.length - 1])) {
-      g.done = false;
-      refresh();
-    }
-    return;
-  }
   const last = g.path[g.path.length - 1];
-  if (!g.path.length || (g.path.length === 1 && !sameCell(c, last))) {
-    const startOk = g.map.entry ? sameCell(c, g.map.entry.cell) : inGrid(g.map, c) && !isRock(g.map, c);
-    if (!startOk) {
-      $('hud-msg').textContent = g.map.entry ? '从朱色标记的入口格开始。' : '';
+  if (!last) {
+    if (!startAt(c)) return;
+  } else if (!sameCell(c, last)) {
+    const dist = Math.abs(c[0] - last[0]) + Math.abs(c[1] - last[1]);
+    if (dist !== 1 || g.done) {
+      if (g.done) tryMove(OPP[g.map.exit!.side]);
+      else $('hud-msg').textContent = '点相邻的格子，或者用方向键移动。';
       return;
     }
-    g.path = [c];
-    refresh();
-  } else if (!sameCell(c, last)) {
-    $('hud-msg').textContent = '从耙子所在的格子继续拖动。';
-    return;
+    tryMove(dirToward(last, c)!);
   }
   dragging = true;
   renderer.domElement.setPointerCapture(e.pointerId);
@@ -432,6 +570,32 @@ renderer.domElement.addEventListener('pointermove', (e) => {
 const endDrag = () => (dragging = false);
 renderer.domElement.addEventListener('pointerup', endDrag);
 renderer.domElement.addEventListener('pointercancel', endDrag);
+
+const KEY_DIR: Record<string, Side> = {
+  ArrowUp: 'N',
+  ArrowDown: 'S',
+  ArrowLeft: 'W',
+  ArrowRight: 'E',
+  w: 'N',
+  s: 'S',
+  a: 'W',
+  d: 'E',
+};
+window.addEventListener('keydown', (e) => {
+  if (phase === 'intro' && (e.key === ' ' || e.key === 'Enter' || e.key === 'Escape')) {
+    skipIntro();
+    return;
+  }
+  if (phase !== 'play' || !game || e.metaKey || e.altKey) return;
+  const d = KEY_DIR[e.key.length === 1 ? e.key.toLowerCase() : e.key];
+  if (d) {
+    e.preventDefault();
+    tryMove(d);
+  } else if (e.key === 'Backspace' || (e.key.toLowerCase() === 'z' && !e.shiftKey)) {
+    e.preventDefault();
+    $('btn-undo').click();
+  }
+});
 
 $('btn-undo').onclick = () => {
   const g = game;
@@ -461,8 +625,8 @@ for (const ev of ['pointerup', 'pointerleave', 'pointercancel'])
 $('btn-finish').onclick = () => {
   const g = game;
   if (!g || phase !== 'play' || g.path.length < 2) return;
-  const s = score(sampleCodes(g.map, passesOf(g.map, g.path, false)), null);
-  beginOutro(s.clean, 0);
+  g.done = true;
+  refresh();
 };
 $('btn-menu').onclick = showMenu;
 
@@ -657,7 +821,8 @@ function startBackdrop() {
   sun.position.set(-5.7, 10, -4);
   sun.target.position.set(-0.7, 0, 0);
   game = { mode: 'free', map, seed, par: 0, limit: Infinity, painter, target: null, garden, path: [], done: false };
-  placeMonkIdle();
+  resetVisual();
+  painter.paint(passesOf(map, g.solution, true));
 }
 
 document.querySelectorAll<HTMLButtonElement>('[data-size]').forEach((b) => {
@@ -692,7 +857,7 @@ function step(dt: number) {
     camera.lookAt(camLook);
     if (shotT >= 1) nextShot();
   }
-  if (game) animateMonk(dt);
+  if (game) updateVisual(dt);
   renderer.render(scene, camera);
 }
 function frame() {

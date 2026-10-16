@@ -78,16 +78,19 @@ export function covers(p: Pass, u: number, v: number): boolean {
 }
 
 /**
- * Passes for a raked path. `finished` closes the last cell through the exit side;
- * without an entry gate (free mode) the first cell is treated as raked straight through.
+ * Passes for a raked path. The cell the monk stands in is not raked until its exit is
+ * known; `finished` closes it through the exit gate, or (free mode, no exit) up to its
+ * centre. Without an entry gate the first cell is treated as raked straight through.
  */
 export function passesOf(map: GardenMap, path: Cell[], finished: boolean): Pass[] {
   const out: Pass[] = [];
   const n = path.length;
   for (let k = 0; k < n; k++) {
     const p = path[k];
-    let b: Side | null = k < n - 1 ? sideTo(p, path[k + 1]) : finished && map.exit ? map.exit.side : null;
-    let a: Side | null = k > 0 ? sideTo(p, path[k - 1]) : map.entry ? map.entry.side : b ? OPP[b] : null;
+    const last = k === n - 1;
+    if (last && !finished) break;
+    let b: Side | null = !last ? sideTo(p, path[k + 1]) : map.exit ? map.exit.side : null;
+    const a: Side | null = k > 0 ? sideTo(p, path[k - 1]) : map.entry ? map.entry.side : b ? OPP[b] : null;
     if (!a) continue;
     if (b === a) b = null;
     out.push(makePass(p[0], p[1], a, b));
