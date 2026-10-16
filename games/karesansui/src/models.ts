@@ -254,7 +254,7 @@ export function buildGarden(map: GardenMap, painter: SandPainter, seed: number, 
   ground.position.y = -0.12;
   root.add(ground);
 
-  const sandM = mat('#ffffff', { map: painter.colorTex, bumpMap: painter.bumpTex, bumpScale: 2.2, roughness: 0.95 });
+  const sandM = mat('#ffffff', { map: painter.colorTex, bumpMap: painter.bumpTex, bumpScale: 1.3, roughness: 0.95 });
   const sand = mesh(new PlaneGeometry(map.cols, map.rows), sandM, false, true);
   sand.rotation.x = -Math.PI / 2;
   root.add(sand);

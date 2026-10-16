@@ -36,6 +36,7 @@ import {
 } from './engine';
 import { LEVELS, type Level } from './levels';
 import { loadAssets, type Assets } from './assets';
+import { applyStatic, setLocale, t, type Locale } from './i18n';
 import { buildGarden, buildPanda, type GardenScene, type Monk } from './models';
 import { SandPainter } from './sand';
 
@@ -49,15 +50,15 @@ renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = PCFSoftShadowMap;
 renderer.toneMapping = ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.05;
+renderer.toneMappingExposure = 1.0;
 $('stage').appendChild(renderer.domElement);
 
 const scene = new Scene();
 scene.background = new Color('#d8e0dc');
 scene.fog = new Fog('#d8e0dc', 18, 40);
 const camera = new PerspectiveCamera(32, 1, 0.05, 100);
-scene.add(new HemisphereLight('#fff6e5', '#6b7a4a', 1.1));
-const sun = new DirectionalLight('#fff1d8', 2.4);
+scene.add(new HemisphereLight('#fff6e5', '#8a9468', 1.45));
+const sun = new DirectionalLight('#fff1d8', 1.9);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
 sun.shadow.camera.left = -9;
@@ -377,7 +378,7 @@ function updateVisual(dt: number, snap = false) {
 function setupHud() {
   const g = game!;
   $('hud-name').textContent =
-    g.mode === 'puzzle' ? g.level!.name.split('　')[0] : g.mode === 'random' ? { small: '小庭', medium: '中庭', large: '大庭' }[g.size!] : '自由';
+    g.mode === 'puzzle' ? levelName(g.level!) : g.mode === 'random' ? t(`size.${g.size!}`) : t('mode.free');
   $('hud-match-wrap').classList.toggle('hidden', g.mode !== 'puzzle');
   $('btn-finish').classList.toggle('hidden', g.mode !== 'free');
   $('target-card').classList.toggle('hidden', g.mode !== 'puzzle');
@@ -406,8 +407,8 @@ function refresh() {
   $('hud-match').textContent = `${Math.floor(s.match * 100)}%`;
   let msg = '';
   if (g.done) {
-    if (g.mode === 'puzzle' && s.match < 1) msg = '纹样与目标不同，撤销后再试。';
-    if (g.mode === 'random' && s.clean < 1) msg = '亮起的地方还是乱砂，撤销后再试。';
+    if (g.mode === 'puzzle' && s.match < 1) msg = t('msg.mismatch');
+    if (g.mode === 'random' && s.clean < 1) msg = t('msg.messy');
   }
   $('hud-msg').textContent = msg;
   const sandM = g.garden.sand.material as MeshStandardMaterial;
@@ -437,7 +438,7 @@ function startAt(c: Cell | null) {
   const cell = c ?? (g.map.entry ? g.map.entry.cell : firstFree(g.map));
   const ok = g.map.entry ? sameCell(cell, g.map.entry.cell) : inGrid(g.map, cell) && !isRock(g.map, cell);
   if (!ok) {
-    $('hud-msg').textContent = g.map.entry ? '从朱色标记的入口格开始。' : '';
+    $('hud-msg').textContent = g.map.entry ? t('msg.entry') : '';
     return false;
   }
   g.path = [cell];
@@ -517,7 +518,7 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
     const dist = Math.abs(c[0] - last[0]) + Math.abs(c[1] - last[1]);
     if (dist !== 1 || g.done) {
       if (g.done) tryMove(OPP[g.map.exit!.side]);
-      else $('hud-msg').textContent = '点相邻的格子，或者用方向键移动。';
+      else $('hud-msg').textContent = t('msg.adjacent');
       return;
     }
     tryMove(dirToward(last, c)!);
@@ -674,21 +675,21 @@ function enterPlay() {
 }
 
 type Spot = string | { cell: 'entry' | 'exit' | 'center' };
-const TUTORIALS: Record<Mode, { text: string; spot?: Spot }[]> = {
+const TUTORIALS: Record<Mode, { text: Parameters<typeof t>[0]; spot?: Spot }[]> = {
   puzzle: [
-    { text: '这是目标纹样。按住这张图，庭院里就会显示完整的目标。', spot: '#target-card' },
-    { text: '从朱色标记的入口开始。用方向键、点击相邻的格子或者拖动来移动和尚。', spot: { cell: 'entry' } },
-    { text: '耙子跟在和尚身后扫出纹路。直着走会耙满一整格；转弯只扫过一个扇形，外侧的角落保持原样。走回上一格就是撤销。', spot: { cell: 'center' } },
-    { text: '最后从另一个朱色标记的出口离开。纹样和目标完全一致，庭院就完成了。', spot: { cell: 'exit' } },
+    { text: 'tut.puzzle.1', spot: '#target-card' },
+    { text: 'tut.puzzle.2', spot: { cell: 'entry' } },
+    { text: 'tut.puzzle.3', spot: { cell: 'center' } },
+    { text: 'tut.puzzle.4', spot: { cell: 'exit' } },
   ],
   random: [
-    { text: '从朱色入口开始，用方向键、点击相邻的格子或者拖动来耙砂。', spot: { cell: 'entry' } },
-    { text: '转弯扫不到的角落会一直乱着。换个方向再转一次，或者直着耙过去，就能补上。', spot: { cell: 'center' } },
-    { text: '整齐度到 100% 后从出口离开。如果还有乱砂，没扫到的地方会亮起来。', spot: { cell: 'exit' } },
+    { text: 'tut.random.1', spot: { cell: 'entry' } },
+    { text: 'tut.random.2', spot: { cell: 'center' } },
+    { text: 'tut.random.3', spot: { cell: 'exit' } },
   ],
   free: [
-    { text: '点任意一格开始，用方向键、点击或者拖动随意作画，没有任何限制。', spot: { cell: 'center' } },
-    { text: '画好后，点右上角的「完成」。', spot: '#btn-finish' },
+    { text: 'tut.free.1', spot: { cell: 'center' } },
+    { text: 'tut.free.2', spot: '#btn-finish' },
   ],
 };
 const TUT_KEY = (m: Mode) => `karesansui:tutorial:${m}`;
@@ -710,9 +711,9 @@ function showTutorialStep() {
   if (!tutorial || !game) return;
   const steps = TUTORIALS[tutorial.mode];
   const st = steps[tutorial.step];
-  $('tut-text').textContent = st.text;
+  $('tut-text').textContent = t(st.text);
   $('tut-dots').innerHTML = steps.map((_, i) => `<span class="${i === tutorial!.step ? 'on' : ''}">●</span>`).join('');
-  $('tut-next').textContent = tutorial.step === steps.length - 1 ? '开始' : '下一步';
+  $('tut-next').textContent = t(tutorial.step === steps.length - 1 ? 'tut.start' : 'tut.next');
   placeSpotlight(st.spot);
 }
 
@@ -816,14 +817,14 @@ function showResult(clean: number, match: number) {
   const g = game!;
   phase = 'result';
   if (g.mode === 'puzzle') saveCleared(g.level!.id);
-  $('res-title').textContent = g.mode === 'free' ? '一幅' : '庭成';
-  const lines = [`整齐度　<b>${Math.floor(clean * 100)}%</b>`];
-  if (g.mode === 'puzzle') lines.push(`吻合度　<b>${Math.floor(match * 100)}%</b>`);
+  $('res-title').textContent = t(g.mode === 'free' ? 'res.free' : 'res.done');
+  const lines = [`${t('res.clean')}　<b>${Math.floor(clean * 100)}%</b>`];
+  if (g.mode === 'puzzle') lines.push(`${t('res.match')}　<b>${Math.floor(match * 100)}%</b>`);
   $('res-lines').innerHTML = lines.join('<br>');
   const idx = g.level ? LEVELS.indexOf(g.level) : -1;
   const next = $('res-next');
   next.classList.toggle('hidden', g.mode === 'puzzle' && idx === LEVELS.length - 1);
-  next.textContent = g.mode === 'puzzle' ? '下一关' : g.mode === 'random' ? '换一张' : '新画布';
+  next.textContent = t(`res.next.${g.mode}`);
   $('result').classList.remove('hidden');
 }
 
@@ -851,7 +852,7 @@ function showSub(items: { label: string; cleared?: boolean; go: () => void }[]) 
   for (const it of items) {
     const b = document.createElement('button');
     b.className = 'plaque';
-    b.innerHTML = `<span>${it.label}</span>` + (it.cleared ? '<i class="seal">成</i>' : '');
+    b.innerHTML = `<span>${it.label}</span>` + (it.cleared ? `<i class="seal">${t('seal')}</i>` : '');
     b.onclick = it.go;
     sub.appendChild(b);
   }
@@ -865,11 +866,11 @@ document.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((b) => {
     const mode = b.dataset.mode as Mode;
     if (mode === 'puzzle') {
       const done = loadCleared();
-      showSub(LEVELS.map((lv) => ({ label: lv.name.split('　')[0], cleared: !!done[lv.id], go: () => startGame('puzzle', { level: lv }) })));
+      showSub(LEVELS.map((lv) => ({ label: levelName(lv), cleared: !!done[lv.id], go: () => startGame('puzzle', { level: lv }) })));
     } else if (mode === 'random') {
       showSub(
         (['small', 'medium', 'large'] as SizeKey[]).map((size) => ({
-          label: { small: '小庭', medium: '中庭', large: '大庭' }[size],
+          label: t(`size.${size}`),
           go: () => startGame('random', { size }),
         })),
       );
@@ -950,9 +951,19 @@ function frame() {
   step(Math.min(0.05, clock.getDelta()));
   requestAnimationFrame(frame);
 }
+const levelName = (lv: Level) => t(`level.${lv.id}` as Parameters<typeof t>[0]);
+
+document.querySelectorAll<HTMLButtonElement>('[data-lang]').forEach((b) => {
+  b.onclick = () => {
+    setLocale(b.dataset.lang as Locale);
+    if (!$('menu-sub').classList.contains('hidden')) showModes();
+  };
+});
+
 async function init() {
+  applyStatic();
   const label = $('loading');
-  assets = await loadAssets((done, total) => (label.textContent = `整理庭院中… ${done}/${total}`));
+  assets = await loadAssets((done, total) => (label.textContent = `${t('loading')} ${done}/${total}`));
   label.remove();
   monk = buildPanda(assets.panda);
   scene.add(monk.root, monk.rake);

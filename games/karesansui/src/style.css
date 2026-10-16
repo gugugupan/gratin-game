@@ -32,6 +32,16 @@ body {
 
 #stage canvas {
   display: block;
+  filter: contrast(0.86) saturate(0.82) brightness(1.04);
+}
+
+#veil {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(70, 55, 30, 0.26) 100%),
+    linear-gradient(rgba(246, 238, 220, 0.1), rgba(246, 238, 220, 0.1));
 }
 
 .hidden {
@@ -324,6 +334,7 @@ button:active {
 
 .plank {
   flex: 1;
+  white-space: nowrap;
   padding: 5px 0;
   font-size: 13px;
   letter-spacing: 1px;
@@ -506,4 +517,43 @@ button:active {
   font-size: 18px;
   letter-spacing: 4px;
   color: var(--ink-2);
+}
+
+.lang {
+  position: absolute;
+  right: 18px;
+  bottom: 16px;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 8px;
+  background: rgba(243, 236, 220, 0.85);
+  box-shadow: 0 4px 10px rgba(30, 20, 5, 0.25);
+  pointer-events: auto;
+}
+
+.lang button {
+  border: none;
+  background: none;
+  padding: 5px 10px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.lang button.on {
+  background: #5b3a1e;
+  color: #fff4e6;
+}
+
+html[lang='ja'] .plank {
+  font-size: 11px;
+  letter-spacing: 0;
+}
+
+html[lang='ja'] .plaque {
+  letter-spacing: 8px;
+}
+
+html[lang='ja'] .plaque span {
+  margin-right: -8px;
 }

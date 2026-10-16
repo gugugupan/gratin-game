@@ -103,15 +103,15 @@ function drawPass(cc: Ctx, bc: Ctx, p: Pass, t: number) {
   cc.lineCap = 'round';
   for (const pts of lines) {
     cc.save();
-    cc.translate(0.8, 0.9);
-    cc.strokeStyle = 'rgba(88,86,80,.62)';
-    cc.lineWidth = 1.5;
+    cc.translate(0.6, 0.7);
+    cc.strokeStyle = 'rgba(104,98,86,.5)';
+    cc.lineWidth = 0.95;
     polyline(cc, pts);
     cc.restore();
     cc.save();
-    cc.translate(-0.6, -0.7);
-    cc.strokeStyle = 'rgba(255,255,255,.95)';
-    cc.lineWidth = 1.2;
+    cc.translate(-0.5, -0.5);
+    cc.strokeStyle = 'rgba(255,253,246,.7)';
+    cc.lineWidth = 0.8;
     polyline(cc, pts);
     cc.restore();
   }
@@ -123,7 +123,7 @@ function drawPass(cc: Ctx, bc: Ctx, p: Pass, t: number) {
   bc.fillRect(x0 - 1, y0 - 1, S + 2, S + 2);
   bc.lineCap = 'round';
   bc.strokeStyle = '#4a4a4a';
-  bc.lineWidth = (S / TINES) * 0.42;
+  bc.lineWidth = (S / TINES) * 0.3;
   bc.filter = 'blur(1.6px)';
   for (const pts of lines) polyline(bc, pts);
   bc.restore();
@@ -233,8 +233,8 @@ export class SandPainter {
                 const wob = Math.sin(s * 0.9 + g) * 3.5;
                 pts.push([cx + Math.cos(an) * (r2 + wob), cy + Math.sin(an) * (r2 + wob)]);
               }
-              cc.strokeStyle = 'rgba(120,115,104,.40)';
-              cc.lineWidth = 1.3;
+              cc.strokeStyle = 'rgba(120,115,104,.28)';
+              cc.lineWidth = 1;
               polyline(cc, pts);
               bc.strokeStyle = 'rgba(70,70,70,.8)';
               bc.lineWidth = 3.5;

@@ -29,36 +29,38 @@
   </head>
   <body>
     <div id="stage"></div>
-    <div id="loading">整理庭院中…</div>
+    <div id="veil"></div>
+    <div id="loading" data-i18n="loading">…</div>
 
     <section id="menu" class="overlay hidden">
-      <h1 class="logo">砂纹</h1>
+      <h1 class="logo" data-i18n="logo">砂纹</h1>
       <div id="menu-modes" class="plaques">
-        <button class="plaque" data-mode="puzzle"><span>庭题</span></button>
-        <button class="plaque" data-mode="random"><span>随庭</span></button>
-        <button class="plaque" data-mode="free"><span>自由</span></button>
+        <button class="plaque" data-mode="puzzle"><span data-i18n="mode.puzzle"></span></button>
+        <button class="plaque" data-mode="random"><span data-i18n="mode.random"></span></button>
+        <button class="plaque" data-mode="free"><span data-i18n="mode.free"></span></button>
       </div>
       <div id="menu-sub" class="plaques small hidden"></div>
-      <button id="menu-back" class="tag back hidden"><span class="face">返回</span></button>
+      <button id="menu-back" class="tag back hidden"><span class="face" data-i18n="back"></span></button>
+      <div class="lang"><button data-lang="ja">日本語</button><button data-lang="zh">中文</button></div>
     </section>
 
     <section id="hud" class="hidden">
       <div id="side-card">
         <div class="side-head">
           <span id="hud-name"></span>
-          <b id="hud-steps" title="耙程">0</b>
+          <b id="hud-steps" data-i18n-title="hud.steps">0</b>
         </div>
-        <canvas id="target-card" class="hidden" title="按住在庭院里查看目标纹样"></canvas>
+        <canvas id="target-card" class="hidden" data-i18n-title="hud.target"></canvas>
         <div class="side-stats">
-          <span>整齐 <b id="hud-clean">0%</b></span>
-          <span id="hud-match-wrap">吻合 <b id="hud-match">0%</b></span>
+          <span><i data-i18n="hud.clean"></i> <b id="hud-clean">0%</b></span>
+          <span id="hud-match-wrap"><i data-i18n="hud.match"></i> <b id="hud-match">0%</b></span>
         </div>
         <div id="hud-msg" class="msg"></div>
         <div class="side-buttons">
-          <button class="plank" id="btn-undo" title="撤销（Backspace / Z）">撤销</button>
-          <button class="plank" id="btn-reset" title="重新开始">重来</button>
-          <button class="plank shu" id="btn-finish" title="完成这幅画">完成</button>
-          <button class="plank" id="btn-menu" title="回到菜单">菜单</button>
+          <button class="plank" id="btn-undo" data-i18n="btn.undo" data-i18n-title="btn.undo.title"></button>
+          <button class="plank" id="btn-reset" data-i18n="btn.reset" data-i18n-title="btn.reset.title"></button>
+          <button class="plank shu" id="btn-finish" data-i18n="btn.finish" data-i18n-title="btn.finish.title"></button>
+          <button class="plank" id="btn-menu" data-i18n="btn.menu" data-i18n-title="btn.menu.title"></button>
         </div>
       </div>
     </section>
@@ -69,8 +71,8 @@
         <div id="res-lines" class="res-lines"></div>
         <div class="chips">
           <button id="res-next">下一关</button>
-          <button id="res-again">再来一次</button>
-          <button id="res-menu">菜单</button>
+          <button id="res-again" data-i18n="res.again"></button>
+          <button id="res-menu" data-i18n="res.menu"></button>
         </div>
       </div>
     </section>
@@ -81,13 +83,13 @@
         <p id="tut-text"></p>
         <div class="tut-foot">
           <span id="tut-dots"></span>
-          <button id="tut-skip">跳过</button>
+          <button id="tut-skip" data-i18n="tut.skip"></button>
           <button id="tut-next">下一步</button>
         </div>
       </div>
     </section>
 
-    <div id="skip" class="hidden">点击跳过</div>
+    <div id="skip" class="hidden" data-i18n="intro.skip"></div>
     <script type="module" src="./src/main.ts"></script>
   </body>
 </html>
