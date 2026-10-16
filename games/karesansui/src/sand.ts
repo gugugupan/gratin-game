@@ -182,21 +182,42 @@ export class SandPainter {
           cc.fillRect(x0, y0, S, S);
         }
         if (isRock(map, [col, row])) {
+          const inset = 5;
+          const rad = 34;
+          const bed = () => {
+            cc.beginPath();
+            cc.roundRect(x0 + inset, y0 + inset, S - inset * 2, S - inset * 2, rad);
+          };
           cc.fillStyle = SAND;
           cc.fillRect(x0, y0, S, S);
-          for (let i = 1; i <= 6; i++) {
-            const rad = 24 + (i * S) / 13;
-            cc.strokeStyle = 'rgba(88,86,80,.45)';
-            cc.lineWidth = 1.3;
-            cc.beginPath();
-            cc.arc(x0 + S / 2, y0 + S / 2, rad, 0, Math.PI * 2);
-            cc.stroke();
-            bc.strokeStyle = '#5a5a5a';
-            bc.lineWidth = 4;
-            bc.beginPath();
-            bc.arc(x0 + S / 2, y0 + S / 2, rad, 0, Math.PI * 2);
-            bc.stroke();
+          cc.save();
+          bed();
+          cc.clip();
+          cc.fillStyle = '#a3bb40';
+          cc.fillRect(x0, y0, S, S);
+          for (let k = 0; k < 60; k++) {
+            const gx = x0 + r() * S;
+            const gy = y0 + r() * S;
+            const g = cc.createRadialGradient(gx, gy, 0, gx, gy, 6 + r() * 16);
+            const tone = r() < 0.5 ? 'rgba(120,152,36,' : 'rgba(198,216,96,';
+            g.addColorStop(0, tone + '.65)');
+            g.addColorStop(1, tone + '0)');
+            cc.fillStyle = g;
+            cc.fillRect(x0, y0, S, S);
           }
+          for (let k = 0; k < 160; k++) {
+            cc.fillStyle = r() < 0.5 ? 'rgba(80,110,30,.55)' : 'rgba(225,235,150,.5)';
+            cc.fillRect(x0 + r() * S, y0 + r() * S, 1.5, 1.5);
+          }
+          cc.restore();
+          cc.strokeStyle = 'rgba(70,85,30,.35)';
+          cc.lineWidth = 2;
+          bed();
+          cc.stroke();
+          bc.fillStyle = '#9a9a9a';
+          bc.beginPath();
+          bc.roundRect(x0 + inset, y0 + inset, S - inset * 2, S - inset * 2, rad);
+          bc.fill();
         } else {
           for (let g = 0; g < 4; g++) {
             const cx = x0 + r() * S;

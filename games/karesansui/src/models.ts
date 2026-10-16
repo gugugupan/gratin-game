@@ -4,7 +4,6 @@ import {
   Box3,
   BoxGeometry,
   CanvasTexture,
-  CircleGeometry,
   Color,
   ConeGeometry,
   CylinderGeometry,
@@ -125,20 +124,6 @@ function stone(seed: number, radius: number, color: string, height = 0.8) {
   m.scale.set(1.15, height, 1);
   m.position.y = radius * height * 0.55;
   m.rotation.y = rng(seed + 3)() * Math.PI * 2;
-  return m;
-}
-
-function mossPatch(seed: number, radius: number) {
-  const g = new CircleGeometry(radius, 20);
-  const r = rng(seed);
-  const pos = g.attributes.position;
-  for (let i = 1; i < pos.count; i++) {
-    const k = 0.8 + r() * 0.3;
-    pos.setXY(i, pos.getX(i) * k, pos.getY(i) * k);
-  }
-  const m = mesh(g, mat('#ffffff', { map: mossTex(seed) }), false, true);
-  m.rotation.x = -Math.PI / 2;
-  m.position.y = 0.006;
   return m;
 }
 
@@ -322,17 +307,15 @@ export function buildGarden(map: GardenMap, painter: SandPainter, seed: number, 
 
   map.rocks.forEach((rk, i) => {
     const c = cellCenter(rk[0], rk[1]);
-    const patch = mossPatch(seed + i * 13, 0.42);
-    patch.position.add(c);
-    root.add(patch);
-    const big = stone(seed + i * 7, 0.26, STONE_COLORS[i % STONE_COLORS.length], 0.75 + r() * 0.5);
-    big.position.x += c.x - 0.04;
-    big.position.z += c.z - 0.03;
+    const big = stone(seed + i * 7, 0.36, STONE_COLORS[i % STONE_COLORS.length], 0.7 + r() * 0.45);
+    big.position.x += c.x - 0.02;
+    big.position.z += c.z - 0.02;
     root.add(big);
     if (r() < 0.7) {
-      const small = stone(seed + i * 7 + 1, 0.11, STONE_COLORS[(i + 2) % STONE_COLORS.length], 0.7);
-      small.position.x += c.x + 0.22;
-      small.position.z += c.z + 0.2;
+      const small = stone(seed + i * 7 + 1, 0.1, STONE_COLORS[(i + 2) % STONE_COLORS.length], 0.7);
+      const corner = r() < 0.5 ? 1 : -1;
+      small.position.x += c.x + 0.3 * corner;
+      small.position.z += c.z + 0.3;
       root.add(small);
     }
   });
