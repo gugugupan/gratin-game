@@ -5,8 +5,8 @@ const COOKIE = 'gratin_lang';
 const LEGACY_KEY = 'gratin:lang';
 
 const zh = {
-  title: '砂纹 Samon',
-  logo: '砂纹',
+  title: '枯山水 Karesansui',
+  logo: '枯山水',
   loading: '整理庭院中…',
   'mode.puzzle': '庭题',
   'mode.random': '随庭',
@@ -63,8 +63,8 @@ const zh = {
 type Key = keyof typeof zh;
 
 const ja: Record<Key, string> = {
-  title: '砂紋 Samon',
-  logo: '砂紋',
+  title: '枯山水 Karesansui',
+  logo: '枯山水',
   loading: '庭を整えています…',
   'mode.puzzle': 'お題',
   'mode.random': 'おまかせ',

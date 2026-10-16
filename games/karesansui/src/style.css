@@ -32,16 +32,26 @@ body {
 
 #stage canvas {
   display: block;
-  filter: contrast(0.86) saturate(0.82) brightness(1.04);
+  filter: blur(0) contrast(0.86) saturate(0.82) brightness(1.04);
+  transition: filter 1.4s ease;
+}
+
+body.dreamy #stage canvas {
+  filter: blur(3.5px) contrast(0.78) saturate(0.75) brightness(1.08);
 }
 
 #veil {
   position: fixed;
   inset: 0;
   pointer-events: none;
+  transition: background-color 1.4s ease;
   background:
     radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(70, 55, 30, 0.26) 100%),
     linear-gradient(rgba(246, 238, 220, 0.1), rgba(246, 238, 220, 0.1));
+}
+
+body.dreamy #veil {
+  background-color: rgba(250, 246, 236, 0.28);
 }
 
 .hidden {

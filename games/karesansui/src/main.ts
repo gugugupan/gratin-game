@@ -645,6 +645,7 @@ function gateShots() {
 
 function beginIntro() {
   phase = 'intro';
+  document.body.classList.remove('dreamy');
   $('menu').classList.add('hidden');
   $('result').classList.add('hidden');
   $('hud').classList.add('hidden');
@@ -889,6 +890,7 @@ function showMenu() {
   $('result').classList.add('hidden');
   $('skip').classList.add('hidden');
   $('menu').classList.remove('hidden');
+  document.body.classList.add('dreamy');
   closeTutorial(false);
   showModes();
   if (!game) startBackdrop();
@@ -922,7 +924,7 @@ resize();
 const clock = new Clock();
 function step(dt: number) {
   if (phase === 'menu' && game) {
-    menuT += dt * 0.12;
+    menuT += dt * 0.025;
     const r = 12;
     setCamera({
       pos: new Vector3(-0.7 + Math.sin(menuT) * r, 8, 0.8 + Math.cos(menuT) * r),
