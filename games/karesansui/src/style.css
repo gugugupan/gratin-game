@@ -554,3 +554,9 @@ html[lang='ja'] .plaque {
 html[lang='ja'] .plaque span {
   margin-right: -8px;
 }
+
+body.video #hud,
+body.video #skip,
+body.video .lang {
+  display: none !important;
+}

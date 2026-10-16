@@ -236,6 +236,8 @@ export interface GardenScene {
   sand: Mesh;
   /** Overlay that lights up unraked sand; its alpha map is set from the painter's mask. */
   highlight: Mesh<PlaneGeometry, MeshBasicMaterial>;
+  /** Plants and props around the garden that may be hidden when they block a close-up. */
+  decor: Object3D[];
 }
 
 /** Garden board in world units: one cell = 1, sand surface at y = 0, north = -z. */
@@ -364,11 +366,13 @@ export function buildGarden(map: GardenMap, painter: SandPainter, seed: number, 
     st.scale.set(1, 1, 0.75);
     root.add(st);
   }
+  const decor: Object3D[] = [];
   const place = (name: ModelName, scale: number, x: number, z: number, rot = r() * Math.PI * 2) => {
     const o = prop(assets, name, scale);
     o.position.set(x, -0.12, z);
     o.rotation.y = rot;
     root.add(o);
+    decor.push(o);
   };
   place('light', 0.4, gatePos.x - 1.6, gatePos.z + 0.3, 0);
   place('light', 0.4, gatePos.x + 1.6, gatePos.z + 0.3, 0);
@@ -397,7 +401,7 @@ export function buildGarden(map: GardenMap, painter: SandPainter, seed: number, 
     t.position.set(bankX - 0.5 + r() * 0.9, 0.06, -hh + 1 + r() * (map.rows - 1.4));
     root.add(t);
   }
-  return { root, gatePos, gate, cellCenter, sand, highlight };
+  return { root, gatePos, gate, cellCenter, sand, highlight, decor };
 }
 
 export interface Monk {

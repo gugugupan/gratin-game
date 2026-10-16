@@ -147,6 +147,7 @@
     "url": "https://gratin-game.com/karesansui/",
     "cover": "covers/karesansui.jpg",
     "input": [
+      "keyboard",
       "mouse",
       "touch"
     ],
@@ -155,7 +156,7 @@
       "zh"
     ],
     "status": "live",
-    "added": "2026-10-16",
-    "hidden": true
+    "added": "2026-10-17",
+    "preview": "previews/karesansui.mp4"
   }
 ]

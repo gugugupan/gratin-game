@@ -1,5 +1,7 @@
 import {
   ACESFilmicToneMapping,
+  Box3,
+  Line3,
   Clock,
   Color,
   DirectionalLight,
@@ -110,17 +112,22 @@ function saveCleared(id: string) {
   }
 }
 
+let tightFraming = false;
+
 function playView(map: GardenMap) {
   const aspect = window.innerWidth / window.innerHeight;
   const wide = aspect > 1;
-  const w = map.cols + 3.4 + (wide ? 2.6 : 0);
-  const d = map.rows + 2.6 + (wide ? 0 : 3);
+  const reserve = !tightFraming;
+  const w = map.cols + (reserve ? 3.4 : 2.2) + (wide && reserve ? 2.6 : 0);
+  const d = map.rows + (reserve ? 2.6 : 1.6) + (!wide && reserve ? 3 : 0);
   const fov = (camera.fov * Math.PI) / 180;
   const hFit = d / 2 / Math.tan(fov / 2);
   const wFit = w / 2 / Math.tan(fov / 2) / aspect;
   const h = Math.max(hFit, wFit) * 1.08;
   const tilt = (14 * Math.PI) / 180;
-  const center = new Vector3(-0.7 + (wide ? 1.3 : 0), 0, 0.05 - (wide ? 0 : 1.5));
+  const center = reserve
+    ? new Vector3(-0.7 + (wide ? 1.3 : 0), 0, 0.05 - (wide ? 0 : 1.5))
+    : new Vector3(-0.55, 0, 0.1);
   return { pos: center.clone().add(new Vector3(0, Math.cos(tilt) * h, Math.sin(tilt) * h)), look: center };
 }
 
@@ -796,14 +803,17 @@ function beginOutro(clean: number, match: number) {
     const f = faceDir;
     const side = new Vector3(f.z, 0, -f.x);
     const headY = monk.head.getWorldPosition(new Vector3()).y + 0.05;
+    const aspect = window.innerWidth / window.innerHeight;
+    const shift = 0.22 + 0.24 * Math.min(1, Math.max(0, (aspect - 1) / 0.6));
     const close: Shot = {
-      pos: m.clone().addScaledVector(f, 1.75).addScaledVector(side, 0.42).add(new Vector3(0, headY + 0.08, 0)),
-      look: m.clone().addScaledVector(side, 0.46).add(new Vector3(0, headY - 0.12, 0)),
+      pos: m.clone().addScaledVector(f, 1.75).addScaledVector(side, shift - 0.04).add(new Vector3(0, headY + 0.08, 0)),
+      look: m.clone().addScaledVector(side, shift).add(new Vector3(0, headY - 0.12, 0)),
     };
     const mid: Shot = {
       pos: m.clone().addScaledVector(f, 2.6).add(new Vector3(0, 1.9, 0)),
       look: m.clone().add(new Vector3(0, 0.5, 0)),
     };
+    clearSightline(g, close.pos, m.clone().add(new Vector3(0, headY, 0)));
     moveCamera(
       [
         { shot: mid, dur: 1.3 },
@@ -812,6 +822,21 @@ function beginOutro(clean: number, match: number) {
       () => showResult(clean, match),
     );
   }, 900);
+}
+
+/** Hides garden decor standing between the close-up camera and the monk. */
+function clearSightline(g: Game, from: Vector3, to: Vector3) {
+  const seg = new Line3(new Vector3(from.x, 0, from.z), new Vector3(to.x, 0, to.z));
+  const p = new Vector3();
+  const box = new Box3();
+  for (const o of g.garden.decor) {
+    box.setFromObject(o);
+    const c = box.getCenter(new Vector3());
+    c.y = 0;
+    const reach = Math.max(box.max.x - box.min.x, box.max.z - box.min.z) / 2;
+    seg.closestPointToPoint(c, true, p);
+    if (p.distanceTo(c) < reach + 0.35 || c.distanceTo(seg.start) < reach + 0.8) o.visible = false;
+  }
 }
 
 function showResult(clean: number, match: number) {
@@ -988,6 +1013,10 @@ if (import.meta.env.DEV) {
       },
       levels: LEVELS,
       skipIntro,
+      videoMode() {
+        tightFraming = true;
+        document.body.classList.add('video');
+      },
       setPath(path: Cell[], done = false) {
         game!.path = path.slice();
         game!.done = done;
