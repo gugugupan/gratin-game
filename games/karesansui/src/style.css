@@ -182,7 +182,7 @@ button:active {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding: 0 16px 150px;
+  padding: 0 16px 40px;
   pointer-events: none;
 }
 
@@ -244,105 +244,113 @@ button:active {
 
 #hud {
   position: fixed;
-  inset: 0;
+  top: 14px;
+  right: 14px;
   pointer-events: none;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 14px;
 }
 
-.panel {
+#side-card {
   pointer-events: auto;
-  background: rgba(243, 236, 220, 0.92);
-  border: 4px solid var(--wood);
+  width: 176px;
+  padding: 9px 10px 10px;
+  background: #efe6d2;
+  border: 5px solid #c8a98a;
   border-radius: 10px;
-  box-shadow: 0 6px 18px rgba(40, 30, 10, 0.2);
+  box-shadow: 0 8px 18px rgba(40, 30, 10, 0.3);
 }
 
-.hud-top {
+.side-head {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
+  gap: 8px;
+  margin-bottom: 6px;
 }
 
-.info {
-  pointer-events: auto;
-  padding: 8px 14px 9px;
-  background:
-    repeating-linear-gradient(90deg, rgba(110, 70, 35, 0.1) 0 2px, transparent 2px 9px),
-    linear-gradient(#dcb987, #c49a66);
-  border: 3px solid #8a6238;
-  border-radius: 6px;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 240, 210, 0.6),
-    0 6px 14px rgba(40, 30, 10, 0.3);
-}
-
-.info .name {
-  font-size: 20px;
+#hud-name {
+  font-size: 18px;
   letter-spacing: 3px;
-  color: #3e2512;
-  text-shadow: 0 1px 0 rgba(255, 240, 210, 0.55);
+  color: #3a2f24;
 }
 
-.stats {
+#hud-steps {
+  font-weight: 500;
+  font-size: 14px;
+  padding: 1px 7px;
+  border-radius: 4px;
+  background: var(--shu);
+  color: #fff4e6;
+  font-variant-numeric: tabular-nums;
+}
+
+#target-card {
+  display: block;
+  width: 100%;
+  border-radius: 3px;
+  outline: 1px solid rgba(60, 40, 20, 0.3);
+  margin-bottom: 6px;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-touch-callout: none;
+}
+
+.side-stats {
   display: flex;
-  flex-wrap: wrap;
-  gap: 2px 12px;
-  white-space: nowrap;
-  margin-top: 4px;
+  gap: 12px;
   font-size: 13px;
-  color: #5b3d22;
+  color: #6d5c49;
 }
 
-.stats b {
+.side-stats b {
   color: #2c1a0c;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
 .msg {
-  min-height: 1em;
-  font-size: 13px;
+  font-size: 12px;
+  line-height: 1.5;
   color: var(--shu);
   margin-top: 4px;
 }
 
-#target-card {
-  pointer-events: auto;
-  cursor: pointer;
-  touch-action: none;
-  -webkit-touch-callout: none;
-  width: 150px;
-  filter: drop-shadow(0 6px 12px rgba(40, 30, 10, 0.25));
+.msg:empty {
+  display: none;
 }
 
-.hud-bottom {
-  align-self: center;
-  position: relative;
-  padding-top: 18px;
-  pointer-events: auto;
-}
-
-.rail {
-  position: absolute;
-  top: 4px;
-  left: -28px;
-  right: -28px;
-  height: 13px;
-  border-radius: 7px;
-  background:
-    repeating-linear-gradient(90deg, transparent 0 86px, rgba(70, 90, 25, 0.55) 86px 89px, transparent 89px 120px),
-    linear-gradient(#c3d684, #86a446 55%, #5f7d2e);
-  box-shadow: 0 4px 6px rgba(30, 30, 10, 0.35);
-}
-
-.tags {
+.side-buttons {
   display: flex;
-  gap: 16px;
-  padding: 0 8px;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.plank {
+  flex: 1;
+  padding: 5px 0;
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: #3e2512;
+  border: none;
+  border-radius: 4px;
+  background:
+    repeating-linear-gradient(90deg, rgba(110, 70, 35, 0.12) 0 2px, transparent 2px 7px),
+    linear-gradient(#e6c592, #c99f69);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 240, 210, 0.6),
+    0 2px 3px rgba(40, 25, 10, 0.3);
+  text-shadow: 0 1px 0 rgba(255, 240, 210, 0.55);
+}
+
+.plank:hover {
+  background:
+    repeating-linear-gradient(90deg, rgba(110, 70, 35, 0.12) 0 2px, transparent 2px 7px),
+    linear-gradient(#efd1a1, #d3aa74);
+}
+
+.plank.shu {
+  background: linear-gradient(#c8553c, #a33a24);
+  color: #fff4e6;
+  text-shadow: 0 1px 0 rgba(60, 10, 0, 0.5);
 }
 
 .tag {
@@ -394,15 +402,6 @@ button:active {
   letter-spacing: 5px;
   color: #3e2512;
   text-shadow: 0 1px 0 rgba(255, 240, 210, 0.55);
-}
-
-#btn-finish .face {
-  background:
-    radial-gradient(circle at 50% 9px, #5a1d12 0 2.5px, transparent 3px),
-    repeating-linear-gradient(90deg, rgba(60, 10, 0, 0.15) 0 2px, transparent 2px 7px),
-    linear-gradient(#c8553c, #a33a24);
-  color: #fff4e6;
-  text-shadow: 0 1px 0 rgba(60, 10, 0, 0.5);
 }
 
 #result {
@@ -497,20 +496,17 @@ button:active {
     height: 80px;
   }
   #tutorial {
-    padding-bottom: 130px;
+    padding-bottom: 24px;
   }
   #target-card {
     width: 104px;
   }
-  .tags {
-    gap: 10px;
+  #hud {
+    top: 10px;
+    right: 10px;
   }
-  .tag {
-    width: 40px;
-    height: 78px;
-  }
-  .tag .face {
-    font-size: 16px;
+  #side-card {
+    width: 150px;
   }
 }
 

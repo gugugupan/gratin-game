@@ -116,14 +116,15 @@ function saveStar(id: string, n: number) {
 
 function playView(map: GardenMap) {
   const aspect = window.innerWidth / window.innerHeight;
-  const w = map.cols + 3.4;
-  const d = map.rows + 2.6;
+  const wide = aspect > 1;
+  const w = map.cols + 3.4 + (wide ? 2.6 : 0);
+  const d = map.rows + 2.6 + (wide ? 0 : 3);
   const fov = (camera.fov * Math.PI) / 180;
   const hFit = d / 2 / Math.tan(fov / 2);
   const wFit = w / 2 / Math.tan(fov / 2) / aspect;
   const h = Math.max(hFit, wFit) * 1.08;
   const tilt = (14 * Math.PI) / 180;
-  const center = new Vector3(-0.7, 0, 0.05);
+  const center = new Vector3(-0.7 + (wide ? 1.3 : 0), 0, 0.05 - (wide ? 0 : 1.5));
   return { pos: center.clone().add(new Vector3(0, Math.cos(tilt) * h, Math.sin(tilt) * h)), look: center };
 }
 
@@ -386,7 +387,7 @@ function updateVisual(dt: number, snap = false) {
 function setupHud() {
   const g = game!;
   $('hud-name').textContent =
-    g.mode === 'puzzle' ? g.level!.name : g.mode === 'random' ? `随庭　${{ small: '小庭', medium: '中庭', large: '大庭' }[g.size!]}` : '自由　画一幅';
+    g.mode === 'puzzle' ? g.level!.name.split('　')[0] : g.mode === 'random' ? { small: '小庭', medium: '中庭', large: '大庭' }[g.size!] : '自由';
   $('hud-match-wrap').classList.toggle('hidden', g.mode !== 'puzzle');
   $('btn-finish').classList.toggle('hidden', g.mode !== 'free');
   $('target-card').classList.toggle('hidden', g.mode !== 'puzzle');
@@ -396,53 +397,11 @@ function setupHud() {
 function drawTargetCard() {
   const g = game!;
   const card = $<HTMLCanvasElement>('target-card');
-  const dpr = Math.min(2, window.devicePixelRatio);
-  const CW = 150;
-  const tw = CW - 22;
-  const th = (tw * g.map.rows) / g.map.cols;
-  const CH = Math.round(th + 100);
-  card.width = CW * dpr;
-  card.height = CH * dpr;
-  card.style.height = `${CH}px`;
-  const c = card.getContext('2d')!;
-  c.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const rr = (x: number, y: number, w: number, h: number, r: number) => {
-    c.beginPath();
-    c.moveTo(x + r, y);
-    c.arcTo(x + w, y, x + w, y + h, r);
-    c.arcTo(x + w, y + h, x, y + h, r);
-    c.arcTo(x, y + h, x, y, r);
-    c.arcTo(x, y, x + w, y, r);
-    c.closePath();
-  };
-  c.fillStyle = '#efe6d2';
-  rr(0, 0, CW, CH, 8);
-  c.fill();
-  c.strokeStyle = '#c8a98a';
-  c.lineWidth = 5;
-  rr(3, 3, CW - 6, CH - 6, 6);
-  c.stroke();
-  c.fillStyle = '#f6efdf';
-  c.fillRect(11, 11, CW - 22, 26);
-  c.fillStyle = '#b23a26';
-  c.fillRect(CW - 40, 11, 29, 26);
-  c.fillStyle = '#fff';
-  c.font = '500 16px serif';
-  c.textAlign = 'center';
-  c.textBaseline = 'middle';
-  c.fillText(String(g.par), CW - 25.5, 24.5);
-  c.fillStyle = '#3a2f24';
-  c.font = '14px "Songti SC","Noto Serif SC",serif';
-  c.fillText('目标纹样', (CW - 40) / 2 + 6, 24.5);
-  c.drawImage(g.targetPainter!.color, 11, 46, tw, th);
-  c.strokeStyle = 'rgba(60,40,20,.3)';
-  c.lineWidth = 1;
-  c.strokeRect(11, 46, tw, th);
-  c.fillStyle = '#6d5c49';
-  c.font = '11px sans-serif';
-  c.fillText(`${g.par} 步可成 · 上限 ${g.limit}`, CW / 2, 46 + th + 17);
-  c.fillStyle = '#9a8670';
-  c.fillText('按住卡片在庭院中对照', CW / 2, 46 + th + 33);
+  const src = g.targetPainter!.color;
+  const w = 320;
+  card.width = w;
+  card.height = Math.round((w * src.height) / src.width);
+  card.getContext('2d')!.drawImage(src, 0, 0, card.width, card.height);
 }
 
 let peeking = false;
@@ -452,7 +411,7 @@ function refresh() {
   const s = score(sampleCodes(g.map, passes), g.target);
   lastClean = s.clean;
   maskDirty = true;
-  $('hud-steps').textContent = g.limit === Infinity ? String(g.path.length) : `${g.path.length} / ${g.limit}`;
+  $('hud-steps').textContent = g.limit === Infinity ? String(g.path.length) : `${g.path.length}/${g.limit}`;
   $('hud-clean').textContent = `${Math.floor(s.clean * 100)}%`;
   $('hud-match').textContent = `${Math.floor(s.match * 100)}%`;
   let msg = '';
@@ -730,7 +689,7 @@ function enterPlay() {
 type Spot = string | { cell: 'entry' | 'exit' | 'center' };
 const TUTORIALS: Record<Mode, { text: string; spot?: Spot }[]> = {
   puzzle: [
-    { text: '这是目标纹样。按住卡片，庭院里就会显示完整的目标。', spot: '#target-card' },
+    { text: '这是目标纹样。按住这张图，庭院里就会显示完整的目标。', spot: '#target-card' },
     { text: '从朱色标记的入口开始。用方向键、点击相邻的格子或者拖动来移动和尚。', spot: { cell: 'entry' } },
     { text: '耙子跟在和尚身后扫出纹路。直着走会耙满一整格；转弯只扫过一个扇形，外侧的角落保持原样。走回上一格就是撤销。', spot: { cell: 'center' } },
     { text: '最后从另一个朱色标记的出口离开。纹样和目标完全一致，庭院就完成了。', spot: { cell: 'exit' } },
@@ -742,7 +701,7 @@ const TUTORIALS: Record<Mode, { text: string; spot?: Spot }[]> = {
   ],
   free: [
     { text: '点任意一格开始，用方向键、点击或者拖动随意作画，没有任何限制。', spot: { cell: 'center' } },
-    { text: '画好后，点下面的「完成」木牌。', spot: '#btn-finish' },
+    { text: '画好后，点右上角的「完成」。', spot: '#btn-finish' },
   ],
 };
 const TUT_KEY = (m: Mode) => `karesansui:tutorial:${m}`;

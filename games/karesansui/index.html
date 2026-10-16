@@ -43,25 +43,22 @@
     </section>
 
     <section id="hud" class="hidden">
-      <div class="hud-top">
-        <div class="panel info">
-          <div id="hud-name" class="name"></div>
-          <div class="stats">
-            <span>耙程 <b id="hud-steps">0</b></span>
-            <span>整齐度 <b id="hud-clean">0%</b></span>
-            <span id="hud-match-wrap">吻合度 <b id="hud-match">0%</b></span>
-          </div>
-          <div id="hud-msg" class="msg"></div>
+      <div id="side-card">
+        <div class="side-head">
+          <span id="hud-name"></span>
+          <b id="hud-steps" title="耙程">0</b>
         </div>
         <canvas id="target-card" class="hidden" title="按住在庭院里查看目标纹样"></canvas>
-      </div>
-      <div class="hud-bottom">
-        <div class="rail"></div>
-        <div class="tags">
-          <button class="tag" id="btn-undo" title="撤销（Backspace / Z）"><span class="face">撤销</span></button>
-          <button class="tag" id="btn-reset" title="重新开始"><span class="face">重来</span></button>
-          <button class="tag" id="btn-finish" title="完成这幅画"><span class="face">完成</span></button>
-          <button class="tag" id="btn-menu" title="回到菜单"><span class="face">菜单</span></button>
+        <div class="side-stats">
+          <span>整齐 <b id="hud-clean">0%</b></span>
+          <span id="hud-match-wrap">吻合 <b id="hud-match">0%</b></span>
+        </div>
+        <div id="hud-msg" class="msg"></div>
+        <div class="side-buttons">
+          <button class="plank" id="btn-undo" title="撤销（Backspace / Z）">撤销</button>
+          <button class="plank" id="btn-reset" title="重新开始">重来</button>
+          <button class="plank shu" id="btn-finish" title="完成这幅画">完成</button>
+          <button class="plank" id="btn-menu" title="回到菜单">菜单</button>
         </div>
       </div>
     </section>
