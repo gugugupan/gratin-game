@@ -503,7 +503,7 @@ function firstFree(map: GardenMap): Cell {
 /** One step from the monk's cell; stepping back onto the previous cell undoes it. */
 function tryMove(d: Side) {
   const g = game;
-  if (!g || phase !== 'play') return false;
+  if (!g || phase !== 'play' || tutorial) return false;
   if (!g.path.length) return startAt(null);
   const ex = g.map.exit;
   if (g.done) {
@@ -559,7 +559,7 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
     skipIntro();
     return;
   }
-  if (phase !== 'play' || !game) return;
+  if (phase !== 'play' || !game || tutorial) return;
   const c = pointerCell(e);
   if (!c) return;
   const g = game;
@@ -602,7 +602,7 @@ window.addEventListener('keydown', (e) => {
     skipIntro();
     return;
   }
-  if (phase !== 'play' || !game || e.metaKey || e.altKey) return;
+  if (phase !== 'play' || !game || tutorial || e.metaKey || e.altKey) return;
   const d = KEY_DIR[e.key.length === 1 ? e.key.toLowerCase() : e.key];
   if (d) {
     e.preventDefault();
@@ -723,7 +723,105 @@ function enterPlay() {
   phase = 'play';
   $('skip').classList.add('hidden');
   $('hud').classList.remove('hidden');
+  maybeTutorial();
 }
+
+type Spot = string | { cell: 'entry' | 'exit' | 'center' };
+const TUTORIALS: Record<Mode, { text: string; spot?: Spot }[]> = {
+  puzzle: [
+    { text: '这是目标纹样。按住卡片，庭院里就会显示完整的目标。', spot: '#target-card' },
+    { text: '从朱色标记的入口开始。用方向键、点击相邻的格子或者拖动来移动和尚。', spot: { cell: 'entry' } },
+    { text: '耙子跟在和尚身后扫出纹路。直着走会耙满一整格；转弯只扫过一个扇形，外侧的角落保持原样。走回上一格就是撤销。', spot: { cell: 'center' } },
+    { text: '最后从另一个朱色标记的出口离开。纹样和目标完全一致，庭院就完成了。', spot: { cell: 'exit' } },
+  ],
+  random: [
+    { text: '从朱色入口开始，用方向键、点击相邻的格子或者拖动来耙砂。', spot: { cell: 'entry' } },
+    { text: '转弯扫不到的角落会一直乱着。换个方向再转一次，或者直着耙过去，就能补上。', spot: { cell: 'center' } },
+    { text: '整齐度到 100% 后从出口离开。如果还有乱砂，没扫到的地方会亮起来。', spot: { cell: 'exit' } },
+  ],
+  free: [
+    { text: '点任意一格开始，用方向键、点击或者拖动随意作画，没有任何限制。', spot: { cell: 'center' } },
+    { text: '画好后，点下面的「完成」木牌。', spot: '#btn-finish' },
+  ],
+};
+const TUT_KEY = (m: Mode) => `karesansui:tutorial:${m}`;
+let tutorial: { mode: Mode; step: number } | null = null;
+
+function maybeTutorial() {
+  const g = game!;
+  try {
+    if (localStorage.getItem(TUT_KEY(g.mode))) return;
+  } catch {
+    return;
+  }
+  tutorial = { mode: g.mode, step: 0 };
+  $('tutorial').classList.remove('hidden');
+  showTutorialStep();
+}
+
+function showTutorialStep() {
+  if (!tutorial || !game) return;
+  const steps = TUTORIALS[tutorial.mode];
+  const st = steps[tutorial.step];
+  $('tut-text').textContent = st.text;
+  $('tut-dots').innerHTML = steps.map((_, i) => `<span class="${i === tutorial!.step ? 'on' : ''}">●</span>`).join('');
+  $('tut-next').textContent = tutorial.step === steps.length - 1 ? '开始' : '下一步';
+  placeSpotlight(st.spot);
+}
+
+function placeSpotlight(spot?: Spot) {
+  const el = $('spotlight');
+  if (!spot) {
+    el.classList.add('hidden');
+    $('tutorial').classList.remove('top');
+    return;
+  }
+  let r: { x: number; y: number; w: number; h: number };
+  if (typeof spot === 'string') {
+    const b = document.querySelector(spot)!.getBoundingClientRect();
+    r = { x: b.left - 6, y: b.top - 6, w: b.width + 12, h: b.height + 12 };
+  } else {
+    const g = game!;
+    camera.updateMatrixWorld();
+    const gate = spot.cell === 'entry' ? g.map.entry : spot.cell === 'exit' ? g.map.exit : null;
+    const c: Cell = gate ? gate.cell : [Math.floor(g.map.cols / 2), Math.floor(g.map.rows / 2)];
+    const span = gate ? 0.75 : 1.5;
+    const p0 = g.garden.cellCenter(c[0], c[1]).add(new Vector3(-span, 0, -span)).project(camera);
+    const p1 = g.garden.cellCenter(c[0], c[1]).add(new Vector3(span, 0, span)).project(camera);
+    const sx = (v: number) => ((v + 1) / 2) * window.innerWidth;
+    const sy = (v: number) => ((1 - v) / 2) * window.innerHeight;
+    const x0 = Math.min(sx(p0.x), sx(p1.x));
+    const x1 = Math.max(sx(p0.x), sx(p1.x));
+    const y0 = Math.min(sy(p0.y), sy(p1.y));
+    const y1 = Math.max(sy(p0.y), sy(p1.y));
+    r = { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+  }
+  Object.assign(el.style, { left: `${r.x}px`, top: `${r.y}px`, width: `${r.w}px`, height: `${r.h}px` });
+  el.classList.remove('hidden');
+  $('tutorial').classList.toggle('top', r.y + r.h / 2 > window.innerHeight * 0.5);
+}
+
+function closeTutorial(remember: boolean) {
+  if (tutorial && remember) {
+    try {
+      localStorage.setItem(TUT_KEY(tutorial.mode), '1');
+    } catch {
+      /* storage unavailable */
+    }
+  }
+  tutorial = null;
+  $('tutorial').classList.add('hidden');
+  $('spotlight').classList.add('hidden');
+}
+
+$('tut-next').onclick = () => {
+  if (!tutorial) return;
+  if (tutorial.step < TUTORIALS[tutorial.mode].length - 1) {
+    tutorial.step++;
+    showTutorialStep();
+  } else closeTutorial(true);
+};
+$('tut-skip').onclick = () => closeTutorial(true);
 
 function beginOutro(clean: number, match: number) {
   const g = game!;
@@ -801,17 +899,48 @@ $('res-again').onclick = () => {
 };
 $('res-menu').onclick = showMenu;
 
-function renderLevelList() {
-  const st = loadStars();
-  const list = $('level-list');
-  list.innerHTML = '';
-  for (const lv of LEVELS) {
-    const b = document.createElement('button');
-    b.innerHTML = `${lv.name.split('　')[0]}<span class="star">${'★'.repeat(st[lv.id] || 0)}</span>`;
-    b.onclick = () => startGame('puzzle', { level: lv });
-    list.appendChild(b);
-  }
+function showModes() {
+  $('menu-modes').classList.remove('hidden');
+  $('menu-sub').classList.add('hidden');
+  $('menu-back').classList.add('hidden');
 }
+
+function showSub(items: { label: string; stars?: number; go: () => void }[]) {
+  const sub = $('menu-sub');
+  sub.innerHTML = '';
+  for (const it of items) {
+    const b = document.createElement('button');
+    b.className = 'plaque' + (it.stars !== undefined ? ' has-stars' : '');
+    b.innerHTML =
+      `<span>${it.label}</span>` +
+      (it.stars !== undefined
+        ? `<div class="stars-row">${[0, 1, 2].map((i) => `<i class="${i < it.stars! ? '' : 'off'}">★</i>`).join('')}</div>`
+        : '');
+    b.onclick = it.go;
+    sub.appendChild(b);
+  }
+  $('menu-modes').classList.add('hidden');
+  sub.classList.remove('hidden');
+  $('menu-back').classList.remove('hidden');
+}
+
+document.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((b) => {
+  b.onclick = () => {
+    const mode = b.dataset.mode as Mode;
+    if (mode === 'puzzle') {
+      const st = loadStars();
+      showSub(LEVELS.map((lv) => ({ label: lv.name.split('　')[0], stars: st[lv.id] || 0, go: () => startGame('puzzle', { level: lv }) })));
+    } else if (mode === 'random') {
+      showSub(
+        (['small', 'medium', 'large'] as SizeKey[]).map((size) => ({
+          label: { small: '小庭', medium: '中庭', large: '大庭' }[size],
+          go: () => startGame('random', { size }),
+        })),
+      );
+    } else startGame('free', {});
+  };
+});
+$('menu-back').onclick = showModes;
 
 function showMenu() {
   phase = 'menu';
@@ -823,7 +952,8 @@ function showMenu() {
   $('result').classList.add('hidden');
   $('skip').classList.add('hidden');
   $('menu').classList.remove('hidden');
-  renderLevelList();
+  closeTutorial(false);
+  showModes();
   if (!game) startBackdrop();
 }
 
@@ -842,16 +972,12 @@ function startBackdrop() {
   painter.paint(passesOf(map, g.solution, true));
 }
 
-document.querySelectorAll<HTMLButtonElement>('[data-size]').forEach((b) => {
-  b.onclick = () => startGame('random', { size: b.dataset.size as SizeKey });
-});
-$('free-start').onclick = () => startGame('free', {});
-
 function resize() {
   renderer.setSize(window.innerWidth, window.innerHeight);
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   if (phase === 'play' && game) setCamera(playView(game.map));
+  if (tutorial) showTutorialStep();
 }
 window.addEventListener('resize', resize);
 resize();
@@ -876,7 +1002,7 @@ function step(dt: number) {
   }
   if (game) {
     updateVisual(dt);
-    game.garden.gate.visible = phase !== 'play';
+    game.garden.gate.visible = phase === 'intro' || phase === 'outro' || phase === 'result';
   }
   const d = camera.position.length();
   const fog = scene.fog as Fog;

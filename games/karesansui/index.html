@@ -31,31 +31,14 @@
     <div id="stage"></div>
 
     <section id="menu" class="overlay">
-      <div class="menu-card">
-        <h1>砂纹</h1>
-        <p class="tagline">一笔耙成的枯山水</p>
-        <div class="modes">
-          <div class="mode">
-            <h2>庭题</h2>
-            <p>照着目标纹样，耙出一模一样的庭院。</p>
-            <div id="level-list" class="chips"></div>
-          </div>
-          <div class="mode">
-            <h2>随庭</h2>
-            <p>随机生成的庭院，一笔耙到不留一点乱砂。</p>
-            <div class="chips">
-              <button data-size="small">小庭</button>
-              <button data-size="medium">中庭</button>
-              <button data-size="large">大庭</button>
-            </div>
-          </div>
-          <div class="mode">
-            <h2>自由</h2>
-            <p>没有目标也没有限制，随心画一幅。</p>
-            <div class="chips"><button id="free-start">开始作画</button></div>
-          </div>
-        </div>
+      <h1 class="logo">砂纹</h1>
+      <div id="menu-modes" class="plaques">
+        <button class="plaque" data-mode="puzzle"><span>庭题</span></button>
+        <button class="plaque" data-mode="random"><span>随庭</span></button>
+        <button class="plaque" data-mode="free"><span>自由</span></button>
       </div>
+      <div id="menu-sub" class="plaques small hidden"></div>
+      <button id="menu-back" class="tag back hidden"><span class="face">返回</span></button>
     </section>
 
     <section id="hud" class="hidden">
@@ -91,6 +74,18 @@
           <button id="res-next">下一关</button>
           <button id="res-again">再来一次</button>
           <button id="res-menu">菜单</button>
+        </div>
+      </div>
+    </section>
+
+    <div id="spotlight" class="hidden"></div>
+    <section id="tutorial" class="hidden">
+      <div class="tut-card">
+        <p id="tut-text"></p>
+        <div class="tut-foot">
+          <span id="tut-dots"></span>
+          <button id="tut-skip">跳过</button>
+          <button id="tut-next">下一步</button>
         </div>
       </div>
     </section>
