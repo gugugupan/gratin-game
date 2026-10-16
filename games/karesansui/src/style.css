@@ -258,7 +258,7 @@ button:active {
 
 #side-card {
   pointer-events: auto;
-  width: 176px;
+  width: 196px;
   padding: 9px 10px 10px;
   background: #efe6d2;
   border: 5px solid #c8a98a;
@@ -321,8 +321,18 @@ button:active {
   margin-top: 4px;
 }
 
-.msg:empty {
+.msg:empty,
+.tip:empty {
   display: none;
+}
+
+.tip {
+  font-size: 12px;
+  line-height: 1.55;
+  color: #6d5c49;
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px dashed rgba(110, 90, 60, 0.3);
 }
 
 .side-buttons {

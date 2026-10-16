@@ -1,5 +1,5 @@
 import { CanvasTexture, SRGBColorSpace } from 'three';
-import { isRock, PIVOTS, roundPivots, rng, type GardenMap, type Pass } from './engine';
+import { isRock, NS, PIVOTS, roundPivots, rng, type GardenMap, type Pass } from './engine';
 
 const PX = 128;
 const TINES = 12;
@@ -371,6 +371,29 @@ export class SandPainter {
     });
     ctx.globalCompositeOperation = 'source-over';
     this.maskTex.needsUpdate = true;
+  }
+
+  /** Opaque wherever the current pattern differs from the target (sample grid, softened). */
+  paintMismatch(cur: Int8Array, target: Int8Array) {
+    this.paintMask([]);
+    const ctx = this.mask.getContext('2d')!;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, this.mask.width, this.mask.height);
+    const cell = this.mask.width / this.map.cols;
+    const step = cell / NS;
+    ctx.fillStyle = '#ffffff';
+    ctx.filter = 'blur(2px)';
+    for (let r = 0; r < this.map.rows; r++)
+      for (let c = 0; c < this.map.cols; c++) {
+        const base = (r * this.map.cols + c) * NS * NS;
+        for (let j = 0; j < NS; j++)
+          for (let i = 0; i < NS; i++) {
+            const k = base + j * NS + i;
+            if (cur[k] >= 0 && cur[k] !== target[k]) ctx.fillRect(c * cell + i * step - 0.5, r * cell + j * step - 0.5, step + 1, step + 1);
+          }
+      }
+    ctx.filter = 'none';
+    this.maskTex!.needsUpdate = true;
   }
 
   private paintRoundCorners(cc: Ctx, bc: Ctx) {

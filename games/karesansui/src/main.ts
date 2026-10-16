@@ -1,6 +1,10 @@
 import {
   ACESFilmicToneMapping,
   Box3,
+  Group,
+  Mesh,
+  MeshBasicMaterial,
+  RingGeometry,
   Line3,
   Clock,
   Color,
@@ -38,7 +42,7 @@ import {
 } from './engine';
 import { LEVELS, type Level } from './levels';
 import { loadAssets, type Assets } from './assets';
-import { applyStatic, levelLabel, setLocale, t, type Locale } from './i18n';
+import { TIPS, applyStatic, levelLabel, setLocale, t, type Locale } from './i18n';
 import { buildGarden, buildPanda, type GardenScene, type Monk } from './models';
 import { SandPainter } from './sand';
 
@@ -90,6 +94,8 @@ interface Game {
   garden: GardenScene;
   path: Cell[];
   done: boolean;
+  /** Reference raking path (puzzle target / random garden's generator solution) used for hints. */
+  solution: Cell[] | null;
 }
 
 let game: Game | null = null;
@@ -131,7 +137,7 @@ function playView(map: GardenMap) {
   return { pos: center.clone().add(new Vector3(0, Math.cos(tilt) * h, Math.sin(tilt) * h)), look: center };
 }
 
-function startGame(mode: Mode, opts: { level?: Level; size?: SizeKey; seed?: number }) {
+function startGame(mode: Mode, opts: { level?: Level; size?: SizeKey; seed?: number; quick?: boolean }) {
   if (game) {
     scene.remove(game.garden.root);
     game.painter.dispose();
@@ -178,11 +184,13 @@ function startGame(mode: Mode, opts: { level?: Level; size?: SizeKey; seed?: num
     garden,
     path: [],
     done: false,
+    solution,
   };
   setupHud();
   refresh();
   resetVisual();
-  beginIntro();
+  if (opts.quick) beginQuick();
+  else beginIntro();
 }
 
 let monkAngle = 0;
@@ -196,6 +204,7 @@ let sweep = 0;
 let paintDirty = true;
 let finishTimer = -1;
 let lastClean = 0;
+let lastMatch = 0;
 let maskDirty = true;
 let pulse = 0;
 
@@ -279,6 +288,8 @@ function dirVec(s: Side) {
 }
 
 function resetVisual() {
+  hintGroup.clear();
+  hintMsg = '';
   drawnKeys = [];
   sweep = 0;
   paintDirty = true;
@@ -357,16 +368,20 @@ function updateVisual(dt: number, snap = false) {
   monk.update(dt, walkSpeed > 0.15 ? Math.min(1.2, walkSpeed) : 0);
 
   const caughtUp = drawnKeys.length === passes.length;
-  const showMessy = phase === 'play' && caughtUp && g.mode !== 'free' && lastClean < 1 && g.done;
+  const ended = phase === 'play' && caughtUp && g.done && g.mode !== 'free';
+  const showMessy = ended && lastClean < 1;
+  const showWrong = ended && !showMessy && g.mode === 'puzzle' && lastMatch < 1;
   const hl = g.garden.highlight;
-  if (showMessy && maskDirty) {
-    g.painter.paintMask(passes);
+  if ((showMessy || showWrong) && maskDirty) {
+    if (showMessy) g.painter.paintMask(passes);
+    else g.painter.paintMismatch(sampleCodes(g.map, passes), g.target!);
     hl.material.alphaMap = g.painter.maskTex;
+    hl.material.color.set(showMessy ? '#ff6a1a' : '#2f7de0');
     hl.material.needsUpdate = true;
     maskDirty = false;
   }
   pulse += dt;
-  const want = showMessy ? 0.5 + 0.25 * Math.sin(pulse * 4.5) : 0;
+  const want = showMessy || showWrong ? 0.5 + 0.25 * Math.sin(pulse * 4.5) : 0;
   hl.material.opacity += (want - hl.material.opacity) * Math.min(1, dt * 10);
   hl.visible = hl.material.opacity > 0.01;
 
@@ -388,6 +403,7 @@ function setupHud() {
     g.mode === 'puzzle' ? levelName(g.level!) : g.mode === 'random' ? t(`size.${g.size!}`) : t('mode.free');
   $('hud-match-wrap').classList.toggle('hidden', g.mode !== 'puzzle');
   $('btn-finish').classList.toggle('hidden', g.mode !== 'free');
+  $('btn-hint').classList.toggle('hidden', !g.solution);
   $('target-card').classList.toggle('hidden', g.mode !== 'puzzle');
   if (g.mode === 'puzzle') drawTargetCard();
 }
@@ -408,16 +424,19 @@ function refresh() {
   const passes = passesOf(g.map, g.path, g.done);
   const s = score(sampleCodes(g.map, passes), g.target);
   lastClean = s.clean;
+  lastMatch = s.match;
   maskDirty = true;
   $('hud-steps').textContent = String(g.path.length);
   $('hud-clean').textContent = `${Math.floor(s.clean * 100)}%`;
   $('hud-match').textContent = `${Math.floor(s.match * 100)}%`;
   let msg = '';
-  if (g.done) {
-    if (g.mode === 'puzzle' && s.match < 1) msg = t('msg.mismatch');
-    if (g.mode === 'random' && s.clean < 1) msg = t('msg.messy');
+  if (g.done && g.mode !== 'free') {
+    if (s.clean < 1) msg = t('msg.messy');
+    else if (g.mode === 'puzzle' && s.match < 1) msg = t('msg.mismatch');
   }
-  $('hud-msg').textContent = msg;
+  $('hud-msg').textContent = msg || hintMsg;
+  const tip = g.mode === 'puzzle' ? levelTip(g.level!) : '';
+  $('hud-tip').textContent = msg ? '' : tip;
   const sandM = g.garden.sand.material as MeshStandardMaterial;
   const src = peeking && g.targetPainter ? g.targetPainter : g.painter;
   if (sandM.map !== src.colorTex) {
@@ -602,6 +621,58 @@ $('btn-finish').onclick = () => {
 };
 $('btn-menu').onclick = showMenu;
 
+const hintGroup = new Group();
+scene.add(hintGroup);
+let hintTime = 0;
+let hintMsg = '';
+
+/** Rewinds to where the path left the reference solution, then lights the next few cells. */
+function showHint() {
+  const g = game;
+  if (!g || !g.solution || phase !== 'play' || tutorial) return;
+  const sol = g.solution;
+  let k = 0;
+  while (k < g.path.length && k < sol.length && sameCell(g.path[k], sol[k])) k++;
+  const rewound = k < g.path.length || (g.done && k < sol.length);
+  if (rewound) {
+    g.path = sol.slice(0, k);
+    g.done = false;
+  }
+  hintMsg = t(rewound ? 'msg.hintRewind' : 'msg.hint');
+  refresh();
+  hintGroup.clear();
+  sol.slice(g.path.length, g.path.length + 3).forEach((c, i) => {
+    const ring = new Mesh(
+      new RingGeometry(0.13, 0.27, 40),
+      new MeshBasicMaterial({ color: '#e08a2c', transparent: true, opacity: 0, depthWrite: false, toneMapped: false }),
+    );
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.copy(g.garden.cellCenter(c[0], c[1])).setY(0.03);
+    ring.userData.order = i;
+    hintGroup.add(ring);
+  });
+  hintTime = 0;
+}
+$('btn-hint').onclick = showHint;
+
+function updateHint(dt: number) {
+  if (!hintGroup.children.length) return;
+  hintTime += dt;
+  const fade = Math.max(0, 1 - Math.max(0, hintTime - 3.2) / 0.6);
+  for (const o of hintGroup.children as Mesh<RingGeometry, MeshBasicMaterial>[]) {
+    const appear = Math.min(1, Math.max(0, (hintTime - o.userData.order * 0.25) / 0.25));
+    o.material.opacity = (0.95 - o.userData.order * 0.25) * appear * fade * (0.75 + 0.25 * Math.sin(hintTime * 6));
+    o.scale.setScalar(1 + 0.08 * Math.sin(hintTime * 6));
+  }
+  if (fade <= 0) {
+    hintGroup.clear();
+    if (hintMsg && game) {
+      hintMsg = '';
+      refresh();
+    }
+  }
+}
+
 interface Shot {
   pos: Vector3;
   look: Vector3;
@@ -668,6 +739,16 @@ function beginIntro() {
     enterPlay,
   );
 }
+/** Next level / retry: glide from the close-up straight to the top-down view. */
+function beginQuick() {
+  phase = 'intro';
+  document.body.classList.remove('dreamy');
+  $('menu').classList.add('hidden');
+  $('result').classList.add('hidden');
+  $('hud').classList.add('hidden');
+  moveCamera([{ shot: playView(game!.map), dur: 1.3 }], enterPlay);
+}
+
 function skipIntro() {
   queue.length = 0;
   shotTo = null;
@@ -854,13 +935,13 @@ function showResult(clean: number, match: number) {
 
 $('res-next').onclick = () => {
   const g = game!;
-  if (g.mode === 'puzzle') startGame('puzzle', { level: LEVELS[(LEVELS.indexOf(g.level!) + 1) % LEVELS.length] });
-  else if (g.mode === 'random') startGame('random', { size: g.size });
-  else startGame('free', {});
+  if (g.mode === 'puzzle') startGame('puzzle', { level: LEVELS[(LEVELS.indexOf(g.level!) + 1) % LEVELS.length], quick: true });
+  else if (g.mode === 'random') startGame('random', { size: g.size, quick: true });
+  else startGame('free', { quick: true });
 };
 $('res-again').onclick = () => {
   const g = game!;
-  startGame(g.mode, { level: g.level, size: g.size, seed: g.seed });
+  startGame(g.mode, { level: g.level, size: g.size, seed: g.seed, quick: true });
 };
 $('res-menu').onclick = showMenu;
 
@@ -929,7 +1010,7 @@ function startBackdrop() {
   scene.add(garden.root);
   sun.position.set(-5.7, 10, -4);
   sun.target.position.set(-0.7, 0, 0);
-  game = { mode: 'free', map, seed, painter, target: null, garden, path: [], done: false };
+  game = { mode: 'free', map, seed, painter, target: null, garden, path: [], done: false, solution: null };
   resetVisual();
   painter.paint(passesOf(map, g.solution, true));
 }
@@ -964,6 +1045,7 @@ function step(dt: number) {
   }
   if (game) {
     updateVisual(dt);
+    updateHint(dt);
     game.garden.gate.visible = phase === 'intro' || phase === 'outro' || phase === 'result';
   }
   const d = camera.position.length();
@@ -977,6 +1059,10 @@ function frame() {
   requestAnimationFrame(frame);
 }
 const levelName = (lv: Level) => levelLabel(LEVELS.indexOf(lv) + 1);
+const levelTip = (lv: Level) => {
+  const key = `tip.${lv.id}`;
+  return key in TIPS ? t(key as keyof typeof TIPS) : '';
+};
 
 document.querySelectorAll<HTMLButtonElement>('[data-lang]').forEach((b) => {
   b.onclick = () => {

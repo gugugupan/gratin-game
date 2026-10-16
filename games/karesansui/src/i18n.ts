@@ -31,6 +31,15 @@ const zh = {
   'msg.messy': '亮起的地方还是乱砂，撤销后再试。',
   'msg.entry': '从朱色标记的入口格开始。',
   'msg.adjacent': '点相邻的格子，或者用方向键移动。',
+  'btn.hint': '提示',
+  'btn.hint.title': '显示接下来该走的格子',
+  'msg.hint': '沿着亮起的格子走。',
+  'msg.hintRewind': '从这里开始和参考路线不同，已经退回来了。沿着亮起的格子走。',
+  'tip.l1': '直着往前走，整格都会耙得整整齐齐。',
+  'tip.l2': '庭院的角是圆的苔藓，在这里转弯就能把格子耙满。',
+  'tip.l3': '转弯只扫过一个扇形，外侧的角会留着乱砂。回头从另一个方向再转一次，就能补上。',
+  'tip.l4': '石头周围的纹路来自旁边格子的转弯。对照右上角的目标纹样。',
+  'tip.l5': '有的格子要转两次弯才能补齐。卡住时可以点「提示」。',
   'res.done': '庭成',
   'res.free': '一幅',
   'res.clean': '整齐度',
@@ -85,6 +94,15 @@ const ja: Record<Key, string> = {
   'msg.messy': '光っているところはまだ砂が乱れています。戻してやり直しましょう。',
   'msg.entry': '朱色の印がある入口のマスから始めましょう。',
   'msg.adjacent': '隣のマスをタップするか、矢印キーで動かしましょう。',
+  'btn.hint': 'ヒント',
+  'btn.hint.title': '次に進むマスを表示',
+  'msg.hint': '光っているマスをたどりましょう。',
+  'msg.hintRewind': 'ここからお手本の道筋とずれていたので、戻しました。光っているマスをたどりましょう。',
+  'tip.l1': 'まっすぐ進むと、マス全体がきれいに整います。',
+  'tip.l2': '庭の角は丸い苔。ここで曲がればマスを掃ききれます。',
+  'tip.l3': '曲がると扇形しか掃けず、外側の角は乱れたまま。戻って反対向きにもう一度曲がれば整います。',
+  'tip.l4': '石のまわりの模様は、隣のマスで曲がってできます。右上のお手本と見比べましょう。',
+  'tip.l5': '二度曲がらないと整わないマスもあります。困ったら「ヒント」を押しましょう。',
   'res.done': '完成',
   'res.free': '一幅',
   'res.clean': '整い',
@@ -111,6 +129,9 @@ const ja: Record<Key, string> = {
 };
 
 const DICT: Record<Locale, Record<Key, string>> = { zh, ja };
+
+/** Levels with an opening tip shown in the side card. */
+export const TIPS = { 'tip.l1': 1, 'tip.l2': 1, 'tip.l3': 1, 'tip.l4': 1, 'tip.l5': 1 } as const;
 
 function readCookie(): string | null {
   const m = document.cookie.match(new RegExp(`(?:^|; )${COOKIE}=([^;]*)`));
