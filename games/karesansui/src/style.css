@@ -139,24 +139,22 @@ button:active {
   margin-right: -10px;
 }
 
-.plaque .stars-row {
+.plaque .seal {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 14px;
-  font-size: 13px;
-  letter-spacing: 3px;
-  color: var(--shu);
+  right: 14px;
+  bottom: 12px;
+  width: 26px;
+  height: 26px;
+  line-height: 24px;
+  font-style: normal;
+  font-size: 15px;
+  letter-spacing: 0;
+  color: #fff4e6;
+  background: var(--shu);
+  border: 1px solid #8a2a18;
+  border-radius: 4px;
+  transform: rotate(-8deg);
   text-shadow: none;
-}
-
-.plaque .stars-row .off {
-  color: rgba(80, 50, 20, 0.25);
-}
-
-.plaques.small .plaque.has-stars span {
-  position: relative;
-  top: -8px;
 }
 
 .back {
@@ -435,17 +433,6 @@ button:active {
 .res-title {
   font-size: 36px;
   letter-spacing: 12px;
-}
-
-.stars {
-  font-size: 28px;
-  color: var(--shu);
-  letter-spacing: 6px;
-  margin: 4px 0 10px;
-}
-
-.stars .off {
-  color: rgba(110, 90, 60, 0.25);
 }
 
 .res-lines {

@@ -28,7 +28,6 @@ import {
   score,
   sideTo,
   solve,
-  stars,
   type Cell,
   type GardenMap,
   type Pass,
@@ -82,8 +81,6 @@ interface Game {
   level?: Level;
   size?: SizeKey;
   seed: number;
-  par: number;
-  limit: number;
   painter: SandPainter;
   targetPainter?: SandPainter;
   target: Int8Array | null;
@@ -96,19 +93,17 @@ let game: Game | null = null;
 let phase: Phase = 'menu';
 let menuT = 0;
 
-const STAR_KEY = 'karesansui:stars';
-function loadStars(): Record<string, number> {
+const CLEARED_KEY = 'karesansui:cleared';
+function loadCleared(): Record<string, boolean> {
   try {
-    return JSON.parse(localStorage.getItem(STAR_KEY) || '{}');
+    return JSON.parse(localStorage.getItem(CLEARED_KEY) || '{}');
   } catch {
     return {};
   }
 }
-function saveStar(id: string, n: number) {
+function saveCleared(id: string) {
   try {
-    const s = loadStars();
-    s[id] = Math.max(s[id] || 0, n);
-    localStorage.setItem(STAR_KEY, JSON.stringify(s));
+    localStorage.setItem(CLEARED_KEY, JSON.stringify({ ...loadCleared(), [id]: true }));
   } catch {
     /* storage unavailable */
   }
@@ -136,17 +131,14 @@ function startGame(mode: Mode, opts: { level?: Level; size?: SizeKey; seed?: num
   }
   const seed = opts.seed ?? Math.floor(Math.random() * 1e9);
   let map: GardenMap;
-  let par = 0;
   let solution: Cell[] | null = null;
   if (mode === 'puzzle') {
     map = opts.level!.map;
     solution = solve(map);
-    par = solution!.length;
   } else if (mode === 'random') {
     const g = randomGarden(opts.size!, seed);
     map = g.map;
     solution = g.solution;
-    par = solution.length;
   } else {
     const g = randomGarden('large', seed);
     map = { ...g.map, entry: null, exit: null };
@@ -172,8 +164,6 @@ function startGame(mode: Mode, opts: { level?: Level; size?: SizeKey; seed?: num
     level: opts.level,
     size: opts.size,
     seed,
-    par,
-    limit: mode === 'puzzle' ? par + 6 : mode === 'random' ? par + 4 : Infinity,
     painter,
     targetPainter,
     target,
@@ -359,7 +349,7 @@ function updateVisual(dt: number, snap = false) {
   monk.update(dt, walkSpeed > 0.15 ? Math.min(1.2, walkSpeed) : 0);
 
   const caughtUp = drawnKeys.length === passes.length;
-  const showMessy = phase === 'play' && caughtUp && g.mode !== 'free' && lastClean < 1 && (g.done || g.path.length >= g.limit);
+  const showMessy = phase === 'play' && caughtUp && g.mode !== 'free' && lastClean < 1 && g.done;
   const hl = g.garden.highlight;
   if (showMessy && maskDirty) {
     g.painter.paintMask(passes);
@@ -411,14 +401,14 @@ function refresh() {
   const s = score(sampleCodes(g.map, passes), g.target);
   lastClean = s.clean;
   maskDirty = true;
-  $('hud-steps').textContent = g.limit === Infinity ? String(g.path.length) : `${g.path.length}/${g.limit}`;
+  $('hud-steps').textContent = String(g.path.length);
   $('hud-clean').textContent = `${Math.floor(s.clean * 100)}%`;
   $('hud-match').textContent = `${Math.floor(s.match * 100)}%`;
   let msg = '';
   if (g.done) {
     if (g.mode === 'puzzle' && s.match < 1) msg = '纹样与目标不同，撤销后再试。';
     if (g.mode === 'random' && s.clean < 1) msg = '亮起的地方还是乱砂，撤销后再试。';
-  } else if (g.path.length >= g.limit) msg = s.clean < 1 ? '耙程已用尽，亮起的地方还是乱砂。' : '耙程已用尽。';
+  }
   $('hud-msg').textContent = msg;
   const sandM = g.garden.sand.material as MeshStandardMaterial;
   const src = peeking && g.targetPainter ? g.targetPainter : g.painter;
@@ -486,10 +476,7 @@ function tryMove(d: Side) {
   }
   if (g.path.length > 1 && sameCell(step, g.path[g.path.length - 2])) g.path.pop();
   else if (isRock(g.map, step)) return false;
-  else if (g.path.length >= g.limit) {
-    $('hud-msg').textContent = '耙程已用尽。';
-    return false;
-  } else g.path.push(step);
+  else g.path.push(step);
   refresh();
   return true;
 }
@@ -828,18 +815,10 @@ function beginOutro(clean: number, match: number) {
 function showResult(clean: number, match: number) {
   const g = game!;
   phase = 'result';
-  const steps = g.path.length;
-  let n = 0;
-  if (g.mode !== 'free') {
-    n = stars(steps, g.par);
-    if (g.mode === 'puzzle') saveStar(g.level!.id, n);
-  }
+  if (g.mode === 'puzzle') saveCleared(g.level!.id);
   $('res-title').textContent = g.mode === 'free' ? '一幅' : '庭成';
-  $('res-stars').innerHTML =
-    g.mode === 'free' ? '' : [0, 1, 2].map((i) => `<span class="${i < n ? '' : 'off'}">★</span>`).join('');
-  const lines = [`耙程　<b>${steps}</b>${g.mode !== 'free' ? `　（参考 ${g.par}）` : ''}`, `整齐度　<b>${Math.floor(clean * 100)}%</b>`];
+  const lines = [`整齐度　<b>${Math.floor(clean * 100)}%</b>`];
   if (g.mode === 'puzzle') lines.push(`吻合度　<b>${Math.floor(match * 100)}%</b>`);
-  if (g.mode !== 'free' && steps < g.par) lines.push('比参考解更短，妙手。');
   $('res-lines').innerHTML = lines.join('<br>');
   const idx = g.level ? LEVELS.indexOf(g.level) : -1;
   const next = $('res-next');
@@ -866,17 +845,13 @@ function showModes() {
   $('menu-back').classList.add('hidden');
 }
 
-function showSub(items: { label: string; stars?: number; go: () => void }[]) {
+function showSub(items: { label: string; cleared?: boolean; go: () => void }[]) {
   const sub = $('menu-sub');
   sub.innerHTML = '';
   for (const it of items) {
     const b = document.createElement('button');
-    b.className = 'plaque' + (it.stars !== undefined ? ' has-stars' : '');
-    b.innerHTML =
-      `<span>${it.label}</span>` +
-      (it.stars !== undefined
-        ? `<div class="stars-row">${[0, 1, 2].map((i) => `<i class="${i < it.stars! ? '' : 'off'}">★</i>`).join('')}</div>`
-        : '');
+    b.className = 'plaque';
+    b.innerHTML = `<span>${it.label}</span>` + (it.cleared ? '<i class="seal">成</i>' : '');
     b.onclick = it.go;
     sub.appendChild(b);
   }
@@ -889,8 +864,8 @@ document.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((b) => {
   b.onclick = () => {
     const mode = b.dataset.mode as Mode;
     if (mode === 'puzzle') {
-      const st = loadStars();
-      showSub(LEVELS.map((lv) => ({ label: lv.name.split('　')[0], stars: st[lv.id] || 0, go: () => startGame('puzzle', { level: lv }) })));
+      const done = loadCleared();
+      showSub(LEVELS.map((lv) => ({ label: lv.name.split('　')[0], cleared: !!done[lv.id], go: () => startGame('puzzle', { level: lv }) })));
     } else if (mode === 'random') {
       showSub(
         (['small', 'medium', 'large'] as SizeKey[]).map((size) => ({
@@ -928,7 +903,7 @@ function startBackdrop() {
   scene.add(garden.root);
   sun.position.set(-5.7, 10, -4);
   sun.target.position.set(-0.7, 0, 0);
-  game = { mode: 'free', map, seed, par: 0, limit: Infinity, painter, target: null, garden, path: [], done: false };
+  game = { mode: 'free', map, seed, painter, target: null, garden, path: [], done: false };
   resetVisual();
   painter.paint(passesOf(map, g.solution, true));
 }

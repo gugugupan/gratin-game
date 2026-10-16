@@ -333,7 +333,3 @@ export function randomGarden(size: SizeKey, seed: number): RandomGarden {
   }
   throw new Error('no solvable garden for seed ' + seed);
 }
-
-export function stars(steps: number, par: number) {
-  return steps <= par ? 3 : steps <= par + 2 ? 2 : 1;
-}
