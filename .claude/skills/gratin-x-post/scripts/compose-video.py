@@ -24,10 +24,14 @@ for f in afiles:
     ain += ["-ss", f"{start + lead:.3f}", "-i", f"{raw}/{f}"]
 n = len(afiles)
 mix = "".join(f"[{i+2}:a]" for i in range(n)) + (f"amix=inputs={n}:normalize=0," if n > 1 else "anull,")
+# Silent games (karesansui) get a silent track so players that expect audio still work.
+if n == 0:
+    ain = ["-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo"]
+    mix = "[2:a]anull,"
 fc = (f"[0:v]trim=start={start - vstart:.3f}:duration={dur:.3f},setpts=PTS-STARTPTS,fps=30,scale=1080:1080:flags=lanczos,format=yuv420p,setsar=1[g];"
       f"[1:v]fps=30,scale=1080:1080,format=yuv420p,setsar=1,trim=duration={CARD}[c];"
       f"[g][c]xfade=transition=fade:duration={XF}:offset={dur - XF:.3f},format=yuv420p[v];"
-      f"{mix}apad,atrim=duration={total:.3f},loudnorm=I={LOUDNESS}:TP=-2:LRA=11,afade=t=in:d=0.05,afade=t=out:st={total - 1.6:.3f}:d=1.6[a]")
+      f"{mix}apad,atrim=duration={total:.3f}," + ("" if n == 0 else f"loudnorm=I={LOUDNESS}:TP=-2:LRA=11,") + f"afade=t=in:d=0.05,afade=t=out:st={total - 1.6:.3f}:d=1.6[a]")
 cmd = ["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", f"{raw}/list.txt", "-loop", "1", "-t", str(CARD), "-i", card, *ain,
        "-filter_complex", fc, "-map", "[v]", "-map", "[a]", "-c:v", "libx264", "-profile:v", "high", "-crf", "18", "-preset", "slow",
        "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-movflags", "+faststart", out]

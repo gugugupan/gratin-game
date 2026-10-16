@@ -42,3 +42,10 @@ Source of truth for the list: `src/games.json` (title/tagline/url/languages). Re
 ## Portal
 - グラタンゲーム itself: logo story (cheese strand), loader animation `brand/loader.svg`, games added over time — good for dev-story posts.
 - **Logo clip**: `node scripts/record-logo.mjs <out.mp4>` → 5.4 s silent 1080² loop (wordmark + loader.svg). Existing: `marketing/logo-cheese.mp4` (scheduled 2026-10-08 12:30).
+
+## 🪨 枯山水 / Karesansui — `games/karesansui` (ja/zh)
+- One-stroke raking puzzle: a panda monk in a kasa walks backwards pulling a rake across a sand grid; going straight rakes the whole cell, a turn sweeps only a quarter circle and the outside corner keeps whatever was there (later passes layer over earlier ones). Messy sand left over lights up.
+- Modes (ja): お題 = match the target pattern, 20 levels in order (src/levels.json); おまかせ = random garden, rake it 100% clean then leave by the exit; 自由 = free drawing. No step limit or stars — clear / not clear.
+- Keyboard (arrows/WASD), tap a neighbouring cell, or drag. Silent (no audio).
+- **Video**: dev server `karesansui` (5270). `node scripts/record-karesansui.mjs <raw> 2 10` records menu → torii intro → level 3 raked → close-up + 完成 card; window from ~1 s after `intro` to ~0.8 s after `result` in log.json. Endcard: `node scripts/endcard.mjs karesansui.jpg ../../../games/karesansui/public/title.svg - gratin-game.com/karesansui <out.png>` (title SVG instead of brand-font text; `-` = no subtitle). compose-video.py adds a silent track when there is no audio.
+- Existing: `marketing/karesansui-x.mp4` (launch, 2026-10-17).

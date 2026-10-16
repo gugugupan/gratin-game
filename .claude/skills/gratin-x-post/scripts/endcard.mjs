@@ -1,4 +1,5 @@
-// usage: node endcard.mjs <cover.jpg under public/covers> <title> <subtitle> <url-text> <out.png>
+// usage: node endcard.mjs <cover.jpg under public/covers> <title | path/to/title.svg> <subtitle> <url-text> <out.png>
+// A title ending in .svg is embedded as an image (for titles the brand font has no glyphs for).
 // Dela Gothic One has no ▶ or most symbols — text() throws on a missing glyph instead of rendering tofu.
 import fs from "node:fs";
 import path from "node:path";
@@ -23,6 +24,13 @@ const wmInner = wm.replace(/^<svg[^>]*>/, "").replace(/<\/svg>\s*$/, "");
 const drip = "M0 0 H1080 V40 C1040 40 1030 64 1027 96 C1024 128 990 128 988 96 C986 70 970 56 930 56 C880 56 868 74 865 108 C862 142 826 142 824 108 C822 80 808 62 760 62 C620 62 450 52 300 58 C236 60 224 74 221 96 C218 124 186 124 184 96 C182 70 160 58 110 58 C70 58 56 64 53 78 C50 94 34 94 32 78 C30 64 20 56 0 56 Z";
 
 const [cover, title, sub, url, out] = process.argv.slice(2);
+const titleSvg = (t) => {
+  if (!t.endsWith(".svg")) return text(t, 655, 86, C.crust);
+  const src = fs.readFileSync(t, "utf8");
+  const [, w, h] = src.match(/viewBox="0 0 (\d+) (\d+)"/).map(Number);
+  const tw = 560, th = (tw * h) / w;
+  return `<image href="data:image/svg+xml;base64,${Buffer.from(src).toString("base64")}" x="${(1080 - tw) / 2}" y="574" width="${tw}" height="${th}"/>`;
+};
 const img = "data:image/jpeg;base64," + fs.readFileSync(path.join(repo, "public/covers", cover)).toString("base64");
 const cw = 700, ch = cw * 562 / 900, cx = (1080 - cw) / 2, cy = 120;
 const pillW = 520, pillY = 790;
@@ -33,8 +41,8 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" wid
 <path fill="${C.cheese}" d="${drip}"/>
 <rect x="${cx - 12}" y="${cy - 12}" width="${cw + 24}" height="${ch + 24}" rx="32" fill="${C.milk}" filter="url(#sh)"/>
 <image href="${img}" x="${cx}" y="${cy}" width="${cw}" height="${ch}" clip-path="url(#c)" preserveAspectRatio="xMidYMid slice"/>
-${text(title, 655, 86, C.crust)}
-${text(sub, 732, 38, C.terracotta)}
+${titleSvg(title)}
+${sub === "-" ? "" : text(sub, 732, 38, C.terracotta)}
 <rect x="${(1080 - pillW) / 2}" y="${pillY}" width="${pillW}" height="78" rx="39" fill="${C.terracotta}"/>
 ${text("ブラウザで無料プレイ", pillY + 52, 34, C.milk)}
 ${text(url, 928, 30, C.crust)}
