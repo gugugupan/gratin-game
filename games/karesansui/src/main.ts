@@ -36,7 +36,8 @@ import {
   type SizeKey,
 } from './engine';
 import { LEVELS, type Level } from './levels';
-import { buildGarden, buildMonk, type GardenScene } from './models';
+import { loadAssets, type Assets } from './assets';
+import { buildGarden, buildPanda, type GardenScene, type Monk } from './models';
 import { SandPainter } from './sand';
 
 type Mode = 'puzzle' | 'random' | 'free';
@@ -72,8 +73,8 @@ const fill = new DirectionalLight('#e8eef5', 0.7);
 fill.position.set(3, 4, 12);
 scene.add(fill);
 
-const monk = buildMonk();
-scene.add(monk.root, monk.rake);
+let assets!: Assets;
+let monk!: Monk;
 
 interface Game {
   mode: Mode;
@@ -159,7 +160,7 @@ function startGame(mode: Mode, opts: { level?: Level; size?: SizeKey; seed?: num
     targetPainter.paint(tp);
     target = sampleCodes(map, tp);
   }
-  const garden = buildGarden(map, painter, seed);
+  const garden = buildGarden(map, painter, seed, assets);
   scene.add(garden.root);
   const center = new Vector3(-0.7, 0, 0);
   sun.position.copy(center).add(new Vector3(-5, 10, -4));
@@ -840,15 +841,16 @@ function beginOutro(clean: number, match: number) {
     hold = monk.root.position.clone();
     monkAngleTarget = faceAngle;
     monk.rake.visible = false;
+    monk.wave();
   }, 350);
   setTimeout(() => {
     const m = hold ?? monk.root.position.clone();
     const f = faceDir;
     const side = new Vector3(f.z, 0, -f.x);
-    const headY = 0.71;
+    const headY = monk.head.getWorldPosition(new Vector3()).y + 0.05;
     const close: Shot = {
-      pos: m.clone().addScaledVector(f, 1.3).addScaledVector(side, 0.32).add(new Vector3(0, headY + 0.02, 0)),
-      look: m.clone().addScaledVector(side, 0.36).add(new Vector3(0, headY - 0.08, 0)),
+      pos: m.clone().addScaledVector(f, 1.75).addScaledVector(side, 0.42).add(new Vector3(0, headY + 0.08, 0)),
+      look: m.clone().addScaledVector(side, 0.46).add(new Vector3(0, headY - 0.12, 0)),
     };
     const mid: Shot = {
       pos: m.clone().addScaledVector(f, 2.6).add(new Vector3(0, 1.9, 0)),
@@ -963,7 +965,7 @@ function startBackdrop() {
   const map = g.map;
   const painter = new SandPainter(map, seed);
   painter.paint(passesOf(map, g.solution, true));
-  const garden = buildGarden(map, painter, seed);
+  const garden = buildGarden(map, painter, seed, assets);
   scene.add(garden.root);
   sun.position.set(-5.7, 10, -4);
   sun.target.position.set(-0.7, 0, 0);
@@ -1014,8 +1016,16 @@ function frame() {
   step(Math.min(0.05, clock.getDelta()));
   requestAnimationFrame(frame);
 }
-showMenu();
-frame();
+async function init() {
+  const label = $('loading');
+  assets = await loadAssets((done, total) => (label.textContent = `整理庭院中… ${done}/${total}`));
+  label.remove();
+  monk = buildPanda(assets.panda);
+  scene.add(monk.root, monk.rake);
+  showMenu();
+  frame();
+}
+void init();
 
 if (import.meta.env.DEV) {
   Object.assign(window, {

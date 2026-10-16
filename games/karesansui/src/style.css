@@ -513,3 +513,14 @@ button:active {
     font-size: 16px;
   }
 }
+
+#loading {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  letter-spacing: 4px;
+  color: var(--ink-2);
+}

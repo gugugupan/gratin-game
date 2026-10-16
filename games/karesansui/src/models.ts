@@ -1,4 +1,7 @@
 import {
+  AnimationClip,
+  AnimationMixer,
+  Box3,
   BoxGeometry,
   CanvasTexture,
   CircleGeometry,
@@ -7,7 +10,7 @@ import {
   CylinderGeometry,
   Group,
   IcosahedronGeometry,
-  LatheGeometry,
+  LoopOnce,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
@@ -16,12 +19,13 @@ import {
   RepeatWrapping,
   SphereGeometry,
   SRGBColorSpace,
-  TorusGeometry,
-  Vector2,
   Vector3,
   type BufferGeometry,
   type Material,
 } from 'three';
+import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
+import { prop, type Assets, type ModelName } from './assets';
 import { rng, type GardenMap } from './engine';
 import type { SandPainter } from './sand';
 
@@ -161,96 +165,81 @@ function lantern() {
   return g;
 }
 
-function deadTree(seed: number) {
-  const g = new Group();
-  const bark = mat('#4b3a2c', { roughness: 0.95, flatShading: true });
-  const r = rng(seed);
-  const up = new Vector3(0, 1, 0);
-  const branch = (from: Vector3, dir: Vector3, len: number, rad: number, depth: number) => {
-    const to = from.clone().addScaledVector(dir, len);
-    const geo = new CylinderGeometry(rad * 0.65, rad, len, 6);
-    const m = mesh(geo, bark);
-    m.position.copy(from).add(to).multiplyScalar(0.5);
-    m.quaternion.setFromUnitVectors(up, dir.clone().normalize());
-    g.add(m);
-    if (depth <= 0) return;
-    const n = depth > 1 ? 2 + (r() < 0.5 ? 1 : 0) : 2;
-    for (let k = 0; k < n; k++) {
-      const d = dir
-        .clone()
-        .add(new Vector3((r() - 0.5) * 1.4, (r() - 0.2) * 0.6, (r() - 0.5) * 1.4))
-        .normalize();
-      branch(to, d, len * (0.6 + r() * 0.2), rad * 0.62, depth - 1);
-    }
-  };
-  branch(new Vector3(0, 0, 0), new Vector3(0.12, 1, 0.08).normalize(), 0.7, 0.08, 4);
-  return g;
-}
+const KIT = 0.38;
 
-function pine(seed: number) {
+/** Hojo-style hall north of the garden: shoji wall modules, an engawa deck with posts, a tiled gable roof. */
+function buildHouse(assets: Assets, xa: number, xb: number, zFront: number) {
   const g = new Group();
-  const r = rng(seed);
-  const trunk = mesh(new CylinderGeometry(0.06, 0.09, 0.8, 6), mat('#5a4430', { flatShading: true }));
-  trunk.position.y = 0.4;
-  g.add(trunk);
-  const leaf = mat('#3f5a35', { flatShading: true });
-  for (let i = 0; i < 3; i++) {
-    const c = mesh(new ConeGeometry(0.55 - i * 0.13, 0.5, 7), leaf);
-    c.position.set((r() - 0.5) * 0.1, 0.75 + i * 0.3, (r() - 0.5) * 0.1);
-    g.add(c);
+  const width = xb - xa + 0.6;
+  const cx = (xa + xb) / 2;
+  const deckDepth = 0.95;
+  const wallZ = zFront - 0.25 - deckDepth;
+  const modW = 4 * KIT;
+  const n = Math.max(3, Math.round(width / modW));
+  const start = cx - (n * modW) / 2 + modW / 2;
+  for (let i = 0; i < n; i++) {
+    const kind = i === Math.floor(n / 2) ? 'wall_door' : i === 0 || i === n - 1 ? 'wall_normal' : 'wall_shoji';
+    const w = prop(assets, kind, KIT);
+    w.position.set(start + i * modW, 0.12, wallZ);
+    g.add(w);
   }
-  return g;
-}
-
-function bush(seed: number) {
-  const g = new Group();
-  const r = rng(seed);
-  const m = mat(r() < 0.5 ? '#4f6a3a' : '#5d7a40', { flatShading: true });
-  for (let i = 0; i < 3; i++) {
-    const s = mesh(new IcosahedronGeometry(0.22 + r() * 0.15, 0), m);
-    s.position.set((r() - 0.5) * 0.4, 0.15 + r() * 0.1, (r() - 0.5) * 0.4);
-    g.add(s);
+  const wallH = 5.17 * KIT;
+  const span = n * modW;
+  const deck = mesh(new BoxGeometry(span + 0.3, 0.16, deckDepth), mat('#ffffff', { map: woodTex(), roughness: 0.7 }));
+  deck.position.set(cx, 0.04, wallZ + 0.15 + deckDepth / 2);
+  g.add(deck);
+  for (let i = 0; i <= n; i++) {
+    const post = prop(assets, 'woodenbeam', KIT);
+    post.scale.y = (wallH + 0.15) / (5.15 * KIT);
+    post.position.set(cx - span / 2 + i * modW, 0.12, wallZ + 0.15 + deckDepth - 0.1);
+    g.add(post);
   }
-  return g;
-}
-
-export function templeGate() {
-  const g = new Group();
-  const wood = mat('#8a5c3c', { roughness: 0.8 });
-  const dark = mat('#4b4f54', { flatShading: true, roughness: 0.7 });
-  for (const x of [-1.1, 1.1]) {
-    const p = mesh(new CylinderGeometry(0.11, 0.12, 2, 10), wood);
-    p.position.set(x, 1, 0);
-    g.add(p);
-    const base = mesh(new CylinderGeometry(0.18, 0.2, 0.12, 8), mat('#9c978c'));
-    base.position.set(x, 0.06, 0);
-    g.add(base);
+  const tile = canvasTex(
+    128,
+    128,
+    (ctx) => {
+      ctx.fillStyle = '#4c5257';
+      ctx.fillRect(0, 0, 128, 128);
+      for (let x = 0; x < 128; x += 16) {
+        ctx.fillStyle = '#5b6166';
+        ctx.fillRect(x + 2, 0, 10, 128);
+        ctx.fillStyle = 'rgba(0,0,0,.25)';
+        ctx.fillRect(x + 12, 0, 2, 128);
+      }
+      for (let y = 0; y < 128; y += 32) {
+        ctx.fillStyle = 'rgba(0,0,0,.2)';
+        ctx.fillRect(0, y, 128, 3);
+      }
+    },
+    [Math.round(span * 2), 2],
+  );
+  const roofM = mat('#ffffff', { map: tile, roughness: 0.6 });
+  const ridgeY = wallH + 0.9;
+  const ridgeZ = wallZ - 0.1;
+  const eaveFront = wallZ + 0.15 + deckDepth + 0.35;
+  const eaveBack = wallZ - 1.2;
+  for (const [edge, eaveY] of [
+    [eaveFront, wallH + 0.05],
+    [eaveBack, wallH + 0.15],
+  ] as const) {
+    const run = edge - ridgeZ;
+    const rise = eaveY - ridgeY;
+    const len = Math.hypot(run, rise);
+    const slab = mesh(new BoxGeometry(span + 0.8, 0.08, len), roofM);
+    slab.position.set(cx, (ridgeY + eaveY) / 2 + 0.12, (ridgeZ + edge) / 2);
+    slab.rotation.x = Math.atan2(-rise, Math.abs(run)) * Math.sign(run);
+    g.add(slab);
   }
-  const beam = mesh(new BoxGeometry(2.7, 0.16, 0.18), wood);
-  beam.position.set(0, 1.85, 0);
-  g.add(beam);
-  const beam2 = mesh(new BoxGeometry(2.4, 0.1, 0.14), wood);
-  beam2.position.set(0, 1.55, 0);
-  g.add(beam2);
-  const plaque = mesh(new BoxGeometry(0.5, 0.26, 0.04), mat('#2d2a26'));
-  plaque.position.set(0, 1.7, 0.1);
-  g.add(plaque);
-  const roof = mesh(new ConeGeometry(2.3, 0.75, 4, 1), dark);
-  roof.rotation.y = Math.PI / 4;
-  roof.scale.set(1, 1, 0.55);
-  roof.position.y = 2.3;
-  g.add(roof);
-  const eave = mesh(new BoxGeometry(3.2, 0.06, 1.6), dark);
-  eave.position.y = 1.96;
-  g.add(eave);
-  const doorM = mat('#9a6d48');
-  for (const s of [-1, 1]) {
-    const d = mesh(new BoxGeometry(1, 1.45, 0.05), doorM);
-    d.geometry.translate(0.5 * -s, 0, 0);
-    d.position.set(1.08 * s, 0.75, 0.02);
-    d.rotation.y = s * 2.5;
-    g.add(d);
-  }
+  const ridge = mesh(new BoxGeometry(span + 0.9, 0.12, 0.16), mat('#3a3f44', { roughness: 0.5 }));
+  ridge.position.set(cx, ridgeY + 0.18, ridgeZ);
+  g.add(ridge);
+  const bench = prop(assets, 'bench', KIT);
+  bench.rotation.y = Math.PI / 2;
+  bench.position.set(cx + span / 2 - 0.6, 0.12, wallZ + 0.6);
+  g.add(bench);
+  const plant = prop(assets, 'plant1', KIT);
+  plant.position.set(cx - span / 2 + 0.45, 0.12, wallZ + 0.55);
+  g.add(plant);
   return g;
 }
 
@@ -265,7 +254,7 @@ export interface GardenScene {
 }
 
 /** Garden board in world units: one cell = 1, sand surface at y = 0, north = -z. */
-export function buildGarden(map: GardenMap, painter: SandPainter, seed: number): GardenScene {
+export function buildGarden(map: GardenMap, painter: SandPainter, seed: number, assets: Assets): GardenScene {
   const root = new Group();
   const hw = map.cols / 2;
   const hh = map.rows / 2;
@@ -329,14 +318,7 @@ export function buildGarden(map: GardenMap, painter: SandPainter, seed: number):
   addBox(frame, 0.16, fd, x1 + frame / 2, 0.06, (z0 + z1) / 2, woodM);
 
   const wallZ = z0 - frame - 0.2;
-  const wall = addBox(fw + 0.4, 0.95, 0.28, (x0 + x1) / 2, 0.36, wallZ, mat('#e3d2b0', { roughness: 0.95 }));
-  wall.castShadow = true;
-  const tileM = mat('#55595d', { flatShading: true, roughness: 0.6 });
-  for (const s of [-1, 1]) {
-    const roof = addBox(fw + 0.6, 0.06, 0.32, (x0 + x1) / 2, 0.9, wallZ + s * 0.12, tileM);
-    roof.rotation.x = s * 0.45;
-  }
-  addBox(fw + 0.6, 0.06, 0.08, (x0 + x1) / 2, 0.97, wallZ, mat('#3f4246'));
+  root.add(buildHouse(assets, x0 - frame, x1 + frame, z0 - frame));
 
   map.rocks.forEach((rk, i) => {
     const c = cellCenter(rk[0], rk[1]);
@@ -359,9 +341,9 @@ export function buildGarden(map: GardenMap, painter: SandPainter, seed: number):
   const lan = lantern();
   lan.position.set(bankX - 0.15, 0.06, -hh + Math.min(2.1, map.rows * 0.42));
   root.add(lan);
-  const tree = deadTree(seed + 5);
-  tree.scale.setScalar(0.72);
-  tree.position.set(bankX - 0.4, 0.06, -hh + 0.3);
+  const tree = prop(assets, 'deadtree_1', 0.28);
+  tree.position.set(bankX - 0.3, 0.06, -hh + 0.45);
+  tree.rotation.y = 0.6;
   root.add(tree);
   if (map.entry) {
     const e = cellCenter(map.entry.cell[0], map.entry.cell[1]);
@@ -390,28 +372,47 @@ export function buildGarden(map: GardenMap, painter: SandPainter, seed: number):
   }
 
   const gatePos = new Vector3((x0 + x1) / 2, -0.12, z1 + frame + 3.2);
-  const gate = templeGate();
+  const gate = prop(assets, 'toriigate', 0.45);
   gate.position.copy(gatePos);
   root.add(gate);
   for (let k = 0; k < 6; k++) {
-    const s = mesh(new CylinderGeometry(0.2, 0.22, 0.05, 9), mat('#bdb7aa'));
-    s.position.set(gatePos.x + (k % 2 ? 0.15 : -0.15), -0.1, z1 + frame + 0.4 + k * 0.5);
-    s.scale.set(1, 1, 0.75);
-    root.add(s);
+    const st = mesh(new CylinderGeometry(0.2, 0.22, 0.05, 9), mat('#bdb7aa'));
+    st.position.set(gatePos.x + (k % 2 ? 0.15 : -0.15), -0.1, z1 + frame + 0.4 + k * 0.5);
+    st.scale.set(1, 1, 0.75);
+    root.add(st);
   }
-  const deco: [Object3D, number, number][] = [
-    [pine(seed + 11), gatePos.x - 2.4, gatePos.z + 0.6],
-    [pine(seed + 12), gatePos.x + 2.6, gatePos.z + 0.2],
-    [bush(seed + 13), gatePos.x - 1.7, gatePos.z + 0.4],
-    [bush(seed + 14), gatePos.x + 1.8, gatePos.z + 0.6],
-    [bush(seed + 15), x1 + 1.2, 0],
-    [bush(seed + 16), x0 - 1.0, z1 - 0.5],
-    [pine(seed + 17), x1 + 1.4, wallZ - 0.8],
-    [pine(seed + 18), x0 - 0.9, wallZ - 0.6],
-  ];
-  for (const [o, x, z] of deco) {
+  const place = (name: ModelName, scale: number, x: number, z: number, rot = r() * Math.PI * 2) => {
+    const o = prop(assets, name, scale);
     o.position.set(x, -0.12, z);
+    o.rotation.y = rot;
     root.add(o);
+  };
+  place('light', 0.4, gatePos.x - 1.6, gatePos.z + 0.3, 0);
+  place('light', 0.4, gatePos.x + 1.6, gatePos.z + 0.3, 0);
+  place('sakuratree', 0.5, gatePos.x - 3.2, gatePos.z - 0.6, 0.3);
+  place('mapletree_1', 0.4, gatePos.x + 3.6, gatePos.z - 0.2);
+  place('mapletree_3', 0.33, x0 - frame - 2.2, wallZ - 1.6);
+  place('mapletree_1', 0.36, x1 + frame + 2.0, wallZ - 1.2);
+  place('deadtree_6', 0.28, x1 + frame + 1.6, z1 - 0.4);
+  for (let k = 0; k < 5; k++) place('bamboo', 0.42 + r() * 0.1, x1 + frame + 0.7 + r() * 0.5, wallZ + 0.6 + k * 0.55);
+  const shrubs: ModelName[] = ['bush', 'bush_large', 'bush_flowers'];
+  for (let k = 0; k < 10; k++) {
+    const side = k % 2 ? 1 : -1;
+    const x = side > 0 ? x1 + frame + 0.5 + r() * 1.6 : x0 - frame - 0.5 - r() * 1.6;
+    place(shrubs[k % 3], 0.38 + r() * 0.15, x, z0 + r() * (z1 - z0 + 3));
+  }
+  for (let k = 0; k < 4; k++) place(shrubs[k % 3], 0.4, gatePos.x + (k < 2 ? -1 : 1) * (2.1 + (k % 2) * 0.6), gatePos.z + 0.9);
+  const tufts: ModelName[] = ['grass_large', 'flower_3_clump', 'flower_4_clump'];
+  for (let k = 0; k < 26; k++) {
+    const x = x0 - frame - 3 + r() * (x1 - x0 + frame * 2 + 6);
+    const z = z1 + frame + 0.2 + r() * 4.5;
+    if (Math.abs(x - gatePos.x) < 0.6) continue;
+    place(tufts[k % 3], 0.35 + r() * 0.2, x, z);
+  }
+  for (let k = 0; k < 6; k++) {
+    const t = prop(assets, tufts[k % 3], 0.28);
+    t.position.set(bankX - 0.5 + r() * 0.9, 0.06, -hh + 1 + r() * (map.rows - 1.4));
+    root.add(t);
   }
   return { root, gatePos, gate, cellCenter, sand, highlight };
 }
@@ -421,6 +422,7 @@ export interface Monk {
   rake: Group;
   head: Object3D;
   update(dt: number, moving: number): void;
+  wave(): void;
 }
 
 const strawTex = () =>
@@ -444,102 +446,7 @@ const strawTex = () =>
     }
   });
 
-/** Low-poly monk; local +z is the face. Origin at the feet. */
-export function buildMonk(): Monk {
-  const root = new Group();
-  const body = new Group();
-  root.add(body);
-  const robeM = mat('#2f3542', { roughness: 0.9 });
-  const skin = mat('#eac39c', { roughness: 0.7 });
-  const robeProfile = [
-    [0, 0.02],
-    [0.2, 0.02],
-    [0.19, 0.2],
-    [0.16, 0.4],
-    [0.15, 0.52],
-    [0.09, 0.58],
-    [0, 0.6],
-  ].map(([x, y]) => new Vector2(x, y));
-  const robe = mesh(new LatheGeometry(robeProfile, 14), robeM);
-  body.add(robe);
-  const sash = mesh(new TorusGeometry(0.16, 0.022, 6, 16), mat('#9a7b3c'));
-  sash.rotation.x = Math.PI / 2 + 0.25;
-  sash.rotation.z = 0.5;
-  sash.position.y = 0.42;
-  body.add(sash);
-  const collar = mesh(new TorusGeometry(0.075, 0.02, 6, 14), mat('#e9e4d8'));
-  collar.rotation.x = Math.PI / 2;
-  collar.position.y = 0.585;
-  body.add(collar);
-
-  const head = new Group();
-  head.position.y = 0.69;
-  body.add(head);
-  head.add(mesh(new SphereGeometry(0.115, 18, 14), skin));
-  const dark = mat('#2a2522');
-  for (const s of [-1, 1]) {
-    const eye = mesh(new TorusGeometry(0.02, 0.0055, 6, 12, Math.PI), dark, false, false);
-    eye.position.set(s * 0.042, 0.005, 0.106);
-    eye.rotation.z = Math.PI;
-    head.add(eye);
-    const brow = mesh(new BoxGeometry(0.035, 0.007, 0.01), dark, false, false);
-    brow.position.set(s * 0.043, 0.04, 0.104);
-    brow.rotation.z = s * -0.15;
-    head.add(brow);
-    const cheek = mesh(new CircleGeometry(0.016, 10), mat('#e79a8a', { transparent: true, opacity: 0.6 }), false, false);
-    cheek.position.set(s * 0.065, -0.025, 0.098);
-    cheek.rotation.y = s * 0.55;
-    head.add(cheek);
-  }
-  const mouth = mesh(new TorusGeometry(0.014, 0.004, 6, 10, Math.PI), mat('#8a4b3c'), false, false);
-  mouth.position.set(0, -0.045, 0.108);
-  mouth.rotation.z = Math.PI;
-  head.add(mouth);
-  const nose = mesh(new SphereGeometry(0.012, 8, 6), skin, false, false);
-  nose.position.set(0, -0.012, 0.114);
-  head.add(nose);
-  for (const s of [-1, 1]) {
-    const ear = mesh(new SphereGeometry(0.025, 8, 6), skin, false, false);
-    ear.scale.set(0.5, 1, 0.8);
-    ear.position.set(s * 0.113, 0, 0);
-    head.add(ear);
-  }
-
-  const hatM = mat('#ffffff', { map: strawTex(), roughness: 0.95 });
-  const hat = mesh(new ConeGeometry(0.36, 0.17, 28, 1), hatM);
-  hat.position.y = 0.15;
-  head.add(hat);
-  const hatTop = mesh(new SphereGeometry(0.03, 8, 6), hatM);
-  hatTop.position.y = 0.24;
-  head.add(hatTop);
-  const strap = mesh(new TorusGeometry(0.105, 0.004, 4, 20), mat('#5a3d22'), false, false);
-  strap.scale.set(1.02, 1.2, 1);
-  strap.position.set(0, -0.012, 0.012);
-  head.add(strap);
-
-  const hands: Object3D[] = [];
-  for (const s of [-1, 1]) {
-    const arm = new Group();
-    arm.position.set(s * 0.13, 0.52, 0);
-    const sleeve = mesh(new CylinderGeometry(0.045, 0.06, 0.26, 8), robeM);
-    sleeve.position.y = -0.13;
-    arm.add(sleeve);
-    const hand = mesh(new SphereGeometry(0.035, 8, 6), skin);
-    hand.position.y = -0.27;
-    arm.add(hand);
-    arm.rotation.x = -0.95;
-    arm.rotation.z = s * 0.25;
-    body.add(arm);
-    hands.push(hand);
-  }
-  const feet: Mesh[] = [];
-  for (const s of [-1, 1]) {
-    const f = mesh(new BoxGeometry(0.07, 0.035, 0.13), mat('#b48a5a'));
-    f.position.set(s * 0.07, 0.018, 0.02);
-    root.add(f);
-    feet.push(f);
-  }
-
+function buildRake() {
   const rake = new Group();
   const rakeWood = mat('#a77a49', { roughness: 0.8 });
   const bar = mesh(new BoxGeometry(0.92, 0.05, 0.06), rakeWood);
@@ -552,32 +459,97 @@ export function buildMonk(): Monk {
   }
   const handle = mesh(new CylinderGeometry(0.018, 0.018, 1, 6), rakeWood);
   rake.add(handle);
+  return { rake, handle };
+}
 
-  let phase = 0;
+const PANDA_HEIGHT = 0.82;
+
+/** The Sushi Kit panda in a straw kasa, raking backwards; local +z is the face. */
+export function buildPanda(gltf: GLTF): Monk {
+  const root = new Group();
+  const model = cloneSkinned(gltf.scene);
+  model.traverse((o) => {
+    if ((o as Mesh).isMesh) {
+      o.castShadow = true;
+      o.receiveShadow = true;
+      (o as Mesh).frustumCulled = false;
+    }
+  });
+  const mixer = new AnimationMixer(model);
+  const clip = (name: string) => mixer.clipAction(AnimationClip.findByName(gltf.animations, name)!);
+  const idle = clip('Idle_Holding');
+  const walk = clip('Walk_Holding');
+  const waveA = clip('Wave');
+  waveA.setLoop(LoopOnce, 1);
+  waveA.clampWhenFinished = true;
+  for (const a of [idle, walk]) a.play();
+  walk.setEffectiveWeight(0);
+  walk.timeScale = -1.15;
+  mixer.update(0);
+  model.updateMatrixWorld(true);
+  const box = new Box3().setFromObject(model, true);
+  const k = PANDA_HEIGHT / (box.max.y - box.min.y);
+  model.scale.setScalar(k);
+  model.position.y = -box.min.y * k;
+  root.add(model);
+  root.updateMatrixWorld(true);
+
+  const headBone = model.getObjectByName('Head')!;
+  const handL = model.getObjectByName('Middle1L')!;
+  const handR = model.getObjectByName('Middle1R')!;
+  const top = new Box3().setFromObject(model, true).max.y;
+  const hatM = mat('#ffffff', { map: strawTex(), roughness: 0.95 });
+  const hat = new Group();
+  const cone = mesh(new ConeGeometry(0.42, 0.17, 28, 1), hatM);
+  hat.add(cone);
+  const knob = mesh(new SphereGeometry(0.025, 8, 6), hatM);
+  knob.position.y = 0.09;
+  hat.add(knob);
+  const hw = headBone.getWorldPosition(new Vector3());
+  hat.position.set(hw.x, top + 0.02, hw.z);
+  root.add(hat);
+  headBone.attach(hat);
+
+  const { rake, handle } = buildRake();
+  let waving = false;
+  mixer.addEventListener('finished', (e) => {
+    if (e.action === waveA) {
+      waving = false;
+      waveA.fadeOut(0.3);
+      idle.reset().fadeIn(0.3).play();
+    }
+  });
   const tmp = new Vector3();
   const tmp2 = new Vector3();
   const up = new Vector3(0, 1, 0);
+  let walkW = 0;
   return {
     root,
     rake,
-    head,
+    head: headBone,
+    wave() {
+      waving = true;
+      walk.fadeOut(0.2);
+      idle.fadeOut(0.2);
+      waveA.reset().fadeIn(0.2).play();
+    },
     update(dt, moving) {
-      phase += dt * (moving > 0 ? 11 : 0);
-      const sw = Math.sin(phase) * Math.min(1, moving);
-      feet[0].position.z = 0.02 + sw * 0.06;
-      feet[1].position.z = 0.02 - sw * 0.06;
-      body.position.y = Math.abs(Math.cos(phase)) * 0.012 * Math.min(1, moving);
-      body.rotation.z = sw * 0.03;
+      if (!waving) {
+        walkW += ((moving > 0 ? 1 : 0) - walkW) * Math.min(1, dt * 8);
+        walk.setEffectiveWeight(walkW);
+        idle.setEffectiveWeight(1 - walkW);
+        walk.timeScale = -1.15 * Math.max(0.6, Math.min(1.4, moving));
+      }
+      mixer.update(dt);
       root.updateMatrixWorld(true);
       rake.updateMatrixWorld(true);
-      hands[0].getWorldPosition(tmp);
-      hands[1].getWorldPosition(tmp2);
+      handL.getWorldPosition(tmp);
+      handR.getWorldPosition(tmp2);
       tmp.add(tmp2).multiplyScalar(0.5);
       rake.worldToLocal(tmp);
       const base = new Vector3(0, 0.08, 0);
       const dir = tmp.clone().sub(base);
-      const len = dir.length();
-      handle.scale.y = len;
+      handle.scale.y = dir.length();
       handle.position.copy(base).addScaledVector(dir, 0.5);
       handle.quaternion.setFromUnitVectors(up, dir.normalize());
     },
