@@ -36,7 +36,7 @@ import {
 } from './engine';
 import { LEVELS, type Level } from './levels';
 import { loadAssets, type Assets } from './assets';
-import { applyStatic, setLocale, t, type Locale } from './i18n';
+import { applyStatic, levelLabel, setLocale, t, type Locale } from './i18n';
 import { buildGarden, buildPanda, type GardenScene, type Monk } from './models';
 import { SandPainter } from './sand';
 
@@ -135,7 +135,7 @@ function startGame(mode: Mode, opts: { level?: Level; size?: SizeKey; seed?: num
   let solution: Cell[] | null = null;
   if (mode === 'puzzle') {
     map = opts.level!.map;
-    solution = solve(map);
+    solution = opts.level!.solution;
   } else if (mode === 'random') {
     const g = randomGarden(opts.size!, seed);
     map = g.map;
@@ -822,16 +822,14 @@ function showResult(clean: number, match: number) {
   const lines = [`${t('res.clean')}　<b>${Math.floor(clean * 100)}%</b>`];
   if (g.mode === 'puzzle') lines.push(`${t('res.match')}　<b>${Math.floor(match * 100)}%</b>`);
   $('res-lines').innerHTML = lines.join('<br>');
-  const idx = g.level ? LEVELS.indexOf(g.level) : -1;
   const next = $('res-next');
-  next.classList.toggle('hidden', g.mode === 'puzzle' && idx === LEVELS.length - 1);
   next.textContent = t(`res.next.${g.mode}`);
   $('result').classList.remove('hidden');
 }
 
 $('res-next').onclick = () => {
   const g = game!;
-  if (g.mode === 'puzzle') startGame('puzzle', { level: LEVELS[LEVELS.indexOf(g.level!) + 1] });
+  if (g.mode === 'puzzle') startGame('puzzle', { level: LEVELS[(LEVELS.indexOf(g.level!) + 1) % LEVELS.length] });
   else if (g.mode === 'random') startGame('random', { size: g.size });
   else startGame('free', {});
 };
@@ -847,13 +845,13 @@ function showModes() {
   $('menu-back').classList.add('hidden');
 }
 
-function showSub(items: { label: string; cleared?: boolean; go: () => void }[]) {
+function showSub(items: { label: string; go: () => void }[]) {
   const sub = $('menu-sub');
   sub.innerHTML = '';
   for (const it of items) {
     const b = document.createElement('button');
     b.className = 'plaque';
-    b.innerHTML = `<span>${it.label}</span>` + (it.cleared ? `<i class="seal">${t('seal')}</i>` : '');
+    b.innerHTML = `<span>${it.label}</span>`;
     b.onclick = it.go;
     sub.appendChild(b);
   }
@@ -867,7 +865,7 @@ document.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((b) => {
     const mode = b.dataset.mode as Mode;
     if (mode === 'puzzle') {
       const done = loadCleared();
-      showSub(LEVELS.map((lv) => ({ label: levelName(lv), cleared: !!done[lv.id], go: () => startGame('puzzle', { level: lv }) })));
+      startGame('puzzle', { level: LEVELS.find((lv) => !done[lv.id]) ?? LEVELS[0] });
     } else if (mode === 'random') {
       showSub(
         (['small', 'medium', 'large'] as SizeKey[]).map((size) => ({
@@ -953,7 +951,7 @@ function frame() {
   step(Math.min(0.05, clock.getDelta()));
   requestAnimationFrame(frame);
 }
-const levelName = (lv: Level) => t(`level.${lv.id}` as Parameters<typeof t>[0]);
+const levelName = (lv: Level) => levelLabel(LEVELS.indexOf(lv) + 1);
 
 document.querySelectorAll<HTMLButtonElement>('[data-lang]').forEach((b) => {
   b.onclick = () => {

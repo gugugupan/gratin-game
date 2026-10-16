@@ -15,10 +15,6 @@ const zh = {
   'size.small': '小庭',
   'size.medium': '中庭',
   'size.large': '大庭',
-  'level.g1': '其一',
-  'level.g2': '其二',
-  'level.g3': '其三',
-  seal: '成',
   'hud.steps': '耙程',
   'hud.target': '按住在庭院里查看目标纹样',
   'hud.clean': '整齐',
@@ -73,10 +69,6 @@ const ja: Record<Key, string> = {
   'size.small': '小庭',
   'size.medium': '中庭',
   'size.large': '大庭',
-  'level.g1': '其の一',
-  'level.g2': '其の二',
-  'level.g3': '其の三',
-  seal: '済',
   'hud.steps': '手数',
   'hud.target': '長押しで庭にお手本を映します',
   'hud.clean': '整い',
@@ -162,3 +154,14 @@ export function applyStatic() {
   document.querySelectorAll<HTMLElement>('[data-i18n-title]').forEach((el) => (el.title = t(el.dataset.i18nTitle as Key)));
   document.querySelectorAll<HTMLElement>('[data-lang]').forEach((el) => el.classList.toggle('on', el.dataset.lang === locale));
 }
+
+const DIGITS = '〇一二三四五六七八九';
+
+function kanjiNumber(n: number) {
+  if (n < 10) return DIGITS[n];
+  const tens = Math.floor(n / 10);
+  return (tens > 1 ? DIGITS[tens] : '') + '十' + (n % 10 ? DIGITS[n % 10] : '');
+}
+
+/** 其三 / 其の三 */
+export const levelLabel = (n: number) => (locale === 'ja' ? `其の${kanjiNumber(n)}` : `其${kanjiNumber(n)}`);

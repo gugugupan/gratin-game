@@ -166,24 +166,6 @@ button:active {
   margin-right: -10px;
 }
 
-.plaque .seal {
-  position: absolute;
-  right: 14px;
-  bottom: 12px;
-  width: 26px;
-  height: 26px;
-  line-height: 24px;
-  font-style: normal;
-  font-size: 15px;
-  letter-spacing: 0;
-  color: #fff4e6;
-  background: var(--shu);
-  border: 1px solid #8a2a18;
-  border-radius: 4px;
-  transform: rotate(-8deg);
-  text-shadow: none;
-}
-
 .back {
   pointer-events: auto;
   margin-top: -6px;
