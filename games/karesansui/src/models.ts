@@ -9,6 +9,7 @@ import {
   IcosahedronGeometry,
   LatheGeometry,
   Mesh,
+  MeshBasicMaterial,
   MeshStandardMaterial,
   Object3D,
   PlaneGeometry,
@@ -256,8 +257,11 @@ export function templeGate() {
 export interface GardenScene {
   root: Group;
   gatePos: Vector3;
+  gate: Group;
   cellCenter: (c: number, r: number) => Vector3;
   sand: Mesh;
+  /** Overlay that lights up unraked sand; its alpha map is set from the painter's mask. */
+  highlight: Mesh<PlaneGeometry, MeshBasicMaterial>;
 }
 
 /** Garden board in world units: one cell = 1, sand surface at y = 0, north = -z. */
@@ -280,6 +284,14 @@ export function buildGarden(map: GardenMap, painter: SandPainter, seed: number):
   const sand = mesh(new PlaneGeometry(map.cols, map.rows), sandM, false, true);
   sand.rotation.x = -Math.PI / 2;
   root.add(sand);
+  const highlight = new Mesh(
+    new PlaneGeometry(map.cols, map.rows),
+    new MeshBasicMaterial({ color: '#ff6a1a', transparent: true, opacity: 0, depthWrite: false, toneMapped: false }),
+  );
+  highlight.rotation.x = -Math.PI / 2;
+  highlight.position.y = 0.004;
+  highlight.visible = false;
+  root.add(highlight);
 
   const bank = 1.4;
   const curb = 0.1;
@@ -401,7 +413,7 @@ export function buildGarden(map: GardenMap, painter: SandPainter, seed: number):
     o.position.set(x, -0.12, z);
     root.add(o);
   }
-  return { root, gatePos, cellCenter, sand };
+  return { root, gatePos, gate, cellCenter, sand, highlight };
 }
 
 export interface Monk {

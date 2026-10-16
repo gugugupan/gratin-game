@@ -195,6 +195,9 @@ let drawnKeys: string[] = [];
 let sweep = 0;
 let paintDirty = true;
 let finishTimer = -1;
+let lastClean = 0;
+let maskDirty = true;
+let pulse = 0;
 
 const RAKE_LEAD = 0.55;
 const SWEEP_SPEED = 3;
@@ -281,6 +284,8 @@ function resetVisual() {
   paintDirty = true;
   hold = null;
   finishTimer = -1;
+  maskDirty = true;
+  game!.garden.highlight.material.opacity = 0;
   monk.rake.visible = true;
   updateVisual(0, true);
 }
@@ -351,7 +356,21 @@ function updateVisual(dt: number, snap = false) {
   walkSpeed += (v - walkSpeed) * Math.min(1, dt * 8);
   monk.update(dt, walkSpeed > 0.15 ? Math.min(1.2, walkSpeed) : 0);
 
-  if (phase === 'play' && g.done && drawnKeys.length === passes.length) {
+  const caughtUp = drawnKeys.length === passes.length;
+  const showMessy = phase === 'play' && caughtUp && g.mode !== 'free' && lastClean < 1 && (g.done || g.path.length >= g.limit);
+  const hl = g.garden.highlight;
+  if (showMessy && maskDirty) {
+    g.painter.paintMask(passes);
+    hl.material.alphaMap = g.painter.maskTex;
+    hl.material.needsUpdate = true;
+    maskDirty = false;
+  }
+  pulse += dt;
+  const want = showMessy ? 0.5 + 0.25 * Math.sin(pulse * 4.5) : 0;
+  hl.material.opacity += (want - hl.material.opacity) * Math.min(1, dt * 10);
+  hl.visible = hl.material.opacity > 0.01;
+
+  if (phase === 'play' && g.done && caughtUp) {
     if (finishTimer < 0) finishTimer = 0;
     finishTimer += dt;
     if (finishTimer > 0.35) {
@@ -367,14 +386,7 @@ function setupHud() {
   const g = game!;
   $('hud-name').textContent =
     g.mode === 'puzzle' ? g.level!.name : g.mode === 'random' ? `随庭　${{ small: '小庭', medium: '中庭', large: '大庭' }[g.size!]}` : '自由　画一幅';
-  $('hud-hint').textContent =
-    g.mode === 'puzzle'
-      ? g.level!.hint
-      : g.mode === 'random'
-        ? '方向键、点击相邻格子或拖动来耙砂；耙到整齐度 100% 后从出口离开。'
-        : '点任意砂格开始，用方向键、点击或拖动作画，画好后点「完成」。';
   $('hud-match-wrap').classList.toggle('hidden', g.mode !== 'puzzle');
-  $('btn-peek').classList.toggle('hidden', g.mode !== 'puzzle');
   $('btn-finish').classList.toggle('hidden', g.mode !== 'free');
   $('target-card').classList.toggle('hidden', g.mode !== 'puzzle');
   if (g.mode === 'puzzle') drawTargetCard();
@@ -387,7 +399,7 @@ function drawTargetCard() {
   const CW = 150;
   const tw = CW - 22;
   const th = (tw * g.map.rows) / g.map.cols;
-  const CH = Math.round(th + 86);
+  const CH = Math.round(th + 100);
   card.width = CW * dpr;
   card.height = CH * dpr;
   card.style.height = `${CH}px`;
@@ -427,7 +439,9 @@ function drawTargetCard() {
   c.strokeRect(11, 46, tw, th);
   c.fillStyle = '#6d5c49';
   c.font = '11px sans-serif';
-  c.fillText(`${g.par} 步可成 · 上限 ${g.limit}`, CW / 2, 46 + th + 18);
+  c.fillText(`${g.par} 步可成 · 上限 ${g.limit}`, CW / 2, 46 + th + 17);
+  c.fillStyle = '#9a8670';
+  c.fillText('按住卡片在庭院中对照', CW / 2, 46 + th + 33);
 }
 
 let peeking = false;
@@ -435,14 +449,16 @@ function refresh() {
   const g = game!;
   const passes = passesOf(g.map, g.path, g.done);
   const s = score(sampleCodes(g.map, passes), g.target);
+  lastClean = s.clean;
+  maskDirty = true;
   $('hud-steps').textContent = g.limit === Infinity ? String(g.path.length) : `${g.path.length} / ${g.limit}`;
   $('hud-clean').textContent = `${Math.floor(s.clean * 100)}%`;
   $('hud-match').textContent = `${Math.floor(s.match * 100)}%`;
   let msg = '';
   if (g.done) {
     if (g.mode === 'puzzle' && s.match < 1) msg = '纹样与目标不同，撤销后再试。';
-    if (g.mode === 'random' && s.clean < 1) msg = '还留着乱砂，撤销后再试。';
-  } else if (g.path.length >= g.limit) msg = '耙程已用尽。';
+    if (g.mode === 'random' && s.clean < 1) msg = '亮起的地方还是乱砂，撤销后再试。';
+  } else if (g.path.length >= g.limit) msg = s.clean < 1 ? '耙程已用尽，亮起的地方还是乱砂。' : '耙程已用尽。';
   $('hud-msg').textContent = msg;
   const sandM = g.garden.sand.material as MeshStandardMaterial;
   const src = peeking && g.targetPainter ? g.targetPainter : g.painter;
@@ -611,7 +627,8 @@ $('btn-reset').onclick = () => {
   g.done = false;
   refresh();
 };
-const peek = $('btn-peek');
+const peek = $('target-card');
+peek.addEventListener('contextmenu', (e) => e.preventDefault());
 peek.addEventListener('pointerdown', () => {
   peeking = true;
   game && refresh();
@@ -857,7 +874,14 @@ function step(dt: number) {
     camera.lookAt(camLook);
     if (shotT >= 1) nextShot();
   }
-  if (game) updateVisual(dt);
+  if (game) {
+    updateVisual(dt);
+    game.garden.gate.visible = phase !== 'play';
+  }
+  const d = camera.position.length();
+  const fog = scene.fog as Fog;
+  fog.near = d + 6;
+  fog.far = d * 1.6 + 24;
   renderer.render(scene, camera);
 }
 function frame() {

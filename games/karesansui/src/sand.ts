@@ -309,6 +309,49 @@ export class SandPainter {
     this.overlayReady = true;
   }
 
+  readonly mask = document.createElement('canvas');
+  maskTex: CanvasTexture | null = null;
+
+  /** Opaque wherever sand was never raked by `passes` (rocks and moss corners excluded). */
+  paintMask(passes: Pass[]) {
+    const scale = 0.5;
+    if (!this.maskTex) {
+      this.mask.width = this.color.width * scale;
+      this.mask.height = this.color.height * scale;
+      this.maskTex = new CanvasTexture(this.mask);
+    }
+    const ctx = this.mask.getContext('2d')!;
+    const S = PX;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, this.mask.width, this.mask.height);
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
+    ctx.fillStyle = '#ffffff';
+    for (let r = 0; r < this.map.rows; r++)
+      for (let c = 0; c < this.map.cols; c++) if (!isRock(this.map, [c, r])) ctx.fillRect(c * S, r * S, S, S);
+    ctx.globalCompositeOperation = 'destination-out';
+    for (const p of passes) {
+      ctx.save();
+      clipPass(ctx, p, p.c * S, p.r * S);
+      ctx.fillRect(p.c * S - 1, p.r * S - 1, S + 2, S + 2);
+      ctx.restore();
+    }
+    roundPivots(this.map).forEach((pv, idx) => {
+      if (pv < 0) return;
+      const x0 = (idx % this.map.cols) * S;
+      const y0 = Math.floor(idx / this.map.cols) * S;
+      const [pu, pw] = PIVOTS[pv];
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(x0, y0, S, S);
+      ctx.arc(x0 + pu * S, y0 + pw * S, S - 1, 0, Math.PI * 2, true);
+      ctx.clip('evenodd');
+      ctx.fillRect(x0, y0, S, S);
+      ctx.restore();
+    });
+    ctx.globalCompositeOperation = 'source-over';
+    this.maskTex.needsUpdate = true;
+  }
+
   private paintRoundCorners(cc: Ctx, bc: Ctx) {
     const S = PX;
     const round = roundPivots(this.map);
@@ -356,6 +399,7 @@ export class SandPainter {
   }
 
   dispose() {
+    this.maskTex?.dispose();
     this.colorTex.dispose();
     this.bumpTex.dispose();
   }
