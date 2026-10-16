@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>砂纹 Samon</title>
+    <meta name="description" content="拖着耙子一笔耙完枯山水。转弯只扫过一个扇形，没扫到的角落会一直乱着。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="砂纹 Samon" />
+    <meta property="og:description" content="拖着耙子一笔耙完枯山水。转弯只扫过一个扇形，没扫到的角落会一直乱着。" />
+    <meta property="og:url" content="%VITE_SITE_URL%karesansui/" />
+    <meta property="og:image" content="%VITE_SITE_URL%covers/karesansui.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="../favicon.ico" />
+    <script>
+      var gaId = "%VITE_GA_ID%";
+      if (gaId && location.href.indexOf("%VITE_SITE_URL%") === 0) {
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function () { dataLayer.push(arguments); };
+        gtag("js", new Date());
+        gtag("config", gaId);
+        var ga = document.createElement("script");
+        ga.async = true;
+        ga.src = "https://www.googletagmanager.com/gtag/js?id=" + gaId;
+        document.head.appendChild(ga);
+      }
+    </script>
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <div id="stage"></div>
+
+    <section id="menu" class="overlay">
+      <div class="menu-card">
+        <h1>砂纹</h1>
+        <p class="tagline">一笔耙成的枯山水</p>
+        <div class="modes">
+          <div class="mode">
+            <h2>庭题</h2>
+            <p>照着目标纹样，耙出一模一样的庭院。</p>
+            <div id="level-list" class="chips"></div>
+          </div>
+          <div class="mode">
+            <h2>随庭</h2>
+            <p>随机生成的庭院，一笔耙到不留一点乱砂。</p>
+            <div class="chips">
+              <button data-size="small">小庭</button>
+              <button data-size="medium">中庭</button>
+              <button data-size="large">大庭</button>
+            </div>
+          </div>
+          <div class="mode">
+            <h2>自由</h2>
+            <p>没有目标也没有限制，随心画一幅。</p>
+            <div class="chips"><button id="free-start">开始作画</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="hud" class="hidden">
+      <div class="hud-top">
+        <div class="panel info">
+          <div id="hud-name" class="name"></div>
+          <div id="hud-hint" class="hint"></div>
+          <div class="stats">
+            <span>耙程 <b id="hud-steps">0</b></span>
+            <span>整齐度 <b id="hud-clean">0%</b></span>
+            <span id="hud-match-wrap">吻合度 <b id="hud-match">0%</b></span>
+          </div>
+          <div id="hud-msg" class="msg"></div>
+        </div>
+        <canvas id="target-card" class="hidden"></canvas>
+      </div>
+      <div class="hud-bottom panel">
+        <button id="btn-undo">撤销</button>
+        <button id="btn-reset">重来</button>
+        <button id="btn-peek">按住看目标</button>
+        <button id="btn-finish">完成</button>
+        <button id="btn-menu">菜单</button>
+      </div>
+    </section>
+
+    <section id="result" class="hidden">
+      <div class="result-card">
+        <div id="res-title" class="res-title">庭成</div>
+        <div id="res-stars" class="stars"></div>
+        <div id="res-lines" class="res-lines"></div>
+        <div class="chips">
+          <button id="res-next">下一关</button>
+          <button id="res-again">再来一次</button>
+          <button id="res-menu">菜单</button>
+        </div>
+      </div>
+    </section>
+
+    <div id="skip" class="hidden">点击跳过</div>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>

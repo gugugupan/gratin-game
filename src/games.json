@@ -131,5 +131,29 @@
     ],
     "status": "live",
     "added": "2026-10-08"
+  },
+  {
+    "id": "karesansui",
+    "title": {
+      "ja": "砂紋",
+      "zh": "砂纹",
+      "en": "Samon"
+    },
+    "tagline": {
+      "ja": "熊手を引いて一筆で枯山水を整える。曲がった跡は扇形に重なり、残した隅は荒れたまま。",
+      "zh": "拖着耙子一笔耙完枯山水。转弯只扫过一个扇形，没扫到的角落会一直乱着。",
+      "en": "Rake a zen garden in a single stroke. Turns sweep only a quarter circle, and any corner you miss stays messy."
+    },
+    "url": "https://gratin-game.com/karesansui/",
+    "cover": "covers/karesansui.jpg",
+    "input": [
+      "mouse",
+      "touch"
+    ],
+    "languages": [
+      "zh"
+    ],
+    "status": "live",
+    "added": "2026-10-16"
   }
 ]
