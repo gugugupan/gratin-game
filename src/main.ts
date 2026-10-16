@@ -8,7 +8,7 @@ import { FEEDBACK_EMAIL, PRIVACY } from "./privacy";
 if (location.hash === "#privacy") location.replace("./privacy/");
 
 const state: { locale: Locale } = { locale: loadLocale() };
-const games = sortGames(GAMES);
+const games = sortGames(GAMES.filter((g) => !g.hidden));
 
 const canHoverPreview = () =>
   matchMedia("(hover: hover) and (pointer: fine)").matches && !matchMedia("(prefers-reduced-motion: reduce)").matches;

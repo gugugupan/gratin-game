@@ -154,6 +154,7 @@
       "zh"
     ],
     "status": "live",
-    "added": "2026-10-16"
+    "added": "2026-10-16",
+    "hidden": true
   }
 ]
