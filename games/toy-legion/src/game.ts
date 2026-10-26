@@ -2,6 +2,7 @@ import {
   MAPS, TROOPS, TROOP_IDS, apply, canDraw, chooseAction, hqOf, legalActions, legalTargets, newGame, other,
   type Action, type Difficulty, type GameState, type MapDef, type MapInfo, type Side, type Tile, type TroopId,
 } from './engine';
+import lobbyArt from './assets/lobby.webp';
 import { themeFor } from './render/board';
 import { Stage } from './render/scene';
 import { BoardView } from './render/view';
@@ -101,6 +102,7 @@ export class Game {
     }));
     this.view = new BoardView(this.stage, this.state);
     this.bind();
+    for (const id of ['lobby-art-blur', 'lobby-art-main']) $<HTMLImageElement>(id).src = lobbyArt;
     this.buildUnitList();
     this.enterLobby();
     new ResizeObserver(() => this.stage.refit()).observe($('hud-bot'));
@@ -121,7 +123,7 @@ export class Game {
     $('lobby-rules').addEventListener('click', () => { $('rules').hidden = false; });
     $('lobby-units').addEventListener('click', () => { $('units').hidden = false; });
     $('lobby-settings').addEventListener('click', () => { $('settings').hidden = false; });
-    $('setup-back').addEventListener('click', () => { $('setup').hidden = true; });
+    $('setup-back').addEventListener('click', () => { $('setup').hidden = true; $('lobby-art').classList.remove('peek'); });
     $('setup-go').addEventListener('click', () => this.startGame());
     for (const el of document.querySelectorAll<HTMLElement>('[data-close]')) {
       el.addEventListener('click', () => { el.closest<HTMLElement>('.sheet')!.hidden = true; });
@@ -156,6 +158,7 @@ export class Game {
     this.scene = 'lobby';
     $('app').dataset.scene = 'lobby';
     for (const id of ['over', 'pass', 'setup']) $(id).hidden = true;
+    $('lobby-art').classList.remove('peek');
     this.clearSelection();
     this.state = demoState(this.mapInfo.map);
     this.view.sync(this.state);
@@ -166,6 +169,7 @@ export class Game {
   private openSetup() {
     this.renderSetup();
     $('setup').hidden = false;
+    $('lobby-art').classList.add('peek');
   }
 
   private renderSetup() {

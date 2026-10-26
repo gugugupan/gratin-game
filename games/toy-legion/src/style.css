@@ -129,12 +129,21 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 }
 
 #app[data-scene="lobby"] .hud-top, #app[data-scene="lobby"] .hud-bot, #app[data-scene="lobby"] .banner { display: none; }
-#app[data-scene="game"] .lobby { display: none; }
+#app[data-scene="game"] .lobby, #app[data-scene="game"] .lobby-art { display: none; }
+
+.lobby-art { position: absolute; inset: 0; z-index: 4; overflow: hidden; background: #8fd0f0; transition: opacity .35s ease; }
+.lobby-art.peek { opacity: 0; pointer-events: none; }
+.lobby-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 38%; }
+.lobby-art .blur { filter: blur(24px) saturate(1.15); transform: scale(1.15); }
+.lobby-art .main { animation: drift 20s ease-in-out infinite alternate; }
+@media (min-aspect-ratio: 4/5) { .lobby-art .main { object-fit: contain; } }
+@keyframes drift { from { transform: scale(1.03) translate(0, 0); } to { transform: scale(1.09) translate(-1.2%, -1%); } }
+@media (prefers-reduced-motion: reduce) { .lobby-art .main { animation: none; } }
 
 .lobby {
   position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; justify-content: space-between; align-items: center;
   padding: calc(40px + env(safe-area-inset-top, 0px)) 20px calc(28px + env(safe-area-inset-bottom, 0px));
-  background: linear-gradient(rgba(20,30,15,.35), transparent 30%, transparent 62%, rgba(20,30,15,.45));
+  background: linear-gradient(rgba(20,40,80,.28), transparent 26%, transparent 70%, rgba(20,30,15,.25));
 }
 .logo { text-align: center; }
 .logo h1 {
@@ -143,7 +152,12 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   text-shadow: 0 5px 0 #6b3a12, 0 9px 14px rgba(0,0,0,.35);
 }
 .logo p { margin: 12px 0 0; font-size: 16px; font-weight: 800; color: #fff; text-shadow: 0 2px 0 rgba(0,0,0,.4); }
-.lobby-actions { width: min(340px, 100%); display: grid; gap: 12px; }
+.lobby-actions {
+  width: min(360px, 100%); display: grid; gap: 12px; padding: 16px; border-radius: 26px;
+  background: rgba(255, 255, 255, .24); border: 1px solid rgba(255, 255, 255, .5);
+  -webkit-backdrop-filter: blur(16px) saturate(1.25); backdrop-filter: blur(16px) saturate(1.25);
+  box-shadow: 0 10px 30px rgba(20, 30, 15, .25);
+}
 .lobby-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .btn-pill {
   padding: 11px 0; border-radius: 14px; font-size: 17px; font-weight: 800; color: #fff;
