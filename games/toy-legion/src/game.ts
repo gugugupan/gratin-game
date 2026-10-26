@@ -226,6 +226,7 @@ export class Game {
     $('opp-sq').style.background = `var(--${opp})`;
     $('opp-name').textContent = this.sideName(opp);
     $('opp-backs').innerHTML = '<i></i>'.repeat(s.hand[opp].length);
+    $('opp-count').textContent = `手牌 ${s.hand[opp].length}`;
     $('opp-medals').textContent = String(s.medals[opp]);
     $('opp-goal').textContent = ` / ${s.map.objective}`;
     $('deck').textContent = `牌库 ${s.reserve[me].length}`;

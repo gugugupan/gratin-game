@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import type { MapDef, Region, Side } from '../engine';
 import { numberGeometry } from './figures';
+import { addScenery } from './scenery';
 import { B, M, TEAM, add, collectTicks, grp, paint, pyramid, setBuildSide, teamMat, tick, type Tick } from './kit';
 
 export const U = 1.6;
@@ -18,12 +19,23 @@ export interface Theme {
   stones: [number, number];
   river?: number;
   trees: number;
+  outside: number;
+  paving?: boolean;
 }
 const THEMES: Record<string, Theme> = {
-  'castle-field': { grass: '#78c257', sky: 0xa9d68f, dirt: ['#94703f', '#d3ad72'], stones: [0xe3cfa2, 0xd2ba88], trees: 1 },
-  'river-banks': { grass: '#80c85c', sky: 0xa5d8b4, dirt: ['#94703f', '#d3ad72'], stones: [0xe3cfa2, 0xd2ba88], river: 5, trees: 1.1 },
-  'block-town': { grass: '#8ccd68', sky: 0xb7daa2, dirt: ['#8c877d', '#c9c3b6'], stones: [0xd9d4c8, 0xbdb7aa], trees: .55 },
+  'castle-field': { grass: '#78c257', sky: 0xa9d68f, dirt: ['#94703f', '#d3ad72'], stones: [0xe3cfa2, 0xd2ba88], trees: 1, outside: .6 },
+  'river-banks': { grass: '#93b955', sky: 0x9fcbe0, dirt: ['#8a6a3c', '#c9a46a'], stones: [0xd8c59c, 0xc2ab80], river: 5, trees: .9, outside: .5 },
+  'block-town': { grass: '#cfc8b8', sky: 0xb9c9d6, dirt: ['#7d7a74', '#a9a59c'], stones: [0xe6e1d6, 0xcfc9bc], trees: .45, outside: 0, paving: true },
 };
+function paveTiles(x: CanvasRenderingContext2D, W: number, H: number, size: number) {
+  for (let ty = 0; ty < H; ty += size) for (let tx = 0; tx < W; tx += size) {
+    x.fillStyle = rand() > .5 ? 'rgba(255,255,255,.07)' : 'rgba(60,50,30,.06)';
+    x.fillRect(tx + 2, ty + 2, size - 4, size - 4);
+  }
+  x.strokeStyle = 'rgba(90,82,68,.35)'; x.lineWidth = 2;
+  for (let ty = 0; ty <= H; ty += size) { x.beginPath(); x.moveTo(0, ty); x.lineTo(W, ty); x.stroke(); }
+  for (let tx = 0; tx <= W; tx += size) { x.beginPath(); x.moveTo(tx, 0); x.lineTo(tx, H); x.stroke(); }
+}
 export const themeFor = (mapId: string): Theme => THEMES[mapId] ?? THEMES['castle-field'];
 const RIVER_HALF = .42;
 
@@ -59,7 +71,8 @@ function drawBoard(map: MapDef, theme: Theme): HTMLCanvasElement {
   const P = ([px, py]: [number, number]): [number, number] => [px * k, py * k];
   const nodes = Object.values(map.nodes);
   x.fillStyle = theme.grass; x.fillRect(0, 0, W, H);
-  for (let i = 0; i < 1400; i++) {
+  if (theme.paving) paveTiles(x, W, H, 64);
+  else for (let i = 0; i < 1400; i++) {
     x.fillStyle = rand() > .5 ? 'rgba(255,255,220,.06)' : 'rgba(20,70,10,.07)';
     x.beginPath(); x.ellipse(rand() * W, rand() * H, 12 + rand() * 46, 6 + rand() * 22, rand() * 3, 0, Math.PI * 2); x.fill();
   }
@@ -67,7 +80,7 @@ function drawBoard(map: MapDef, theme: Theme): HTMLCanvasElement {
     const pts = r.nodes.map(id => P(map.nodes[id].pos));
     x.save();
     x.beginPath(); pts.forEach(([px, py], i) => i ? x.lineTo(px, py) : x.moveTo(px, py)); x.closePath();
-    x.fillStyle = r.medals ? 'rgba(205,240,120,.32)' : 'rgba(30,100,25,.09)';
+    x.fillStyle = theme.paving ? (r.medals ? 'rgba(130,200,90,.55)' : 'rgba(120,190,85,.35)') : r.medals ? 'rgba(205,240,120,.32)' : 'rgba(30,100,25,.09)';
     x.fill();
     if (r.medals) {
       x.clip();
@@ -82,7 +95,7 @@ function drawBoard(map: MapDef, theme: Theme): HTMLCanvasElement {
     }
     x.restore();
   }
-  for (let i = 0; i < 9000; i++) {
+  for (let i = 0; i < (theme.paving ? 0 : 9000); i++) {
     const bx = rand() * W, by = rand() * H, l = 5 + rand() * 8, a = -Math.PI / 2 + (rand() - .5) * .9;
     x.strokeStyle = rand() > .5 ? 'rgba(40,100,25,.32)' : 'rgba(200,245,150,.28)';
     x.lineWidth = 1.6;
@@ -145,28 +158,15 @@ function drawBoard(map: MapDef, theme: Theme): HTMLCanvasElement {
     if (rand() < .55) flower(x, px, py, 2.2 + rand() * 1.6, ['#ffffff', '#ffe26a', '#ffb3c4'][rand() * 3 | 0]);
     else tuft(x, px, py, 'rgba(45,115,30,.7)');
   }
-  const badge = (pos: [number, number], color: string) => {
-    const [px, py] = P(pos);
-    x.fillStyle = 'rgba(0,0,0,.2)'; x.beginPath(); x.roundRect(px - 60, py - 54, 128, 128, 28); x.fill();
-    x.fillStyle = color; x.beginPath(); x.roundRect(px - 64, py - 64, 128, 128, 28); x.fill();
-    x.strokeStyle = '#f0c24a'; x.lineWidth = 8; x.stroke();
-    x.fillStyle = '#fff3c4'; x.beginPath();
-    for (let i = 0; i < 10; i++) {
-      const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 22 : 50;
-      x.lineTo(px + Math.cos(a) * r, py + 4 + Math.sin(a) * r);
-    }
-    x.closePath(); x.fill();
-  };
-  badge([.45, BH - .45], '#d9362b');
-  badge([BW - .45, .45], '#2a68d6');
   return c;
 }
 
-function drawGrassTile(grass: string): HTMLCanvasElement {
+function drawGrassTile(grass: string, paving = false): HTMLCanvasElement {
   const S = 512;
   const c = document.createElement('canvas'); c.width = c.height = S;
   const x = c.getContext('2d')!;
   x.fillStyle = grass; x.fillRect(0, 0, S, S);
+  if (paving) { paveTiles(x, S, S, 64); return c; }
   const wrap = (draw: (ox: number, oy: number) => void) => { for (const ox of [-S, 0, S]) for (const oy of [-S, 0, S]) draw(ox, oy); };
   for (let i = 0; i < 260; i++) {
     const px = rand() * S, py = rand() * S, rx = 12 + rand() * 46, ry = 6 + rand() * 22, rot = rand() * 3;
@@ -302,7 +302,7 @@ export function buildBoard(map: MapDef, scene: THREE.Scene): BoardScene {
 
   scene.background = new THREE.Color(theme.sky);
   scene.fog = new THREE.Fog(theme.sky, 40, 90);
-  const groundTex = new THREE.CanvasTexture(drawGrassTile(theme.grass));
+  const groundTex = new THREE.CanvasTexture(drawGrassTile(theme.grass, theme.paving));
   groundTex.colorSpace = THREE.SRGBColorSpace;
   groundTex.wrapS = groundTex.wrapT = THREE.RepeatWrapping;
   groundTex.repeat.set(63, 63);
@@ -375,6 +375,7 @@ export function buildBoard(map: MapDef, scene: THREE.Scene): BoardScene {
   });
 
   scatterDecor(map, board, toW, nodeW, theme);
+  addScenery(map, board, Y0, U, theme.river).catch(e => console.warn('scenery', e));
 
   const linkGroup = grp(board);
   const flat = (parent: THREE.Object3D, sx: number, sz: number, x: number, y: number, z: number, mat: THREE.Material) => {
@@ -539,9 +540,8 @@ function scatterDecor(map: MapDef, board: THREE.Group, toW: (p: [number, number]
       n++;
     }
   };
-  outside(Math.round(260 * theme.trees), 14, (px, pz, s) => tree(px, pz, s * .75, rand() > .45 ? 0 : 1));
-  outside(160, 14, (px, pz, s) => bush(px, pz, s * .8));
-  outside(90, 14, (px, pz, s) => rock(px, pz, s * .8));
+  outside(Math.round(160 * theme.outside), 14, (px, pz, s) => bush(px, pz, s * .8));
+  outside(Math.round(90 * theme.outside), 14, (px, pz, s) => rock(px, pz, s * .8));
   for (const r of instReg.values()) {
     const im = new THREE.InstancedMesh(r.geo, r.mat, r.list.length);
     r.list.forEach((m, i) => im.setMatrixAt(i, m));

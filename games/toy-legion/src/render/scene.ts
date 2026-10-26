@@ -26,7 +26,7 @@ export class Stage {
     r.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     r.toneMapping = THREE.NeutralToneMapping;
     r.shadowMap.enabled = true;
-    r.shadowMap.type = THREE.PCFSoftShadowMap;
+    r.shadowMap.type = THREE.PCFShadowMap;
     const pmrem = new THREE.PMREMGenerator(r);
     this.scene.environment = pmrem.fromScene(new RoomEnvironment(), .04).texture;
     this.scene.environmentIntensity = .4;
@@ -57,7 +57,7 @@ export class Stage {
   private orbitCamera(w: number, h: number, dt: number) {
     this.orbitAngle += dt * .07;
     const cam = this.camera, e = .95;
-    const d = Math.max(this.map.width, this.map.height) * U * (w / h < .72 ? 1.9 : 1.25);
+    const d = Math.max(this.map.width, this.map.height) * U * (w / h < .72 ? 1.9 : 1.7);
     cam.clearViewOffset();
     cam.aspect = w / h;
     cam.updateProjectionMatrix();

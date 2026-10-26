@@ -28,12 +28,38 @@ function badgeCanvas(label: string, side: Side, count: number): HTMLCanvasElemen
   return c;
 }
 
+function starCanvas(side: Side, medals: number, goal: number): HTMLCanvasElement {
+  const c = document.createElement('canvas'); c.width = 220; c.height = 132;
+  const x = c.getContext('2d')!;
+  const { main, dark } = TEAM_CSS[side];
+  x.fillStyle = 'rgba(20,25,35,.3)'; x.beginPath(); x.roundRect(10, 16, 204, 112, 30); x.fill();
+  x.fillStyle = dark; x.beginPath(); x.roundRect(6, 8, 204, 112, 30); x.fill();
+  x.fillStyle = main; x.beginPath(); x.roundRect(6, 4, 204, 106, 30); x.fill();
+  x.strokeStyle = '#f0c24a'; x.lineWidth = 7; x.beginPath(); x.roundRect(9, 7, 198, 100, 27); x.stroke();
+  x.fillStyle = '#ffd84a'; x.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 17 : 38;
+    x.lineTo(56 + Math.cos(a) * r, 60 + Math.sin(a) * r);
+  }
+  x.closePath(); x.fill();
+  x.strokeStyle = '#a87510'; x.lineWidth = 4; x.stroke();
+  x.fillStyle = '#ffffff'; x.textBaseline = 'middle'; x.textAlign = 'left';
+  x.font = '800 64px "Baloo 2", "Arial Rounded MT Bold", system-ui, sans-serif';
+  x.lineWidth = 8; x.strokeStyle = dark; x.strokeText(String(medals), 102, 62); x.fillText(String(medals), 102, 62);
+  const w = x.measureText(String(medals)).width;
+  x.font = '800 34px "Baloo 2", "Arial Rounded MT Bold", system-ui, sans-serif';
+  x.fillStyle = 'rgba(255,255,255,.85)'; x.fillText(`/${goal}`, 108 + w, 70);
+  return c;
+}
+
 export class BoardView {
   readonly board: BoardScene;
   private stacks: Record<string, Piece[]> = {};
   private badges: Record<string, THREE.Sprite> = {};
   private reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   private unhook: () => void;
+  private starSprites = {} as Record<Side, THREE.Sprite>;
+  private starKey = '';
 
   constructor(private stage: Stage, state: GameState) {
     this.board = buildBoard(state.map, stage.scene);
@@ -48,7 +74,34 @@ export class BoardView {
         if (topPiece) for (const fn of figureTicks(topPiece)) fn(t);
       }
     });
+    for (const side of ['red', 'blue'] as Side[]) {
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ depthTest: false, transparent: true }));
+      const { width: W, height: H } = state.map;
+      const p = this.board.nodeW('hqR').clone();
+      const corner = side === 'red' ? [.55, H - .5] : [W - .55, .5];
+      p.set((corner[0] - W / 2) * 1.6, Y0 + .45, (corner[1] - H / 2) * 1.6);
+      sprite.position.copy(p);
+      sprite.scale.set(1.25, .75, 1);
+      sprite.renderOrder = 9;
+      this.board.group.add(sprite);
+      this.starSprites[side] = sprite;
+    }
     this.sync(state);
+    document.fonts?.ready.then(() => { this.starKey = ''; this.updateStars(state); });
+  }
+
+  private updateStars(s: GameState) {
+    const key = `${s.medals.red}/${s.medals.blue}/${s.map.objective}`;
+    if (key === this.starKey) return;
+    this.starKey = key;
+    for (const side of ['red', 'blue'] as Side[]) {
+      const m = this.starSprites[side].material;
+      m.map?.dispose();
+      const tex = new THREE.CanvasTexture(starCanvas(side, s.medals[side], s.map.objective));
+      tex.colorSpace = THREE.SRGBColorSpace;
+      m.map = tex;
+      m.needsUpdate = true;
+    }
   }
 
   get group() { return this.board.group; }
@@ -121,6 +174,7 @@ export class BoardView {
       this.refreshNode(node);
     }
     s.map.regions.forEach((_, i) => { const g = this.board.medalGroups[i]; if (g) g.visible = !s.claimed[i]; });
+    if (this.starSprites.red) this.updateStars(s);
     this.board.setLinks(
       { red: connected(s, 'red'), blue: connected(s, 'blue') },
       { red: reachable(s, 'red'), blue: reachable(s, 'blue') },
