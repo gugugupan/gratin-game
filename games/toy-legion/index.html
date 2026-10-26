@@ -54,10 +54,76 @@
         <p id="over-note"></p>
         <div class="score"><span class="sq red"></span> <b id="over-red">0</b> : <b id="over-blue">0</b> <span class="sq blue"></span></div>
         <button class="btn-big" id="over-again">再来一局</button>
+        <button class="btn-ghost wide" id="over-lobby">回到大厅</button>
       </div>
     </div>
 
     <div class="ghost" id="ghost" hidden></div>
+
+    <div class="lobby" id="lobby">
+      <div class="logo">
+        <h1>玩具军团</h1>
+        <p>拖动出兵，攻下对方城堡</p>
+      </div>
+      <div class="lobby-actions">
+        <button class="btn-big" id="lobby-start">开始</button>
+        <div class="lobby-row">
+          <button class="btn-pill" id="lobby-rules">玩法</button>
+          <button class="btn-pill" id="lobby-units">兵种</button>
+        </div>
+      </div>
+      <button class="gear" id="lobby-settings" aria-label="设置">⚙</button>
+    </div>
+
+    <div class="sheet" id="setup" hidden>
+      <div class="sheet-body">
+        <h2>选择模式</h2>
+        <div class="modes">
+          <button class="mode" data-mode="ai"><b>人机对战</b><span>和 AI 对战，你执红方</span></button>
+          <button class="mode" data-mode="local"><b>本地双人</b><span>一台手机轮流下</span></button>
+        </div>
+        <div class="diff" id="diff">
+          <span>AI 难度</span>
+          <button data-diff="easy">简单</button>
+          <button data-diff="normal">普通</button>
+        </div>
+        <h2>选择地图</h2>
+        <div class="maps" id="maps"></div>
+        <div class="sheet-actions">
+          <button class="btn-ghost" id="setup-back">返回</button>
+          <button class="btn-big" id="setup-go">开战！</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sheet" id="rules" hidden>
+      <div class="sheet-body">
+        <h2>玩法</h2>
+        <ol class="steps">
+          <li><b>出兵</b>每回合二选一：抽 2 张牌，或出 1 个兵。兵只能出在连回自己城堡的格子上，路线要经过自己占着的格子。</li>
+          <li><b>强压弱</b>力量更大的兵可以盖住敌兵，被盖住的兵变成下面的一层。万能兵能盖住任何兵，也能被任何兵盖住。</li>
+          <li><b>拿星星</b>占满一圈格子，就拿走这个区域里的星星。先拿到目标星数的一方获胜。</li>
+          <li><b>攻城</b>把兵出到对方城堡上，直接获胜。双方都无法行动时，星星多的一方获胜。</li>
+        </ol>
+        <div class="sheet-actions"><button class="btn-big" data-close>知道了</button></div>
+      </div>
+    </div>
+
+    <div class="sheet" id="units" hidden>
+      <div class="sheet-body">
+        <h2>兵种</h2>
+        <div class="unit-list" id="unit-list"></div>
+        <div class="sheet-actions"><button class="btn-big" data-close>关闭</button></div>
+      </div>
+    </div>
+
+    <div class="sheet" id="settings" hidden>
+      <div class="sheet-body">
+        <h2>设置</h2>
+        <label class="setting"><span>音效（即将加入）</span><input type="checkbox" id="opt-sound" checked disabled></label>
+        <div class="sheet-actions"><button class="btn-big" data-close>关闭</button></div>
+      </div>
+    </div>
   </div>
   <script type="module" src="./src/main.ts"></script>
 </body>

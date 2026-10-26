@@ -2,14 +2,30 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import type { MapDef, Region, Side } from '../engine';
 import { numberGeometry } from './figures';
-import { B, M, TEAM, add, collectTicks, grp, pyramid, setBuildSide, teamMat, tick, type Tick } from './kit';
+import { B, M, TEAM, add, collectTicks, grp, paint, pyramid, setBuildSide, teamMat, tick, type Tick } from './kit';
 
 export const U = 1.6;
 export const Y0 = .125;
 export const PAD_S = .65;
 export const HQ_S = .8;
 export const PAD_TOP = .16 * PAD_S;
-const HALF = { base: .66 * PAD_S, crate: .66 * PAD_S, garden: .66 * PAD_S, hq: 1.05 * HQ_S };
+const HALF = { base: .66 * PAD_S, crate: .66 * PAD_S, garden: .66 * PAD_S, bridge: .66 * PAD_S, hq: 1.05 * HQ_S };
+
+export interface Theme {
+  grass: string;
+  sky: number;
+  dirt: [string, string];
+  stones: [number, number];
+  river?: number;
+  trees: number;
+}
+const THEMES: Record<string, Theme> = {
+  'castle-field': { grass: '#78c257', sky: 0xa9d68f, dirt: ['#94703f', '#d3ad72'], stones: [0xe3cfa2, 0xd2ba88], trees: 1 },
+  'river-banks': { grass: '#80c85c', sky: 0xa5d8b4, dirt: ['#94703f', '#d3ad72'], stones: [0xe3cfa2, 0xd2ba88], river: 5, trees: 1.1 },
+  'block-town': { grass: '#8ccd68', sky: 0xb7daa2, dirt: ['#8c877d', '#c9c3b6'], stones: [0xd9d4c8, 0xbdb7aa], trees: .55 },
+};
+export const themeFor = (mapId: string): Theme => THEMES[mapId] ?? THEMES['castle-field'];
+const RIVER_HALF = .42;
 
 let seed = 7;
 const rand = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
@@ -34,7 +50,7 @@ function tuft(x: CanvasRenderingContext2D, px: number, py: number, color: string
   }
 }
 
-function drawBoard(map: MapDef): HTMLCanvasElement {
+function drawBoard(map: MapDef, theme: Theme): HTMLCanvasElement {
   seed = 7;
   const BW = map.width, BH = map.height;
   const W = 1200, H = Math.round(W * BH / BW), k = W / BW;
@@ -42,7 +58,7 @@ function drawBoard(map: MapDef): HTMLCanvasElement {
   const x = c.getContext('2d')!;
   const P = ([px, py]: [number, number]): [number, number] => [px * k, py * k];
   const nodes = Object.values(map.nodes);
-  x.fillStyle = GRASS; x.fillRect(0, 0, W, H);
+  x.fillStyle = theme.grass; x.fillRect(0, 0, W, H);
   for (let i = 0; i < 1400; i++) {
     x.fillStyle = rand() > .5 ? 'rgba(255,255,220,.06)' : 'rgba(20,70,10,.07)';
     x.beginPath(); x.ellipse(rand() * W, rand() * H, 12 + rand() * 46, 6 + rand() * 22, rand() * 3, 0, Math.PI * 2); x.fill();
@@ -81,8 +97,8 @@ function drawBoard(map: MapDef): HTMLCanvasElement {
     }
   };
   strokeEdges(.33, 'rgba(25,60,10,.2)', 6);
-  strokeEdges(.28, '#94703f');
-  strokeEdges(.23, '#d3ad72');
+  strokeEdges(.28, theme.dirt[0]);
+  strokeEdges(.23, theme.dirt[1]);
   strokeEdges(.11, 'rgba(255,240,205,.22)');
   for (const [a, b] of map.edges) {
     const A = P(map.nodes[a].pos), Bp = P(map.nodes[b].pos);
@@ -146,14 +162,11 @@ function drawBoard(map: MapDef): HTMLCanvasElement {
   return c;
 }
 
-const GRASS = '#78c257';
-export const SKY = 0xa9d68f;
-
-function drawGrassTile(): HTMLCanvasElement {
+function drawGrassTile(grass: string): HTMLCanvasElement {
   const S = 512;
   const c = document.createElement('canvas'); c.width = c.height = S;
   const x = c.getContext('2d')!;
-  x.fillStyle = GRASS; x.fillRect(0, 0, S, S);
+  x.fillStyle = grass; x.fillRect(0, 0, S, S);
   const wrap = (draw: (ox: number, oy: number) => void) => { for (const ox of [-S, 0, S]) for (const oy of [-S, 0, S]) draw(ox, oy); };
   for (let i = 0; i < 260; i++) {
     const px = rand() * S, py = rand() * S, rx = 12 + rand() * 46, ry = 6 + rand() * 22, rot = rand() * 3;
@@ -209,6 +222,30 @@ function gardenPad(g: THREE.Object3D) {
     B(g, [.05, .04, .05], rand() > .5 ? M.pink : M.white, [px, .29, pz], .015, [0, a, 0]);
   }
 }
+function bridgePad(g: THREE.Object3D) {
+  for (let i = 0; i < 5; i++) B(g, [1.32, .06, .24], i % 2 ? M.woodLight : M.wood, [0, .13, -.52 + i * .26], .02, [0, (rand() - .5) * .06, 0]);
+  for (const s of [-1, 1]) {
+    B(g, [.12, .12, 1.4], M.woodDark, [s * .6, .08, 0], .03);
+    for (const z of [-.6, .6]) B(g, [.12, .34, .12], M.woodDark, [s * .66, .2, z], .03);
+  }
+}
+function waterTexture(): THREE.CanvasTexture {
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const x = c.getContext('2d')!;
+  const g = x.createLinearGradient(0, 0, 0, 256);
+  g.addColorStop(0, '#3fa6cf'); g.addColorStop(.5, '#5cc0e0'); g.addColorStop(1, '#3fa6cf');
+  x.fillStyle = g; x.fillRect(0, 0, 256, 256);
+  x.strokeStyle = 'rgba(255,255,255,.45)'; x.lineWidth = 3; x.lineCap = 'round';
+  for (let i = 0; i < 26; i++) {
+    const px = rand() * 256, py = 30 + rand() * 196, w = 14 + rand() * 22;
+    x.beginPath(); x.moveTo(px, py); x.quadraticCurveTo(px + w / 2, py - 5, px + w, py); x.stroke();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return t;
+}
+
 function castle(g: THREE.Object3D, side: Side) {
   setBuildSide(side);
   const face = side === 'red' ? 1 : -1;
@@ -256,27 +293,37 @@ export interface BoardScene {
 }
 
 export function buildBoard(map: MapDef, scene: THREE.Scene): BoardScene {
+  const theme = themeFor(map.id);
   const BW = map.width, BH = map.height;
   const toW = ([x, y]: [number, number]) => new THREE.Vector3((x - BW / 2) * U, 0, (y - BH / 2) * U);
   const nodeW = (id: string) => toW(map.nodes[id].pos);
   const board = new THREE.Group();
   scene.add(board);
 
-  scene.background = new THREE.Color(SKY);
-  scene.fog = new THREE.Fog(SKY, 40, 90);
-  const groundTex = new THREE.CanvasTexture(drawGrassTile());
+  scene.background = new THREE.Color(theme.sky);
+  scene.fog = new THREE.Fog(theme.sky, 40, 90);
+  const groundTex = new THREE.CanvasTexture(drawGrassTile(theme.grass));
   groundTex.colorSpace = THREE.SRGBColorSpace;
   groundTex.wrapS = groundTex.wrapT = THREE.RepeatWrapping;
   groundTex.repeat.set(63, 63);
   groundTex.anisotropy = 8;
   const ground = add(board, new THREE.PlaneGeometry(260, 260), new THREE.MeshStandardMaterial({ map: groundTex, roughness: .9 }), [0, Y0 - .004, 0], [-Math.PI / 2, 0, 0]);
   ground.receiveShadow = true;
-  const boardTex = new THREE.CanvasTexture(drawBoard(map));
+  const boardTex = new THREE.CanvasTexture(drawBoard(map, theme));
   boardTex.colorSpace = THREE.SRGBColorSpace;
   boardTex.anisotropy = 8;
   add(board, new THREE.PlaneGeometry(BW * U, BH * U), new THREE.MeshStandardMaterial({ map: boardTex, roughness: .9 }), [0, Y0 + .002, 0], [-Math.PI / 2, 0, 0]);
-  document.fonts?.ready.then(() => { boardTex.image = drawBoard(map); boardTex.needsUpdate = true; });
+  document.fonts?.ready.then(() => { boardTex.image = drawBoard(map, theme); boardTex.needsUpdate = true; });
+  let water: THREE.CanvasTexture | null = null;
+  if (theme.river !== undefined) {
+    const z = (theme.river - BH / 2) * U, w = RIVER_HALF * 2 * U;
+    water = waterTexture();
+    water.repeat.set(60, 1);
+    add(board, new THREE.PlaneGeometry(260, w), new THREE.MeshStandardMaterial({ map: water, roughness: .25, metalness: .1 }), [0, Y0 + .004, z], [-Math.PI / 2, 0, 0]);
+    for (const s of [-1, 1]) B(board, [260, .03, .16], M.path2, [0, Y0 + .01, z + s * (w / 2 + .04)], .01);
+  }
 
+  const stoneA = paint(theme.stones[0], { roughness: .8, clearcoat: 0 }), stoneB = paint(theme.stones[1], { roughness: .8, clearcoat: 0 });
   for (const [a, b] of map.edges) {
     const pa = nodeW(a), pb = nodeW(b);
     const d = pb.clone().sub(pa);
@@ -291,7 +338,7 @@ export function buildBoard(map: MapDef, scene: THREE.Scene): BoardScene {
     const ang = Math.atan2(-d.z, d.x);
     for (let i = 0; i < n; i++) {
       const p = pa.clone().addScaledVector(d, s + step * (i + .5));
-      B(board, [step * .78, .06, .34], rand() > .5 ? M.path : M.path2, [p.x, Y0 + .03, p.z], .02, [0, ang + (rand() - .5) * .14, 0]);
+      B(board, [step * .78, .06, .34], rand() > .5 ? stoneA : stoneB, [p.x, Y0 + .03, p.z], .02, [0, ang + (rand() - .5) * .14, 0]);
     }
   }
 
@@ -303,6 +350,7 @@ export function buildBoard(map: MapDef, scene: THREE.Scene): BoardScene {
       if (n.type === 'base') basePad(g);
       else if (n.type === 'crate') cratePad(g);
       else if (n.type === 'garden') gardenPad(g);
+      else if (n.type === 'bridge') bridgePad(g);
       else castle(g, n.hqOf!);
     }
   });
@@ -326,7 +374,7 @@ export function buildBoard(map: MapDef, scene: THREE.Scene): BoardScene {
     return cluster;
   });
 
-  scatterDecor(map, board, toW, nodeW);
+  scatterDecor(map, board, toW, nodeW, theme);
 
   const linkGroup = grp(board);
   const flat = (parent: THREE.Object3D, sx: number, sz: number, x: number, y: number, z: number, mat: THREE.Material) => {
@@ -383,12 +431,17 @@ export function buildBoard(map: MapDef, scene: THREE.Scene): BoardScene {
     for (const child of [...hoverGroup.children]) { hoverGroup.remove(child); (child as THREE.Mesh).geometry.dispose(); }
     if (id) ring(hoverGroup, id, hoverMat, .68, .1, Y0 + .08);
   }
-  const pulse = (t: number) => { pulseMat.opacity = .3 + .45 * (Math.sin(t * 4) * .5 + .5); };
+  const pulse = (t: number) => {
+    pulseMat.opacity = .3 + .45 * (Math.sin(t * 4) * .5 + .5);
+    if (water) water.offset.x = t * .02;
+  };
 
   return { group: board, ticks, nodeW, medalGroups, setLinks, setTargets, setHover, pulse };
 }
 
-function scatterDecor(map: MapDef, board: THREE.Group, toW: (p: [number, number]) => THREE.Vector3, nodeW: (id: string) => THREE.Vector3) {
+function scatterDecor(map: MapDef, board: THREE.Group, toW: (p: [number, number]) => THREE.Vector3, nodeW: (id: string) => THREE.Vector3, theme: Theme) {
+  const riverZ = theme.river === undefined ? null : (theme.river - map.height / 2) * U;
+  const wet = (pz: number, pad: number) => riverZ !== null && Math.abs(pz - riverZ) < RIVER_HALF * U + pad;
   const BW = map.width, BH = map.height;
   const instReg = new Map<string, { geo: THREE.BufferGeometry; mat: THREE.Material; list: THREE.Matrix4[] }>();
   const q = new THREE.Quaternion(), e = new THREE.Euler(), sv = new THREE.Vector3(), pv = new THREE.Vector3();
@@ -438,7 +491,7 @@ function scatterDecor(map: MapDef, board: THREE.Group, toW: (p: [number, number]
   const badgeSpots = [toW([.45, BH - .45]), toW([BW - .45, .45])];
   const placed: [number, number, number][] = [];
   const free = (px: number, pz: number, clear: number) => {
-    if (Math.abs(px) > halfW - .2 || Math.abs(pz) > halfH - .2) return false;
+    if (Math.abs(px) > halfW - .2 || Math.abs(pz) > halfH - .2 || wet(pz, .2 + clear)) return false;
     for (const n of Object.values(map.nodes)) {
       const p = toW(n.pos);
       if (Math.hypot(p.x - px, p.z - pz) < (n.type === 'hq' ? 1.5 : .62) + clear) return false;
@@ -467,7 +520,7 @@ function scatterDecor(map: MapDef, board: THREE.Group, toW: (p: [number, number]
       n++;
     }
   };
-  scatter(34, .26, .85, (px, pz, s) => {
+  scatter(Math.round(34 * theme.trees), .26, .85, (px, pz, s) => {
     if (Math.abs(pz) > halfH - 1.6) return false;
     tree(px, pz, s * .62, rand() > .45 ? 0 : 1);
   });
@@ -478,7 +531,7 @@ function scatterDecor(map: MapDef, board: THREE.Group, toW: (p: [number, number]
     let n = 0, tries = 0;
     while (n < count && tries++ < count * 40) {
       const px = (rand() * 2 - 1) * (halfW + reach), pz = (rand() * 2 - 1) * (halfH + reach);
-      if (Math.abs(px) < halfW + .3 && Math.abs(pz) < halfH + .3) continue;
+      if ((Math.abs(px) < halfW + .3 && Math.abs(pz) < halfH + .3) || wet(pz, .5)) continue;
       const s = .8 + rand() * .5;
       if (placed.some(o => Math.hypot(o[0] - px, o[1] - pz) < o[2] + .3 * s)) continue;
       fn(px, pz, s);
@@ -486,7 +539,7 @@ function scatterDecor(map: MapDef, board: THREE.Group, toW: (p: [number, number]
       n++;
     }
   };
-  outside(260, 14, (px, pz, s) => tree(px, pz, s * .75, rand() > .45 ? 0 : 1));
+  outside(Math.round(260 * theme.trees), 14, (px, pz, s) => tree(px, pz, s * .75, rand() > .45 ? 0 : 1));
   outside(160, 14, (px, pz, s) => bush(px, pz, s * .8));
   outside(90, 14, (px, pz, s) => rock(px, pz, s * .8));
   for (const r of instReg.values()) {

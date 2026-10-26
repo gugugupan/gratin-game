@@ -1,7 +1,7 @@
 export type Side = 'red' | 'blue';
 export type TroopId = 'pip' | 'mira' | 'boing' | 'brix' | 'hop' | 'clank' | 'bruno' | 'rexie';
 export type Effect = 'none' | 'draw2' | 'playAgain' | 'removeAdjacent' | 'ignoreConnection' | 'discardEnemy' | 'draw1';
-export type NodeType = 'hq' | 'base' | 'crate' | 'garden';
+export type NodeType = 'hq' | 'base' | 'crate' | 'garden' | 'bridge';
 
 export interface TroopDef {
   id: TroopId;

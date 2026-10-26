@@ -18,6 +18,8 @@ export class Stage {
   private size = { w: 0, h: 0 };
   private last = performance.now();
   private raycaster = new THREE.Raycaster();
+  private orbit = false;
+  private orbitAngle = 0;
 
   constructor(private canvas: HTMLCanvasElement, private map: MapDef, private insets: () => Insets) {
     const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -43,7 +45,27 @@ export class Stage {
     requestAnimationFrame(this.frame);
   }
 
-  onFrame(fn: (t: number, dt: number) => void) { this.frameHooks.push(fn); }
+  onFrame(fn: (t: number, dt: number) => void): () => void {
+    this.frameHooks.push(fn);
+    return () => { this.frameHooks.splice(this.frameHooks.indexOf(fn), 1); };
+  }
+
+  setMap(map: MapDef) { this.map = map; this.refit(); }
+
+  setOrbit(on: boolean) { this.orbit = on; this.refit(); }
+
+  private orbitCamera(w: number, h: number, dt: number) {
+    this.orbitAngle += dt * .07;
+    const cam = this.camera, e = .95;
+    const d = Math.max(this.map.width, this.map.height) * U * (w / h < .72 ? 1.9 : 1.25);
+    cam.clearViewOffset();
+    cam.aspect = w / h;
+    cam.updateProjectionMatrix();
+    cam.position.set(Math.sin(this.orbitAngle) * Math.cos(e) * d, Math.sin(e) * d, Math.cos(this.orbitAngle) * Math.cos(e) * d);
+    cam.lookAt(0, 0, 0);
+    if (this.scene.fog instanceof THREE.Fog) { this.scene.fog.near = d + 2; this.scene.fog.far = d + 40; }
+    OUTLINE_RES.value.set(w, h);
+  }
 
   tween(dur: number, fn: (k: number) => void): Promise<void> {
     return new Promise(done => this.tweens.push({ start: performance.now(), dur, fn, done }));
@@ -108,8 +130,9 @@ export class Stage {
     if (w !== this.size.w || h !== this.size.h) {
       this.size = { w, h };
       this.renderer.setSize(w, h, false);
-      this.fit(w, h);
+      if (!this.orbit) this.fit(w, h);
     }
+    if (this.orbit) this.orbitCamera(w, h, dt);
     for (const tw of [...this.tweens]) {
       const k = Math.min(1, (now - tw.start) / tw.dur);
       tw.fn(k);

@@ -33,12 +33,13 @@ export class BoardView {
   private stacks: Record<string, Piece[]> = {};
   private badges: Record<string, THREE.Sprite> = {};
   private reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  private unhook: () => void;
 
   constructor(private stage: Stage, state: GameState) {
     this.board = buildBoard(state.map, stage.scene);
     enableShadows(this.board.group);
     for (const id of Object.keys(state.map.nodes)) this.stacks[id] = [];
-    stage.onFrame(t => {
+    this.unhook = stage.onFrame(t => {
       this.board.pulse(t);
       if (this.reduceMotion) return;
       for (const fn of this.board.ticks) fn(t);
@@ -51,6 +52,12 @@ export class BoardView {
   }
 
   get group() { return this.board.group; }
+
+  destroy() {
+    this.unhook();
+    this.stage.scene.remove(this.board.group);
+    this.board.group.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh && !m.userData.outline) m.geometry.dispose(); });
+  }
 
   setViewer(side: Side) { this.board.group.rotation.y = side === 'red' ? 0 : Math.PI; }
 
