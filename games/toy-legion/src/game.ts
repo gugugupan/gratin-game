@@ -2,6 +2,7 @@ import {
   TROOPS, apply, canDraw, legalTargets, newGame, other,
   type Action, type GameState, type Side, type Tile, type TroopId,
 } from './engine';
+import { renderPortraits, type Portraits } from './render/portraits';
 import { Stage } from './render/scene';
 import { BoardView } from './render/view';
 
@@ -33,6 +34,7 @@ export class Game {
   private selected: number | null = null;
   private targets: string[] = [];
   private drag: { uid: number; x: number; y: number; moved: boolean; hover: string | null } | null = null;
+  private portraits: Portraits = renderPortraits();
 
   constructor() {
     this.state = newGame({ seed: (Math.random() * 2 ** 31) | 0 });
@@ -117,7 +119,7 @@ export class Game {
         const el = document.createElement('div');
         el.className = `card ${tile.side}`;
         el.dataset.uid = String(tile.uid);
-        el.innerHTML = `<b>${label(tile.troop)}</b><span>${NAMES[tile.troop]}</span>`;
+        el.innerHTML = `<img src="${this.portraits[tile.side][tile.troop]}" alt="" draggable="false"><b>${label(tile.troop)}</b><span>${NAMES[tile.troop]}</span>`;
         if (tile.uid === this.selected) el.classList.add('sel');
         if (blocked || !legalTargets(s, tile.uid).length) el.classList.add('dim');
         el.addEventListener('pointerdown', e => this.onCardDown(e, tile));
