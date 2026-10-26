@@ -42,9 +42,7 @@ function drawBoard(map: MapDef): HTMLCanvasElement {
   const x = c.getContext('2d')!;
   const P = ([px, py]: [number, number]): [number, number] => [px * k, py * k];
   const nodes = Object.values(map.nodes);
-  const base = x.createLinearGradient(0, 0, W, H);
-  base.addColorStop(0, '#84cf5f'); base.addColorStop(1, '#6db74f');
-  x.fillStyle = base; x.fillRect(0, 0, W, H);
+  x.fillStyle = GRASS; x.fillRect(0, 0, W, H);
   for (let i = 0; i < 1400; i++) {
     x.fillStyle = rand() > .5 ? 'rgba(255,255,220,.06)' : 'rgba(20,70,10,.07)';
     x.beginPath(); x.ellipse(rand() * W, rand() * H, 12 + rand() * 46, 6 + rand() * 22, rand() * 3, 0, Math.PI * 2); x.fill();
@@ -131,9 +129,6 @@ function drawBoard(map: MapDef): HTMLCanvasElement {
     if (rand() < .55) flower(x, px, py, 2.2 + rand() * 1.6, ['#ffffff', '#ffe26a', '#ffb3c4'][rand() * 3 | 0]);
     else tuft(x, px, py, 'rgba(45,115,30,.7)');
   }
-  const v = x.createRadialGradient(W / 2, H / 2, Math.min(W, H) * .4, W / 2, H / 2, Math.max(W, H) * .72);
-  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(10,45,5,.32)');
-  x.fillStyle = v; x.fillRect(0, 0, W, H);
   const badge = (pos: [number, number], color: string) => {
     const [px, py] = P(pos);
     x.fillStyle = 'rgba(0,0,0,.2)'; x.beginPath(); x.roundRect(px - 60, py - 54, 128, 128, 28); x.fill();
@@ -151,20 +146,30 @@ function drawBoard(map: MapDef): HTMLCanvasElement {
   return c;
 }
 
-function drawWood(): HTMLCanvasElement {
-  const c = document.createElement('canvas'); c.width = c.height = 512;
+const GRASS = '#78c257';
+export const SKY = 0xa9d68f;
+
+function drawGrassTile(): HTMLCanvasElement {
+  const S = 512;
+  const c = document.createElement('canvas'); c.width = c.height = S;
   const x = c.getContext('2d')!;
-  for (let i = 0; i < 4; i++) {
-    x.fillStyle = ['#b98352', '#ad7848', '#c18c5a', '#a97446'][i];
-    x.fillRect(i * 128, 0, 128, 512);
-    x.fillStyle = 'rgba(60,30,10,.35)'; x.fillRect(i * 128, 0, 2, 512);
+  x.fillStyle = GRASS; x.fillRect(0, 0, S, S);
+  const wrap = (draw: (ox: number, oy: number) => void) => { for (const ox of [-S, 0, S]) for (const oy of [-S, 0, S]) draw(ox, oy); };
+  for (let i = 0; i < 260; i++) {
+    const px = rand() * S, py = rand() * S, rx = 12 + rand() * 46, ry = 6 + rand() * 22, rot = rand() * 3;
+    x.fillStyle = rand() > .5 ? 'rgba(255,255,220,.06)' : 'rgba(20,70,10,.07)';
+    wrap((ox, oy) => { x.beginPath(); x.ellipse(px + ox, py + oy, rx, ry, rot, 0, Math.PI * 2); x.fill(); });
   }
-  for (let i = 0; i < 140; i++) {
-    const x0 = rand() * 512, amp = 2 + rand() * 4, ph = rand() * 6;
-    x.strokeStyle = `rgba(90,50,20,${.08 + rand() * .12})`; x.lineWidth = 1 + rand() * 1.5;
-    x.beginPath();
-    for (let y = 0; y <= 512; y += 16) x.lineTo(x0 + Math.sin(y / 60 + ph) * amp, y);
-    x.stroke();
+  for (let i = 0; i < 2200; i++) {
+    const bx = rand() * S, by = rand() * S, l = 5 + rand() * 8, a = -Math.PI / 2 + (rand() - .5) * .9;
+    x.strokeStyle = rand() > .5 ? 'rgba(40,100,25,.32)' : 'rgba(200,245,150,.28)';
+    x.lineWidth = 1.6;
+    wrap((ox, oy) => { x.beginPath(); x.moveTo(bx + ox, by + oy); x.lineTo(bx + ox + Math.cos(a) * l, by + oy + Math.sin(a) * l); x.stroke(); });
+  }
+  for (let i = 0; i < 70; i++) {
+    const px = rand() * S, py = rand() * S;
+    if (rand() < .55) flower(x, px, py, 2.2 + rand() * 1.6, ['#ffffff', '#ffe26a', '#ffb3c4'][rand() * 3 | 0]);
+    else tuft(x, px, py, 'rgba(45,115,30,.7)');
   }
   return c;
 }
@@ -257,19 +262,15 @@ export function buildBoard(map: MapDef, scene: THREE.Scene): BoardScene {
   const board = new THREE.Group();
   scene.add(board);
 
-  B(board, [BW * U + .5, .25, BH * U + .5], M.woodDark, [0, 0, 0], .06);
-  for (const s of [-1, 1]) {
-    B(board, [BW * U + .9, .3, .26], M.wood, [0, .06, s * (BH * U / 2 + .32)], .05);
-    B(board, [.26, .3, BH * U + .9], M.wood, [s * (BW * U / 2 + .32), .06, 0], .05);
-  }
-  for (const sx of [-1, 1]) for (const sz of [-1, 1]) B(board, [.38, .34, .38], M.gold, [sx * (BW * U / 2 + .32), .07, sz * (BH * U / 2 + .32)], .06);
-  const tableTex = new THREE.CanvasTexture(drawWood());
-  tableTex.colorSpace = THREE.SRGBColorSpace;
-  tableTex.wrapS = tableTex.wrapT = THREE.RepeatWrapping;
-  tableTex.repeat.set(5, 5);
-  tableTex.anisotropy = 8;
-  const table = add(scene, new THREE.PlaneGeometry(90, 90), new THREE.MeshStandardMaterial({ map: tableTex, roughness: .7, color: 0xb8a593 }), [0, -.13, 0], [-Math.PI / 2, 0, 0]);
-  table.receiveShadow = true;
+  scene.background = new THREE.Color(SKY);
+  scene.fog = new THREE.Fog(SKY, 40, 90);
+  const groundTex = new THREE.CanvasTexture(drawGrassTile());
+  groundTex.colorSpace = THREE.SRGBColorSpace;
+  groundTex.wrapS = groundTex.wrapT = THREE.RepeatWrapping;
+  groundTex.repeat.set(63, 63);
+  groundTex.anisotropy = 8;
+  const ground = add(board, new THREE.PlaneGeometry(260, 260), new THREE.MeshStandardMaterial({ map: groundTex, roughness: .9 }), [0, Y0 - .004, 0], [-Math.PI / 2, 0, 0]);
+  ground.receiveShadow = true;
   const boardTex = new THREE.CanvasTexture(drawBoard(map));
   boardTex.colorSpace = THREE.SRGBColorSpace;
   boardTex.anisotropy = 8;
@@ -473,6 +474,21 @@ function scatterDecor(map: MapDef, board: THREE.Group, toW: (p: [number, number]
   scatter(36, .15, .5, (px, pz, s) => bush(px, pz, s * .7));
   scatter(24, .12, .4, (px, pz, s) => rock(px, pz, s * .7));
   scatter(70, .1, .2, (px, pz) => flowers(px, pz));
+  const outside = (count: number, reach: number, fn: (px: number, pz: number, s: number) => void) => {
+    let n = 0, tries = 0;
+    while (n < count && tries++ < count * 40) {
+      const px = (rand() * 2 - 1) * (halfW + reach), pz = (rand() * 2 - 1) * (halfH + reach);
+      if (Math.abs(px) < halfW + .3 && Math.abs(pz) < halfH + .3) continue;
+      const s = .8 + rand() * .5;
+      if (placed.some(o => Math.hypot(o[0] - px, o[1] - pz) < o[2] + .3 * s)) continue;
+      fn(px, pz, s);
+      placed.push([px, pz, .3 * s]);
+      n++;
+    }
+  };
+  outside(260, 14, (px, pz, s) => tree(px, pz, s * .75, rand() > .45 ? 0 : 1));
+  outside(160, 14, (px, pz, s) => bush(px, pz, s * .8));
+  outside(90, 14, (px, pz, s) => rock(px, pz, s * .8));
   for (const r of instReg.values()) {
     const im = new THREE.InstancedMesh(r.geo, r.mat, r.list.length);
     r.list.forEach((m, i) => im.setMatrixAt(i, m));

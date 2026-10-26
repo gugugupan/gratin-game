@@ -20,9 +20,8 @@ export class Stage {
   private raycaster = new THREE.Raycaster();
 
   constructor(private canvas: HTMLCanvasElement, private map: MapDef, private insets: () => Insets) {
-    const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     r.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    r.setClearColor(0x000000, 0);
     r.toneMapping = THREE.NeutralToneMapping;
     r.shadowMap.enabled = true;
     r.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -90,6 +89,7 @@ export class Stage {
     for (let i = 0; i < 28; i++) { const d = (lo + hi) / 2; if (fits(d)) hi = d; else lo = d; }
     const m = measure(hi);
     cam.setViewOffset(w, h, 0, ((yMin + yMax) / 2 - (m.lo + m.hi) / 2) * h / 2, w, h);
+    if (this.scene.fog instanceof THREE.Fog) { this.scene.fog.near = hi + 4; this.scene.fog.far = hi + 38; }
     OUTLINE_RES.value.set(w, h);
   }
 

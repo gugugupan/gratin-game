@@ -11,7 +11,7 @@
   color-scheme: dark;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin: 0; height: 100%; background: #2b1d12; color: #fff; font-family: var(--font); overflow: hidden; }
+html, body { margin: 0; height: 100%; background: #a9d68f; color: #fff; font-family: var(--font); overflow: hidden; }
 button { font: inherit; color: inherit; cursor: pointer; border: 0; }
 button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 [hidden] { display: none !important; }
