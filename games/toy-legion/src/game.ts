@@ -103,11 +103,7 @@ export class Game {
     $('opp-backs').innerHTML = '<i></i>'.repeat(s.hand[opp].length);
     $('opp-medals').textContent = String(s.medals[opp]);
     $('opp-goal').textContent = ` / ${s.map.objective}`;
-    $('me-sq').style.background = `var(--${me})`;
-    $('me-name').textContent = SIDE_NAME[me];
-    $('me-medals').textContent = String(s.medals[me]);
-    $('me-goal').textContent = ` / ${s.map.objective}`;
-    $('me-status').textContent = s.winner ? '对局结束' : s.turn === me ? `你的回合 · 牌库 ${s.reserve[me].length}` : '等待对手';
+    $('deck').textContent = `牌库 ${s.reserve[me].length}`;
 
     const hand = $('hand');
     hand.innerHTML = '';

@@ -43,9 +43,8 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 
 .tray {
   pointer-events: auto; width: 100%; max-width: 560px; background: var(--bar); border-radius: 18px;
-  padding: 8px 10px 10px; display: grid; gap: 8px; box-shadow: 0 4px 0 rgba(0,0,0,.3);
+  padding: 10px 10px 8px; display: grid; gap: 8px; box-shadow: 0 4px 0 rgba(0,0,0,.3);
 }
-.tray-head { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; }
 .hand-row { display: flex; gap: 8px; align-items: flex-end; }
 .hand { flex: 1; min-width: 0; display: flex; gap: 6px; align-items: flex-end; justify-content: center; min-height: 78px; }
 .hand .empty { color: #8f97a8; font-size: 13px; align-self: center; }
@@ -69,8 +68,10 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .card.sel { transform: translateY(-10px); border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold), 0 8px 0 rgba(0,0,0,.35); }
 .card.dim { opacity: .45; }
 .card.lift { opacity: .25; }
+.draw-col { flex: 0 0 auto; display: grid; justify-items: center; gap: 3px; }
+.deck { font-size: 10.5px; font-weight: 700; color: #aab2c2; white-space: nowrap; }
 .draw {
-  flex: 0 0 auto; width: 58px; aspect-ratio: 3 / 4; border-radius: 12px; display: grid; place-items: center; align-content: center;
+  width: 58px; aspect-ratio: 4 / 5; border-radius: 12px; display: grid; place-items: center; align-content: center;
   background: linear-gradient(#ffd75e, #e2a425); border: 2px solid var(--gold-dark); color: #4a3200;
   box-shadow: 0 4px 0 #7a5409; font-weight: 800; line-height: 1.05;
 }

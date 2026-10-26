@@ -40,9 +40,10 @@ export function renderPortraits(): Portraits {
       piece.updateMatrixWorld(true);
       const sphere = new THREE.Box3().setFromObject(piece.userData.fig).getBoundingSphere(new THREE.Sphere());
       const fit = Math.min(FOV, THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(FOV / 2)) * W / H)));
-      const dist = sphere.radius / Math.sin(THREE.MathUtils.degToRad(fit / 2)) * .92;
-      camera.position.copy(sphere.center).addScaledVector(view, dist);
-      camera.lookAt(sphere.center);
+      const dist = sphere.radius / Math.sin(THREE.MathUtils.degToRad(fit / 2)) * .64;
+      const aim = sphere.center.clone().add(new THREE.Vector3(0, sphere.radius * .08, 0));
+      camera.position.copy(aim).addScaledVector(view, dist);
+      camera.lookAt(aim);
       renderer.render(scene, camera);
       out[side][troop] = canvas.toDataURL('image/png');
       scene.remove(piece);
