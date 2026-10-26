@@ -2,7 +2,6 @@ import {
   TROOPS, apply, canDraw, legalTargets, newGame, other,
   type Action, type GameState, type Side, type Tile, type TroopId,
 } from './engine';
-import { renderPortraits, type Portraits } from './render/portraits';
 import { Stage } from './render/scene';
 import { BoardView } from './render/view';
 
@@ -20,6 +19,8 @@ const EFFECT_TEXT: Record<TroopId, string> = {
   rexie: '没有效果，力量最强',
 };
 const SIDE_NAME: Record<Side, string> = { red: '红方', blue: '蓝方' };
+const CARD_ART = import.meta.glob<string>('./assets/cards/*.webp', { eager: true, import: 'default' });
+const cardArt = (troop: TroopId, side: Side) => CARD_ART[`./assets/cards/${troop}-${side}.webp`];
 const label = (t: TroopId) => (TROOPS[t].strength === 'joker' ? '★' : String(TROOPS[t].strength));
 const order = (t: Tile) => (TROOPS[t.troop].strength === 'joker' ? 8 : (TROOPS[t.troop].strength as number));
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -34,7 +35,6 @@ export class Game {
   private selected: number | null = null;
   private targets: string[] = [];
   private drag: { uid: number; x: number; y: number; moved: boolean; hover: string | null } | null = null;
-  private portraits: Portraits = renderPortraits();
 
   constructor() {
     this.state = newGame({ seed: (Math.random() * 2 ** 31) | 0 });
@@ -115,7 +115,7 @@ export class Game {
         const el = document.createElement('div');
         el.className = `card ${tile.side}`;
         el.dataset.uid = String(tile.uid);
-        el.innerHTML = `<img src="${this.portraits[tile.side][tile.troop]}" alt="" draggable="false"><b>${label(tile.troop)}</b><span>${NAMES[tile.troop]}</span>`;
+        el.innerHTML = `<img src="${cardArt(tile.troop, tile.side)}" alt="" draggable="false"><b>${label(tile.troop)}</b><span>${NAMES[tile.troop]}</span>`;
         if (tile.uid === this.selected) el.classList.add('sel');
         if (blocked || !legalTargets(s, tile.uid).length) el.classList.add('dim');
         el.addEventListener('pointerdown', e => this.onCardDown(e, tile));
