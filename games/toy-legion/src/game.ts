@@ -243,7 +243,6 @@ export class Game {
     const s = this.state, me = this.viewer, opp = other(me);
     const hidden = !$('pass').hidden;
     $('opp-sq').style.background = `var(--${opp})`;
-    $('opp-name').textContent = this.sideName(opp);
     $('opp-backs').innerHTML = '<i></i>'.repeat(s.hand[opp].length);
     $('opp-count').textContent = `手牌 ${s.hand[opp].length}`;
     $('opp-medals').textContent = String(s.medals[opp]);
