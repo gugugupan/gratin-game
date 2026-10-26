@@ -58,6 +58,7 @@ export function newGame({ seed, first, map = CASTLE_FIELD }: NewGameOptions): Ga
     claimed: map.regions.map(() => false),
     pending: null,
     winner: null,
+    skipped: null,
     endReason: null,
     moves: 0,
   };
@@ -151,13 +152,21 @@ function claimRegions(s: GameState): void {
   if (winner) { s.winner = winner; s.endReason = 'objective'; s.pending = null; }
 }
 
+const canAct = (s: GameState, side: Side) => canDraw(s, side) || canPlaceAny(s, side);
+
 function endTurn(s: GameState): void {
   if (s.winner) return;
   s.pending = null;
+  s.skipped = null;
   s.turn = other(s.turn);
-  if (canDraw(s) || canPlaceAny(s, s.turn)) return;
-  const stuck = s.turn;
-  s.winner = s.medals[stuck] > s.medals[other(stuck)] ? stuck : other(stuck);
+  if (canAct(s, s.turn)) return;
+  if (canAct(s, other(s.turn))) {
+    s.skipped = s.turn;
+    s.turn = other(s.turn);
+    return;
+  }
+  const { red, blue } = s.medals;
+  s.winner = red === blue ? 'draw' : red > blue ? 'red' : 'blue';
   s.endReason = 'stalled';
 }
 

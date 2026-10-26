@@ -176,11 +176,22 @@ describe('regions and medals', () => {
 });
 
 describe('end of game', () => {
-  it('ends when the next player cannot act, and a tie goes against them', () => {
+  it('skips a player who cannot act while the other still can', () => {
     const s = scenario({ red: ['rexie', 'mira'], blue: [], reserve: { blue: 0 } });
     const after = place(s, 'rexie', 'A');
-    expect(after.winner).toBe('red');
+    expect(after.winner).toBeNull();
+    expect(after.skipped).toBe('blue');
+    expect(after.turn).toBe('red');
+  });
+  it('ends when neither side can act, and more medals wins', () => {
+    const s = scenario({ red: ['rexie'], blue: [], reserve: { red: 0, blue: 0 }, medals: { blue: 2 } });
+    const after = place(s, 'rexie', 'A');
     expect(after.endReason).toBe('stalled');
+    expect(after.winner).toBe('blue');
+  });
+  it('is a draw when neither side can act with equal medals', () => {
+    const s = scenario({ red: ['rexie'], blue: [], reserve: { red: 0, blue: 0 }, medals: { red: 1, blue: 1 } });
+    expect(place(s, 'rexie', 'A').winner).toBe('draw');
   });
   it('random games always finish and never lose a tile', () => {
     for (let seed = 1; seed <= 200; seed++) {

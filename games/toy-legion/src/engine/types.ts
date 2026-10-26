@@ -55,7 +55,8 @@ export interface GameState {
   medals: Record<Side, number>;
   claimed: boolean[];
   pending: Pending | null;
-  winner: Side | null;
+  winner: Side | 'draw' | null;
+  skipped: Side | null;
   endReason: EndReason | null;
   moves: number;
 }
