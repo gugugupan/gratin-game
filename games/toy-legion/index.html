@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2b1d12">
+  <title>玩具军团</title>
+</head>
+<body>
+  <div id="app">
+    <canvas id="gl" aria-label="棋盘"></canvas>
+
+    <div class="hud-top" id="hud-top">
+      <div class="chip" id="opp-chip">
+        <span class="sq" id="opp-sq"></span>
+        <span class="who" id="opp-name">蓝方</span>
+        <span class="backs" id="opp-backs"></span>
+      </div>
+      <div class="chip"><span class="medal">★ <b id="opp-medals">0</b><small id="opp-goal"> / 6</small></span></div>
+    </div>
+
+    <div class="banner" id="banner" hidden>
+      <span id="banner-text"></span>
+      <button class="btn-small" id="banner-skip" hidden>跳过</button>
+    </div>
+
+    <div class="toast" id="toast" hidden></div>
+
+    <div class="hud-bot" id="hud-bot">
+      <div class="tray">
+        <div class="tray-head">
+          <span><span class="sq" id="me-sq"></span> <b id="me-name">红方</b> · <span id="me-status">你的回合</span></span>
+          <span class="medal">★ <b id="me-medals">0</b><small id="me-goal"> / 6</small></span>
+        </div>
+        <div class="hand-row">
+          <div class="hand" id="hand"></div>
+          <button class="draw" id="draw"><span>抽</span><b>2</b><span>张</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="pass" hidden>
+      <div class="panel">
+        <div class="panel-kicker" id="pass-kicker">本地双人</div>
+        <h1 id="pass-title">轮到 红方</h1>
+        <p id="pass-note">把手机交给红方，再点开始。</p>
+        <button class="btn-big" id="pass-go">开始</button>
+      </div>
+    </div>
+
+    <div class="overlay" id="over" hidden>
+      <div class="panel">
+        <div class="crown" aria-hidden="true">♛</div>
+        <h1 id="over-title">红方获胜</h1>
+        <p id="over-note"></p>
+        <div class="score"><span class="sq red"></span> <b id="over-red">0</b> : <b id="over-blue">0</b> <span class="sq blue"></span></div>
+        <button class="btn-big" id="over-again">再来一局</button>
+      </div>
+    </div>
+
+    <div class="ghost" id="ghost" hidden></div>
+  </div>
+  <script type="module" src="./src/main.ts"></script>
+</body>
+</html>
