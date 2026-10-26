@@ -19,6 +19,9 @@ export class Stage {
   private last = performance.now();
   private raycaster = new THREE.Raycaster();
   private orbit = false;
+  private shakeUntil = 0;
+  private shakeAmp = 0;
+  private shakeOffset = new THREE.Vector3();
   private orbitAngle = 0;
 
   constructor(private canvas: HTMLCanvasElement, private map: MapDef, private insets: () => Insets) {
@@ -51,6 +54,14 @@ export class Stage {
   }
 
   setMap(map: MapDef) { this.map = map; this.refit(); }
+
+  shake(amp: number, ms: number) { this.shakeAmp = amp; this.shakeUntil = performance.now() + ms; }
+
+  toScreen(world: THREE.Vector3): [number, number] {
+    const p = world.clone().project(this.camera);
+    const r = this.canvas.getBoundingClientRect();
+    return [r.left + (p.x + 1) / 2 * r.width, r.top + (1 - p.y) / 2 * r.height];
+  }
 
   setOrbit(on: boolean) { this.orbit = on; this.refit(); }
 
@@ -139,6 +150,13 @@ export class Stage {
       if (k >= 1) { this.tweens.splice(this.tweens.indexOf(tw), 1); tw.done(); }
     }
     for (const fn of this.frameHooks) fn(now / 1000, dt);
+    this.camera.position.sub(this.shakeOffset);
+    this.shakeOffset.set(0, 0, 0);
+    if (now < this.shakeUntil) {
+      const a = this.shakeAmp * (this.shakeUntil - now) / 500;
+      this.shakeOffset.set((Math.random() - .5) * a, (Math.random() - .5) * a, (Math.random() - .5) * a);
+      this.camera.position.add(this.shakeOffset);
+    }
     this.renderer.render(this.scene, this.camera);
     requestAnimationFrame(this.frame);
   };

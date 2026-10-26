@@ -181,7 +181,31 @@ export class BoardView {
     );
   }
 
-  async animatePlace(tile: Tile, node: string): Promise<void> {
+  screenOf(node: string, lift = .3): [number, number] {
+    const p = this.board.nodeW(node).clone();
+    p.y = Y0 + lift;
+    return this.stage.toScreen(this.board.group.localToWorld(p));
+  }
+
+  starScreen(side: Side): [number, number] {
+    return this.stage.toScreen(this.starSprites[side].getWorldPosition(new THREE.Vector3()));
+  }
+
+  ring(node: string, color: number, size: number, ms: number) {
+    if (this.reduceMotion) return Promise.resolve();
+    const mat = new THREE.MeshBasicMaterial({ color, transparent: true, depthWrite: false });
+    const mesh = new THREE.Mesh(new THREE.RingGeometry(.42, .52, 40), mat);
+    const p = this.board.nodeW(node);
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.set(p.x, Y0 + .12, p.z);
+    this.board.group.add(mesh);
+    return this.stage.tween(ms, k => {
+      mesh.scale.setScalar(.4 + k * size);
+      mat.opacity = (1 - k) * .9;
+    }).then(() => { this.board.group.remove(mesh); mesh.geometry.dispose(); mat.dispose(); });
+  }
+
+  async animatePlace(tile: Tile, node: string, hqId?: string): Promise<void> {
     const stack = this.stacks[node];
     const below = stack.at(-1);
     const piece = this.newPiece(tile, node, stack.length);
@@ -190,9 +214,18 @@ export class BoardView {
     const old = this.badges[node];
     if (old) old.visible = false;
     if (this.reduceMotion) { stack.push(piece); this.refreshNode(node); return; }
-    const dropFrom = rest + 3.2;
     const contact = below ? rest + HEIGHT[below.userData.troop] * PIECE_SCALE : rest;
-    await this.stage.tween(360, k => { piece.position.y = contact + (dropFrom - contact) * (1 - k * k); });
+    if (tile.troop === 'hop' && hqId) {
+      const from = this.board.nodeW(hqId), to = piece.position.clone();
+      await this.stage.tween(620, k => {
+        piece.position.set(from.x + (to.x - from.x) * k, contact + Math.sin(k * Math.PI) * 3.4 + (1 - k) * .4, from.z + (to.z - from.z) * k);
+        piece.rotation.x = Math.sin(k * Math.PI) * -.4;
+      });
+      piece.rotation.x = 0;
+    } else {
+      const dropFrom = rest + 3.2;
+      await this.stage.tween(360, k => { piece.position.y = contact + (dropFrom - contact) * (1 - k * k); });
+    }
     if (below) {
       const bfig = below.userData.fig;
       await this.stage.tween(150, k => {
@@ -203,6 +236,7 @@ export class BoardView {
       bfig.visible = false;
       place(bfig, T);
     }
+    void this.ring(node, 0xfff4d6, 1.6, 420);
     await this.stage.tween(260, k => {
       const b = Math.sin(k * Math.PI);
       piece.position.y = rest + b * .06;
@@ -211,7 +245,71 @@ export class BoardView {
     piece.position.y = rest;
     place(fig, T);
     stack.push(piece);
+    await this.flourish(piece, node);
     this.refreshNode(node);
+  }
+
+  private async flourish(piece: Piece, node: string) {
+    const fig = piece.userData.fig, baseRot = piece.rotation.y;
+    switch (piece.userData.troop) {
+      case 'pip':
+        await this.stage.tween(480, k => { piece.rotation.y = baseRot + k * Math.PI * 2; });
+        piece.rotation.y = baseRot;
+        break;
+      case 'boing':
+        await this.stage.tween(420, k => place(fig, T, 1 + Math.sin(k * Math.PI) * .45));
+        place(fig, T);
+        break;
+      case 'brix':
+        await this.stage.tween(200, k => { piece.rotation.x = -k * .45; });
+        void this.ring(node, 0xffd27a, 2.4, 380);
+        this.stage.shake(.06, 180);
+        await this.stage.tween(220, k => { piece.rotation.x = -.45 * (1 - k); });
+        piece.rotation.x = 0;
+        break;
+      case 'rexie':
+        this.stage.shake(.16, 520);
+        void this.ring(node, 0xffffff, 3.2, 600);
+        await this.stage.tween(520, k => place(fig, T, 1 + Math.sin(k * Math.PI * 3) * .08 * (1 - k)));
+        place(fig, T);
+        break;
+      case 'clank':
+        void this.ring(node, 0x5ff2ff, 2, 380);
+        await this.ring(node, 0x5ff2ff, 1.2, 300);
+        break;
+      case 'mira':
+      case 'bruno':
+        await this.stage.tween(320, k => { piece.position.y += Math.sin(k * Math.PI) * .012; });
+        break;
+    }
+  }
+
+  async animateClaim(region: number, side: Side): Promise<void> {
+    const cluster = this.board.medalGroups[region];
+    if (!cluster || !cluster.visible) return;
+    const target = this.starSprites[side].position.clone();
+    const medals = [...cluster.children];
+    cluster.visible = false;
+    if (this.reduceMotion) return;
+    const flights = medals.map((m, i) => {
+      const copy = m.clone(true);
+      const start = cluster.localToWorld(m.position.clone());
+      this.board.group.worldToLocal(start);
+      copy.position.copy(start);
+      copy.scale.copy(m.scale);
+      this.board.group.add(copy);
+      const base = copy.scale.x;
+      return new Promise<void>(done => setTimeout(done, i * 110)).then(() => this.stage.tween(640, k => {
+        const e = k * k * (3 - 2 * k);
+        copy.position.set(start.x + (target.x - start.x) * e, start.y + (target.y - start.y) * e + Math.sin(k * Math.PI) * 2.2, start.z + (target.z - start.z) * e);
+        copy.rotation.y = k * Math.PI * 3;
+        copy.scale.setScalar(base * (1 + Math.sin(k * Math.PI) * .6 - k * .5));
+      })).then(() => { this.board.group.remove(copy); });
+    });
+    await Promise.all(flights);
+    const sprite = this.starSprites[side], sx = sprite.scale.x, sy = sprite.scale.y;
+    await this.stage.tween(300, k => { const b = 1 + Math.sin(k * Math.PI) * .35; sprite.scale.set(sx * b, sy * b, 1); });
+    sprite.scale.set(sx, sy, 1);
   }
 
   async animateRemove(node: string): Promise<void> {

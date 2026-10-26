@@ -1,5 +1,5 @@
 import {
-  MAPS, TROOPS, TROOP_IDS, apply, canDraw, chooseAction, legalActions, legalTargets, newGame, other,
+  MAPS, TROOPS, TROOP_IDS, apply, canDraw, chooseAction, hqOf, legalActions, legalTargets, newGame, other,
   type Action, type Difficulty, type GameState, type MapDef, type MapInfo, type Side, type Tile, type TroopId,
 } from './engine';
 import { themeFor } from './render/board';
@@ -28,6 +28,25 @@ const order = (t: Tile) => (TROOPS[t.troop].strength === 'joker' ? 8 : (TROOPS[t
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 const seed = () => (Math.random() * 2 ** 31) | 0;
+const center = (el: Element): [number, number] => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function fly(from: [number, number], to: [number, number], cls: string, html = '', delay = 0, ms = 560): Promise<void> {
+  if (reduceMotion) return Promise.resolve();
+  const el = document.createElement('div');
+  el.className = `fly ${cls}`;
+  el.innerHTML = html;
+  $('app').append(el);
+  const [x0, y0] = from, [x1, y1] = to;
+  const midX = (x0 + x1) / 2, midY = Math.min(y0, y1) - 70;
+  const anim = el.animate([
+    { transform: `translate(${x0}px, ${y0}px) translate(-50%, -50%) scale(.4) rotate(-12deg)`, opacity: 0 },
+    { transform: `translate(${midX}px, ${midY}px) translate(-50%, -50%) scale(1.1) rotate(6deg)`, opacity: 1, offset: .5 },
+    { transform: `translate(${x1}px, ${y1}px) translate(-50%, -50%) scale(.8) rotate(0deg)`, opacity: 1 },
+  ], { duration: ms, delay, easing: 'cubic-bezier(.3,.7,.4,1)', fill: 'both' });
+  return anim.finished.then(() => { el.remove(); });
+}
+
 const cardHtml = (troop: TroopId, side: Side) =>
   `<img src="${cardArt(troop, side)}" alt="" draggable="false"><b>${label(troop)}</b><span>${NAMES[troop]}</span>`;
 
@@ -364,41 +383,71 @@ export class Game {
     await this.act(chooseAction(this.state, this.difficulty));
   }
 
+  private handTarget(side: Side): [number, number] {
+    return side === this.viewer ? center($('hand')) : center($('opp-backs'));
+  }
+
+  private async flyCards(from: [number, number], side: Side, n: number) {
+    const flights = [];
+    for (let i = 0; i < n; i++) flights.push(fly(from, this.handTarget(side), `back ${side}`, '', i * 130));
+    await Promise.all(flights);
+  }
+
+  private async discardFx(prev: GameState, next: GameState, victim: Side, node: string) {
+    const lost = next.discard.at(-1);
+    if (!lost) return;
+    const toRobot = this.view.screenOf(node, .6);
+    if (victim === this.viewer && $('pass').hidden) {
+      const el = $('hand').querySelector<HTMLElement>(`[data-uid="${lost.uid}"]`);
+      if (el && !reduceMotion) {
+        el.classList.add('zapped');
+        await sleep(380);
+        const from = center(el);
+        el.style.visibility = 'hidden';
+        await fly(from, toRobot, `face ${victim} burn`, cardHtml(lost.troop, victim), 0, 520);
+        return;
+      }
+    }
+    await fly(center($('opp-backs')), toRobot, `back ${victim} burn`, '', 0, 520);
+  }
+
   private async act(action: Action) {
     const prev = this.state;
     let next: GameState;
     try { next = apply(prev, action); } catch { return; }
     this.busy = true;
     this.clearSelection();
-    const side = prev.turn, opp = other(side), who = this.sideName(side);
-    const messages: string[] = [];
+    const side = prev.turn, opp = other(side);
     if (action.type === 'place') {
       const tile = prev.hand[side].find(t => t.uid === action.tile)!;
-      if (side !== this.viewer || this.mode === 'local') messages.push(`${who}出了${NAMES[tile.troop]}`);
       this.state = { ...prev, hand: { ...prev.hand, [side]: prev.hand[side].filter(t => t.uid !== tile.uid) } };
       this.render();
-      await this.view.animatePlace(tile, action.node);
+      await this.view.animatePlace(tile, action.node, hqOf(prev.map, side));
       const drew = next.hand[side].length - (prev.hand[side].length - 1);
-      if (drew > 0) messages.push(`${who}抽了 ${drew} 张牌`);
-      if (next.hand[opp].length < prev.hand[opp].length) messages.push(`${this.sideName(opp)}弃掉了 1 张手牌`);
+      if (drew > 0) await this.flyCards(this.view.screenOf(action.node, .8), side, drew);
+      if (next.hand[opp].length < prev.hand[opp].length) await this.discardFx(prev, next, opp, action.node);
     } else if (action.type === 'remove') {
+      void this.view.ring(action.node, 0xff6b5e, 2.2, 420);
+      this.stage.shake(.08, 220);
       await this.view.animateRemove(action.node);
-      messages.push(`${who}移除了 1 个兵`);
     } else if (action.type === 'draw') {
-      messages.push(`${who}抽了 ${next.hand[side].length - prev.hand[side].length} 张牌`);
-    } else if (action.type === 'skip' && side !== this.viewer) {
-      messages.push(`${who}没有再出兵`);
+      const n = next.hand[side].length - prev.hand[side].length;
+      const from: [number, number] = side === this.viewer ? center($('draw')) : center($('opp-backs'));
+      if (side === this.viewer) await this.flyCards(from, side, n);
+      else await this.flyCards([from[0], from[1] - 60], side, n);
     }
-    const gained = next.medals[side] - prev.medals[side];
-    if (gained > 0) messages.push(`${who}占领区域，获得 ${gained} 颗星`);
+    if (this.scene !== 'game') return;
+    for (let i = 0; i < next.claimed.length; i++) {
+      if (prev.claimed[i] || !next.claimed[i] || !next.map.regions[i].medals) continue;
+      const owner: Side = next.medals[side] > prev.medals[side] ? side : opp;
+      await this.view.animateClaim(i, owner);
+    }
     if (this.scene !== 'game') return;
     this.state = next;
     this.view.sync(next);
     this.render();
-    for (const m of messages) { this.toast(m); await sleep(900); }
-    if (this.scene !== 'game') return;
     this.busy = false;
-    if (next.winner) { this.showOver(); return; }
+    if (next.winner) { await sleep(400); this.showOver(); return; }
     if (next.skipped) { this.toast(`${this.sideName(next.skipped)}无法行动，跳过回合`); await sleep(1100); }
     if (this.mode === 'ai') {
       this.render();

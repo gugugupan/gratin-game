@@ -202,3 +202,18 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .unit b { font-size: 16px; }
 .unit p { margin: 2px 0 0; font-size: 13px; color: #5d5446; font-weight: 600; }
 .setting { display: flex; justify-content: space-between; align-items: center; padding: 12px 4px; font-weight: 700; }
+
+.fly { position: absolute; left: 0; top: 0; z-index: 7; width: 46px; aspect-ratio: 4 / 5; pointer-events: none; will-change: transform; }
+.fly.back { border-radius: 8px; border: 2px solid #6b7488; background: repeating-linear-gradient(45deg, #3b4558 0 6px, #2e3546 6px 12px); box-shadow: 0 4px 8px rgba(0,0,0,.35); }
+.fly.back.red { border-color: var(--red-dark); background: repeating-linear-gradient(45deg, #c8352b 0 6px, #a52a22 6px 12px); }
+.fly.back.blue { border-color: #143a80; background: repeating-linear-gradient(45deg, #2a5fc4 0 6px, #1f4ea6 6px 12px); }
+.fly.face .card { width: 100%; max-width: none; }
+.fly.burn { filter: drop-shadow(0 0 8px #5ff2ff); }
+.card.zapped { animation: zap .38s ease-in-out; }
+@keyframes zap {
+  0%, 100% { transform: translateX(0); filter: none; }
+  20% { transform: translateX(-4px) rotate(-4deg); filter: drop-shadow(0 0 6px #5ff2ff) brightness(1.4); }
+  40% { transform: translateX(4px) rotate(4deg); }
+  60% { transform: translateX(-3px) rotate(-3deg); filter: drop-shadow(0 0 8px #5ff2ff) brightness(1.6); }
+  80% { transform: translateX(3px) rotate(2deg); }
+}
