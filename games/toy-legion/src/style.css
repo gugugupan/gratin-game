@@ -151,7 +151,6 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   -webkit-text-stroke: 3px #6b3a12; paint-order: stroke fill;
   text-shadow: 0 5px 0 #6b3a12, 0 9px 14px rgba(0,0,0,.35);
 }
-.logo p { margin: 12px 0 0; font-size: 16px; font-weight: 800; color: #fff; text-shadow: 0 2px 0 rgba(0,0,0,.4); }
 .lobby-actions {
   width: min(360px, 100%); display: grid; gap: 12px; padding: 16px; border-radius: 26px;
   background: rgba(255, 255, 255, .24); border: 1px solid rgba(255, 255, 255, .5);
