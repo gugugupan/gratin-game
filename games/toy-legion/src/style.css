@@ -287,3 +287,15 @@ html:lang(en) .card span { font-size: 9px; letter-spacing: -.01em; }
 }
 
 #app[data-video="orbit"] :is(.hud-top, .hud-bot, .banner, .toast, .fly, .tip) { display: none; }
+
+.card-tip {
+  position: absolute; z-index: 5; max-width: min(260px, calc(100% - 16px)); pointer-events: none;
+  display: grid; gap: 2px; background: #fff8e8; color: var(--ink); border: 2px solid var(--gold); border-radius: 12px;
+  padding: 7px 11px 8px; box-shadow: 0 4px 0 rgba(0,0,0,.3); font-size: 13px; font-weight: 700; line-height: 1.4;
+}
+.card-tip b { font-size: 14px; font-weight: 800; }
+.card-tip::after {
+  content: ""; position: absolute; left: var(--arrow, 50%); bottom: -8px; width: 12px; height: 12px; transform: translateX(-50%) rotate(45deg);
+  background: #fff8e8; border-right: 2px solid var(--gold); border-bottom: 2px solid var(--gold);
+}
+#app[data-scene="lobby"] .card-tip, #app[data-video="orbit"] .card-tip { display: none; }

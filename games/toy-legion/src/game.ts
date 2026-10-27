@@ -96,6 +96,8 @@ export class Game {
   private scene: 'lobby' | 'game' = 'lobby';
   private busy = false;
   private selected: number | null = null;
+  private hoverUid: number | null = null;
+  private pressUid: number | null = null;
   private targets: string[] = [];
   private drag: { uid: number; x: number; y: number; moved: boolean; hover: string | null } | null = null;
   private tips = loadTips();
@@ -339,9 +341,12 @@ export class Game {
         if (tile.uid === this.selected) el.classList.add('sel');
         if (blocked || !legalTargets(s, tile.uid).length) el.classList.add('dim');
         el.addEventListener('pointerdown', e => this.onCardDown(e, tile));
+        el.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') { this.hoverUid = tile.uid; this.updateCardTip(); } });
+        el.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') { this.hoverUid = null; this.updateCardTip(); } });
         hand.appendChild(el);
       }
     }
+    this.updateCardTip();
     const drawBtn = $<HTMLButtonElement>('draw');
     drawBtn.disabled = hidden || s.turn !== me || !canDraw(s);
     const n = Math.min(2, 8 - s.hand[me].length, s.reserve[me].length);
@@ -359,9 +364,6 @@ export class Game {
       banner.hidden = false;
       $('banner-text').textContent = t('pending.remove', { name: nameOf('brix') });
       this.view.board.setTargets(s.pending.options, 'remove');
-    } else if (this.selected !== null) {
-      const tile = s.hand[me].find(t => t.uid === this.selected);
-      if (tile) { banner.hidden = false; $('banner-text').textContent = t('troop.effect', { name: nameOf(tile.troop), effect: effectOf(tile.troop) }); }
     } else if (s.pending?.kind === 'playAgain') {
       banner.hidden = false;
       skip.hidden = false;
@@ -391,15 +393,38 @@ export class Game {
     saveTips(this.tips);
     this.tipShown = id;
     $('tip-text').textContent = t(`tip.${id}` as Key);
-    const tip = $('tip');
-    tip.style.bottom = `${$('hud-bot').offsetHeight + 10}px`;
-    tip.hidden = false;
+    $('tip').hidden = false;
+    this.placeTip();
     return true;
+  }
+
+  private placeTip() {
+    const card = $('card-tip');
+    let bottom = $('hud-bot').offsetHeight + 10;
+    if (!card.hidden) bottom = Math.max(bottom, window.innerHeight - card.getBoundingClientRect().top + 14);
+    $('tip').style.bottom = `${bottom}px`;
   }
 
   private hideTip() {
     this.tipShown = null;
     $('tip').hidden = true;
+  }
+
+  private updateCardTip() {
+    const tip = $('card-tip');
+    const uid = this.drag?.moved ? null : this.pressUid ?? this.hoverUid ?? this.selected;
+    const el = uid === null ? null : $('hand').querySelector<HTMLElement>(`[data-uid="${uid}"]`);
+    const tile = uid === null ? undefined : this.state.hand[this.viewer].find(x => x.uid === uid);
+    if (!el || !tile || this.scene !== 'game') { tip.hidden = true; this.placeTip(); return; }
+    $('card-tip-name').textContent = `${label(tile.troop)} · ${nameOf(tile.troop)}`;
+    $('card-tip-effect').textContent = effectOf(tile.troop);
+    tip.hidden = false;
+    const r = el.getBoundingClientRect(), cx = r.left + r.width / 2;
+    const left = Math.max(8, Math.min(cx - tip.offsetWidth / 2, window.innerWidth - tip.offsetWidth - 8));
+    tip.style.left = `${left}px`;
+    tip.style.top = `${r.top - tip.offsetHeight - 12}px`;
+    tip.style.setProperty('--arrow', `${cx - left}px`);
+    this.placeTip();
   }
 
   private clearSelection() {
@@ -417,6 +442,8 @@ export class Game {
   }
 
   private onCardDown(e: PointerEvent, tile: Tile) {
+    this.pressUid = tile.uid;
+    this.updateCardTip();
     if (!this.canAct() || this.state.pending?.kind === 'removeAdjacent') return;
     e.preventDefault();
     if (!legalTargets(this.state, tile.uid).length) {
@@ -442,6 +469,7 @@ export class Game {
       card?.classList.add('lift');
       ghost.hidden = false;
     }
+    this.updateCardTip();
     ghost.style.left = `${e.clientX}px`;
     ghost.style.top = `${e.clientY}px`;
     d.hover = this.view.pickNode(e.clientX, e.clientY, this.targets);
@@ -450,6 +478,7 @@ export class Game {
   }
 
   private onDragEnd(e: PointerEvent) {
+    if (this.pressUid !== null) { this.pressUid = null; this.updateCardTip(); }
     const d = this.drag;
     if (!d) return;
     this.drag = null;
@@ -463,6 +492,7 @@ export class Game {
   }
 
   private cancelDrag() {
+    if (this.pressUid !== null) { this.pressUid = null; this.updateCardTip(); }
     if (!this.drag) return;
     this.drag = null;
     $('ghost').hidden = true;
