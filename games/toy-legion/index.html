@@ -1,14 +1,28 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="ja">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#a9d68f">
-  <title>玩具军团</title>
+  <title>玩具军团 Toy Legion</title>
+  <link rel="icon" href="../favicon.ico">
+  <script>
+    var gaId = "%VITE_GA_ID%";
+    if (gaId && location.href.indexOf("%VITE_SITE_URL%") === 0) {
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () { dataLayer.push(arguments); };
+      gtag("js", new Date());
+      gtag("config", gaId);
+      var ga = document.createElement("script");
+      ga.async = true;
+      ga.src = "https://www.googletagmanager.com/gtag/js?id=" + gaId;
+      document.head.appendChild(ga);
+    }
+  </script>
 </head>
 <body>
   <div id="app">
-    <canvas id="gl" aria-label="棋盘"></canvas>
+    <canvas id="gl" data-i18n-label="board"></canvas>
 
     <div class="hud-top" id="hud-top">
       <div class="chip" id="opp-chip">
@@ -21,7 +35,7 @@
 
     <div class="banner" id="banner" hidden>
       <span id="banner-text"></span>
-      <button class="btn-small" id="banner-skip" hidden>跳过</button>
+      <button class="btn-small" id="banner-skip" data-i18n="skip" hidden></button>
     </div>
 
     <div class="toast" id="toast" hidden></div>
@@ -31,8 +45,8 @@
         <div class="hand-row">
           <div class="hand" id="hand"></div>
           <div class="draw-col">
-            <button class="draw" id="draw"><span>抽</span><b>2</b><span>张</span></button>
-            <small class="deck" id="deck">牌库 0</small>
+            <button class="draw" id="draw"><span data-i18n="draw.pre"></span><b>2</b><span data-i18n="draw.post"></span></button>
+            <small class="deck" id="deck"></small>
           </div>
         </div>
       </div>
@@ -40,21 +54,29 @@
 
     <div class="overlay" id="pass" hidden>
       <div class="panel">
-        <div class="panel-kicker" id="pass-kicker">本地双人</div>
-        <h1 id="pass-title">轮到 红方</h1>
-        <p id="pass-note">把手机交给红方，再点开始。</p>
-        <button class="btn-big" id="pass-go">开始</button>
+        <div class="panel-kicker" data-i18n="mode.local"></div>
+        <h1 id="pass-title"></h1>
+        <p id="pass-note"></p>
+        <button class="btn-big" id="pass-go" data-i18n="pass.go"></button>
       </div>
     </div>
 
     <div class="overlay" id="over" hidden>
       <div class="panel">
         <div class="crown" aria-hidden="true">♛</div>
-        <h1 id="over-title">红方获胜</h1>
+        <h1 id="over-title"></h1>
         <p id="over-note"></p>
         <div class="score"><span class="sq red"></span> <b id="over-red">0</b> : <b id="over-blue">0</b> <span class="sq blue"></span></div>
-        <button class="btn-big" id="over-again">再来一局</button>
-        <button class="btn-ghost wide" id="over-lobby">回到大厅</button>
+        <button class="btn-big" id="over-again" data-i18n="over.again"></button>
+        <button class="btn-ghost wide" id="over-lobby" data-i18n="over.lobby"></button>
+      </div>
+    </div>
+
+    <div class="tip" id="tip" hidden>
+      <p id="tip-text"></p>
+      <div class="tip-actions">
+        <button class="tip-off" id="tip-off" data-i18n="tip.off"></button>
+        <button class="btn-small" id="tip-ok" data-i18n="tip.ok"></button>
       </div>
     </div>
 
@@ -67,66 +89,75 @@
 
     <div class="lobby" id="lobby">
       <div class="logo">
-        <h1>玩具军团</h1>
+        <h1 data-i18n="title">玩具军团</h1>
       </div>
       <div class="lobby-actions">
-        <button class="btn-big" id="lobby-start">开始</button>
+        <button class="btn-big" id="lobby-start" data-i18n="lobby.start"></button>
         <div class="lobby-row">
-          <button class="btn-pill" id="lobby-rules">玩法</button>
-          <button class="btn-pill" id="lobby-units">兵种</button>
+          <button class="btn-pill" id="lobby-rules" data-i18n="lobby.rules"></button>
+          <button class="btn-pill" id="lobby-units" data-i18n="lobby.units"></button>
         </div>
       </div>
-      <button class="gear" id="lobby-settings" aria-label="设置">⚙</button>
+      <button class="gear" id="lobby-settings" data-i18n-label="lobby.settings">⚙</button>
     </div>
 
     <div class="sheet" id="setup" hidden>
       <div class="sheet-body">
-        <h2>选择模式</h2>
+        <h2 data-i18n="setup.mode"></h2>
         <div class="modes">
-          <button class="mode" data-mode="ai"><b>人机对战</b><span>和 AI 对战，你执红方</span></button>
-          <button class="mode" data-mode="local"><b>本地双人</b><span>一台手机轮流下</span></button>
+          <button class="mode" data-mode="ai"><b data-i18n="mode.ai"></b><span data-i18n="mode.ai.note"></span></button>
+          <button class="mode" data-mode="local"><b data-i18n="mode.local"></b><span data-i18n="mode.local.note"></span></button>
         </div>
         <div class="diff" id="diff">
-          <span>AI 难度</span>
-          <button data-diff="easy">简单</button>
-          <button data-diff="normal">普通</button>
+          <span data-i18n="setup.diff"></span>
+          <button data-diff="easy" data-i18n="diff.easy"></button>
+          <button data-diff="normal" data-i18n="diff.normal"></button>
         </div>
-        <h2>选择地图</h2>
+        <h2 data-i18n="setup.map"></h2>
         <div class="maps" id="maps"></div>
         <div class="sheet-actions">
-          <button class="btn-ghost" id="setup-back">返回</button>
-          <button class="btn-big" id="setup-go">开战！</button>
+          <button class="btn-ghost" id="setup-back" data-i18n="setup.back"></button>
+          <button class="btn-big" id="setup-go" data-i18n="setup.go"></button>
         </div>
       </div>
     </div>
 
     <div class="sheet" id="rules" hidden>
       <div class="sheet-body">
-        <h2>玩法</h2>
+        <h2 data-i18n="lobby.rules"></h2>
         <ol class="steps">
-          <li><b>出兵</b>每回合二选一：抽 2 张牌，或出 1 个兵。兵只能出在连回自己城堡的格子上，路线要经过自己占着的格子。</li>
-          <li><b>强压弱</b>力量更大的兵可以盖住敌兵，被盖住的兵变成下面的一层。万能兵能盖住任何兵，也能被任何兵盖住。</li>
-          <li><b>拿星星</b>占满一圈格子，就拿走这个区域里的星星。先拿到目标星数的一方获胜。</li>
-          <li><b>攻城</b>把兵出到对方城堡上，直接获胜。双方都无法行动时，星星多的一方获胜。</li>
+          <li><b data-i18n="rules.1.h"></b><span data-i18n="rules.1"></span></li>
+          <li><b data-i18n="rules.2.h"></b><span data-i18n="rules.2"></span></li>
+          <li><b data-i18n="rules.3.h"></b><span data-i18n="rules.3"></span></li>
+          <li><b data-i18n="rules.4.h"></b><span data-i18n="rules.4"></span></li>
         </ol>
-        <div class="sheet-actions"><button class="btn-big" data-close>知道了</button></div>
+        <div class="sheet-actions"><button class="btn-big" data-close data-i18n="rules.ok"></button></div>
       </div>
     </div>
 
     <div class="sheet" id="units" hidden>
       <div class="sheet-body">
-        <h2>兵种</h2>
+        <h2 data-i18n="lobby.units"></h2>
         <div class="unit-list" id="unit-list"></div>
-        <div class="sheet-actions"><button class="btn-big" data-close>关闭</button></div>
+        <div class="sheet-actions"><button class="btn-big" data-close data-i18n="close"></button></div>
       </div>
     </div>
 
     <div class="sheet" id="settings" hidden>
       <div class="sheet-body">
-        <h2>设置</h2>
-        <label class="setting"><span>音效（即将加入）</span><input type="checkbox" id="opt-sound" checked disabled></label>
-        <div class="sheet-actions"><button class="btn-big" data-close>关闭</button></div>
+        <h2 data-i18n="lobby.settings"></h2>
+        <div class="setting"><span data-i18n="settings.lang"></span><div class="langs" id="langs"></div></div>
+        <label class="setting"><span data-i18n="settings.tips"></span><input type="checkbox" id="opt-tips"></label>
+        <label class="setting"><span data-i18n="settings.sound"></span><input type="checkbox" id="opt-sound" checked disabled></label>
+        <div class="sheet-actions"><button class="btn-big" data-close data-i18n="close"></button></div>
       </div>
+    </div>
+
+    <div class="loader" id="loader">
+      <img class="loader-art" id="loader-art" alt="">
+      <div class="loader-troops" id="loader-troops"></div>
+      <div class="loader-bar"><i id="loader-fill"></i></div>
+      <p class="loader-text" data-i18n="loading"></p>
     </div>
   </div>
   <script type="module" src="./src/main.ts"></script>

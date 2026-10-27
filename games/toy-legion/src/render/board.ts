@@ -290,6 +290,7 @@ export interface BoardScene {
   setTargets: (ids: string[], tone: 'place' | 'remove') => void;
   setHover: (id: string | null) => void;
   pulse: (t: number) => void;
+  ready: Promise<void>;
 }
 
 export function buildBoard(map: MapDef, scene: THREE.Scene): BoardScene {
@@ -375,7 +376,7 @@ export function buildBoard(map: MapDef, scene: THREE.Scene): BoardScene {
   });
 
   scatterDecor(map, board, toW, nodeW, theme);
-  addScenery(map, board, Y0, U, theme.river).catch(e => console.warn('scenery', e));
+  const ready = addScenery(map, board, Y0, U, theme.river).catch(e => console.warn('scenery', e));
 
   const linkGroup = grp(board);
   const flat = (parent: THREE.Object3D, sx: number, sz: number, x: number, y: number, z: number, mat: THREE.Material) => {
@@ -437,7 +438,7 @@ export function buildBoard(map: MapDef, scene: THREE.Scene): BoardScene {
     if (water) water.offset.x = t * .02;
   };
 
-  return { group: board, ticks, nodeW, medalGroups, setLinks, setTargets, setHover, pulse };
+  return { group: board, ticks, nodeW, medalGroups, setLinks, setTargets, setHover, pulse, ready };
 }
 
 function scatterDecor(map: MapDef, board: THREE.Group, toW: (p: [number, number]) => THREE.Vector3, nodeW: (id: string) => THREE.Vector3, theme: Theme) {
