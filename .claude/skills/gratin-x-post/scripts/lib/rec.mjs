@@ -36,12 +36,12 @@ const TAP = `(() => {
   })));
 })();`;
 
-export async function open(url, { size = 720, scale = 1.5, headless = true, storage = {} } = {}) {
+export async function open(url, { size = 720, width = size, height = size, scale = 1.5, headless = true, storage = {} } = {}) {
   const browser = await chromium.launch({
     headless,
     args: ["--autoplay-policy=no-user-gesture-required", "--enable-gpu", "--ignore-gpu-blocklist", "--use-angle=metal"],
   });
-  const context = await browser.newContext({ viewport: { width: size, height: size }, deviceScaleFactor: scale });
+  const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: scale });
   await context.addInitScript(TAP);
   await context.addInitScript((st) => { for (const [k, v] of Object.entries(st)) localStorage.setItem(k, v); }, storage);
   const page = await context.newPage();

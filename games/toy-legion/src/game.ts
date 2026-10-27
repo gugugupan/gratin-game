@@ -589,6 +589,11 @@ export class Game {
 
   debugState() { return this.state; }
 
+  videoMode(orbit: boolean) {
+    $('app').dataset.video = orbit ? 'orbit' : '';
+    this.stage.setOrbit(orbit);
+  }
+
   private showOver() {
     const s = this.state;
     let title = s.winner === 'draw' ? t('over.draw') : t('over.win', { side: this.sideName(s.winner as Side) });

@@ -158,5 +158,32 @@
     "status": "live",
     "added": "2026-10-17",
     "preview": "previews/karesansui.mp4"
+    },
+  {
+    "id": "toy-legion",
+    "title": {
+      "ja": "おもちゃ軍団",
+      "zh": "玩具军团",
+      "en": "Toy Legion"
+    },
+    "tagline": {
+      "ja": "おもちゃの兵隊を道に並べて陣地を広げよう。強いユニットは敵の上に重ねられる。エリアを埋めて星を集めるか、相手の城に乗り込めば勝ち。",
+      "zh": "把玩具兵沿着道路一路摆过去，强的能压住弱的。占满区域拿星星，或者直接冲进对方城堡。",
+      "en": "March toy troops down the roads to grow your front. Stronger troops stack on weaker ones. Fill regions for stars, or storm the enemy castle."
+    },
+    "url": "https://gratin-game.com/toy-legion/",
+    "cover": "covers/toy-legion.jpg",
+    "input": [
+      "mouse",
+      "touch"
+    ],
+    "languages": [
+      "ja",
+      "zh",
+      "en"
+    ],
+    "status": "live",
+    "added": "2026-10-27",
+    "preview": "previews/toy-legion.mp4"
   }
 ]

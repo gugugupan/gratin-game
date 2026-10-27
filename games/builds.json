@@ -2,5 +2,6 @@
   "gridlands": "games/gridlands/web/dist",
   "paper-quarantine": "games/paper-quarantine/dist-web",
   "rto": "games/rto/dist",
-  "karesansui": "games/karesansui/dist"
+  "karesansui": "games/karesansui/dist",
+  "toy-legion": "games/toy-legion/dist"
 }

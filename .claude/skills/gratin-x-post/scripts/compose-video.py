@@ -1,7 +1,9 @@
-# usage: python3 compose-video.py <raw-dir> <start-s> <end-s> <endcard.png> <out.mp4>
+# usage: python3 compose-video.py <raw-dir> <start-s> <end-s> <endcard.png> <out.mp4> [bg.jpg]
+# With bg.jpg, a non-square recording (toy-legion is portrait) is fit to 1080 tall and centred on the background.
 # raw-dir comes from record-lemon.mjs / record-clickton.mjs; times are seconds from the first captured frame.
 import json, sys, os, subprocess
 raw, start, end, card, out = sys.argv[1], float(sys.argv[2]), float(sys.argv[3]), sys.argv[4], sys.argv[5]
+bg = sys.argv[6] if len(sys.argv) > 6 else None
 CARD, XF = 2.4, 0.4
 # -22 LUFS: the user found -16 too loud for a timeline that autoplays.
 LOUDNESS = -22
@@ -28,11 +30,15 @@ mix = "".join(f"[{i+2}:a]" for i in range(n)) + (f"amix=inputs={n}:normalize=0,"
 if n == 0:
     ain = ["-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo"]
     mix = "[2:a]anull,"
-fc = (f"[0:v]trim=start={start - vstart:.3f}:duration={dur:.3f},setpts=PTS-STARTPTS,fps=30,scale=1080:1080:flags=lanczos,format=yuv420p,setsar=1[g];"
+game = (f"[0:v]trim=start={start - vstart:.3f}:duration={dur:.3f},setpts=PTS-STARTPTS,fps=30,"
+        + (f"scale=-2:1080:flags=lanczos[fg];[{n + 2 if n else 3}:v]fps=30,scale=1080:1080:force_original_aspect_ratio=increase,crop=1080:1080[bg];[bg][fg]overlay=(W-w)/2:0:shortest=1," if bg else "scale=1080:1080:flags=lanczos,")
+        + "format=yuv420p,setsar=1[g];")
+fc = (game +
       f"[1:v]fps=30,scale=1080:1080,format=yuv420p,setsar=1,trim=duration={CARD}[c];"
       f"[g][c]xfade=transition=fade:duration={XF}:offset={dur - XF:.3f},format=yuv420p[v];"
       f"{mix}apad,atrim=duration={total:.3f}," + ("" if n == 0 else f"loudnorm=I={LOUDNESS}:TP=-2:LRA=11,") + f"afade=t=in:d=0.05,afade=t=out:st={total - 1.6:.3f}:d=1.6[a]")
 cmd = ["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", f"{raw}/list.txt", "-loop", "1", "-t", str(CARD), "-i", card, *ain,
+       *(["-loop", "1", "-i", bg] if bg else []),
        "-filter_complex", fc, "-map", "[v]", "-map", "[a]", "-c:v", "libx264", "-profile:v", "high", "-crf", "18", "-preset", "slow",
        "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-movflags", "+faststart", out]
 subprocess.run(cmd, check=True)
