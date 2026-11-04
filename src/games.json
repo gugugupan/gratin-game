@@ -158,7 +158,7 @@
     "status": "live",
     "added": "2026-10-17",
     "preview": "previews/karesansui.mp4"
-    },
+  },
   {
     "id": "toy-legion",
     "title": {
@@ -185,5 +185,33 @@
     "status": "live",
     "added": "2026-10-27",
     "preview": "previews/toy-legion.mp4"
+  },
+  {
+    "id": "pittari-yaki",
+    "title": {
+      "ja": "ぴったり焼き",
+      "zh": "刚好烤",
+      "en": "Just Baked"
+    },
+    "tagline": {
+      "ja": "山札をめくって3つの皿に入れ、合計ぴったり12で焼き上がり。12を超えたら焦げる。大火・冷却・チーズで先に20点を目指そう。ひとりでも、AIや友だちと4人まででも。",
+      "zh": "翻牌放进三个烤盘，总和刚好 12 就出菜，超过 12 就烤焦。用大火、冷却、芝士抢先拿到 20 分。一个人玩，或和 AI、朋友最多 4 人同玩。",
+      "en": "Flip a card, drop it in one of three dishes, and bake each to exactly 12 — go over and it burns. Use heat, cool-downs and cheese to reach 20 first. Solo, or up to 4 with AI and friends."
+    },
+    "url": "https://gratin-game.com/pittari-yaki/",
+    "cover": "covers/pittari-yaki.jpg",
+    "input": [
+      "mouse",
+      "touch",
+      "keyboard"
+    ],
+    "languages": [
+      "ja",
+      "zh",
+      "en"
+    ],
+    "status": "live",
+    "added": "2026-11-05",
+    "preview": "previews/pittari-yaki.mp4"
   }
 ]

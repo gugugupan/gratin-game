@@ -3,5 +3,6 @@
   "paper-quarantine": "games/paper-quarantine/dist-web",
   "rto": "games/rto/dist",
   "karesansui": "games/karesansui/dist",
-  "toy-legion": "games/toy-legion/dist"
+  "toy-legion": "games/toy-legion/dist",
+  "pittari-yaki": "games/pittari-yaki/dist"
 }

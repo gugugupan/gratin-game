@@ -39,6 +39,7 @@ const TAP = `(() => {
 export async function open(url, { size = 720, width = size, height = size, scale = 1.5, headless = true, storage = {} } = {}) {
   const browser = await chromium.launch({
     headless,
+    ...(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {}),
     args: ["--autoplay-policy=no-user-gesture-required", "--enable-gpu", "--ignore-gpu-blocklist", "--use-angle=metal"],
   });
   const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: scale });
