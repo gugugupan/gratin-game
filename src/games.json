@@ -22,6 +22,9 @@
       "ja",
       "zh"
     ],
+    "tags": [
+      "rhythm"
+    ],
     "status": "live",
     "added": "2026-09-28"
   },
@@ -49,6 +52,10 @@
       "zh",
       "en"
     ],
+    "tags": [
+      "builder",
+      "chill"
+    ],
     "status": "live",
     "added": "2026-10-02"
   },
@@ -74,6 +81,9 @@
       "zh",
       "ja",
       "en"
+    ],
+    "tags": [
+      "puzzle"
     ],
     "status": "live",
     "added": "2026-10-02"
@@ -102,6 +112,9 @@
       "zh",
       "en"
     ],
+    "tags": [
+      "board"
+    ],
     "status": "live",
     "added": "2026-10-07"
   },
@@ -129,6 +142,10 @@
       "zh",
       "en"
     ],
+    "tags": [
+      "puzzle",
+      "story"
+    ],
     "status": "live",
     "added": "2026-10-08"
   },
@@ -154,6 +171,10 @@
     "languages": [
       "ja",
       "zh"
+    ],
+    "tags": [
+      "puzzle",
+      "chill"
     ],
     "status": "live",
     "added": "2026-10-17",
@@ -182,6 +203,10 @@
       "zh",
       "en"
     ],
+    "tags": [
+      "board",
+      "multiplayer"
+    ],
     "status": "live",
     "added": "2026-10-27",
     "preview": "previews/toy-legion.mp4"
@@ -209,6 +234,10 @@
       "ja",
       "zh",
       "en"
+    ],
+    "tags": [
+      "cards",
+      "multiplayer"
     ],
     "status": "live",
     "added": "2026-11-05",

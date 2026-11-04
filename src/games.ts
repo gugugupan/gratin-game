@@ -1,5 +1,5 @@
 import data from "./games.json";
-import { INPUTS, LOCALES, type Localized } from "./i18n";
+import { INPUTS, LOCALES, TAGS, type Localized } from "./i18n";
 
 export type Game = {
   id: string;
@@ -10,6 +10,7 @@ export type Game = {
   preview?: string;
   input: string[];
   languages: string[];
+  tags: string[];
   status: "live" | "soon";
   added: string;
   /** Deployed and reachable by URL, but left off the home page. */
@@ -48,8 +49,19 @@ export function validateGames(games: Game[]): string[] {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(g.added)) errors.push(`${g.id}: added must be YYYY-MM-DD`);
     if (g.status !== "live" && g.status !== "soon") errors.push(`${g.id}: bad status`);
     for (const i of g.input) if (!INPUTS[i]) errors.push(`${g.id}: unknown input ${i}`);
+    if (!g.tags?.length) errors.push(`${g.id}: needs at least one tag`);
+    for (const tag of g.tags ?? []) if (!TAGS[tag]) errors.push(`${g.id}: unknown tag ${tag}`);
     if (g.hidden !== undefined && typeof g.hidden !== "boolean") errors.push(`${g.id}: hidden must be a boolean`);
     if (g.preview !== undefined && !/^previews\/[\w-]+\.mp4$/.test(g.preview)) errors.push(`${g.id}: preview must be previews/<name>.mp4`);
   }
   return errors;
+}
+
+export function filterByTag(games: Game[], tag: string | null): Game[] {
+  return tag ? games.filter((g) => g.tags.includes(tag)) : games;
+}
+
+export function usedTags(games: Game[]): string[] {
+  const used = new Set(games.flatMap((g) => g.tags));
+  return Object.keys(TAGS).filter((tag) => used.has(tag));
 }

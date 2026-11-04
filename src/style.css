@@ -76,6 +76,38 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px 24px; }
 
 .count { margin: 0 0 20px; font-size: 14px; font-weight: 700; color: var(--crust-soft); }
 
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+.filters button,
+.tags button {
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 999px;
+  color: var(--crust);
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+.filters button {
+  min-height: 40px;
+  padding: 0 16px;
+  font-size: 14px;
+  background: var(--milk);
+  border: 2px solid var(--line);
+  box-shadow: 0 2px 0 #e7c993;
+}
+.filters button:hover { border-color: var(--cheese); }
+.filters button:active { transform: translateY(1px); }
+.filters button[aria-pressed="true"] { background: var(--crust); border-color: var(--crust); color: var(--milk); box-shadow: none; }
+
+.tags { list-style: none; margin: -4px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.tags button {
+  padding: 3px 10px;
+  font-size: 12px;
+  background: var(--cream);
+  border: 1.5px solid var(--line);
+}
+.tags button:hover { background: var(--cheese-light); border-color: var(--cheese); }
+.tags button[aria-pressed="true"] { background: var(--cheese); border-color: var(--cheese); }
+
 .grid {
   list-style: none;
   margin: 0;
@@ -238,4 +270,16 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 24px 24px; }
 @media (prefers-reduced-motion: reduce) {
   .card, .cover img { transition: none; }
   .card:hover, .card:hover .cover img { transform: none; }
+}
+
+@media (max-width: 640px) {
+  .filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 0 -16px 14px;
+    padding: 2px 16px 6px;
+  }
+  .filters::-webkit-scrollbar { display: none; }
+  .filters button { flex: none; min-height: 38px; padding: 0 14px; font-size: 13px; }
 }

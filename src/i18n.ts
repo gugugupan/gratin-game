@@ -21,6 +21,8 @@ const STRINGS = {
   newBadge: { ja: "NEW", zh: "新", en: "NEW" },
   count: { ja: "{n} 本のゲーム", zh: "共 {n} 款游戏", en: "{n} games" },
   language: { ja: "言語", zh: "语言", en: "Language" },
+  allTags: { ja: "すべて", zh: "全部", en: "All" },
+  filterLabel: { ja: "ジャンルで絞り込む", zh: "按类型筛选", en: "Filter by genre" },
   feedbackSubject: { ja: "【グラタンゲーム】ご意見・ご感想", zh: "【グラタンゲーム】意见反馈", en: "[Gratin Game] Feedback" },
   backHome: { ja: "ゲーム一覧へもどる", zh: "返回游戏列表", en: "Back to all games" },
   ideaTitle: { ja: "ゲームのアイデア、募集中！", zh: "征集游戏点子！", en: "Got a game idea?" },
@@ -34,6 +36,17 @@ const STRINGS = {
   contact: { ja: "お問い合わせ：", zh: "联系我们：", en: "Contact: " },
   footer: { ja: "すべて手づくり、ブラウザですぐ遊べます。", zh: "全部手工制作，打开浏览器就能玩。", en: "Handmade, and playable right in your browser." },
 } satisfies Record<string, Localized>;
+
+export const TAGS: Record<string, Localized> = {
+  puzzle: { ja: "パズル", zh: "解谜", en: "Puzzle" },
+  cards: { ja: "カード", zh: "卡牌", en: "Cards" },
+  board: { ja: "ボードゲーム", zh: "桌游策略", en: "Board" },
+  rhythm: { ja: "リズム", zh: "节奏", en: "Rhythm" },
+  builder: { ja: "箱庭", zh: "建造", en: "Builder" },
+  story: { ja: "ストーリー", zh: "剧情", en: "Story" },
+  multiplayer: { ja: "みんなで", zh: "多人同玩", en: "Local multiplayer" },
+  chill: { ja: "まったり", zh: "放松", en: "Chill" },
+};
 
 export const INPUTS: Record<string, Localized> = {
   keyboard: { ja: "キーボード", zh: "键盘", en: "Keyboard" },

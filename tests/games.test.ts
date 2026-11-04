@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { GAMES, SITE_URL, isNew, sortGames, validateGames, type Game } from "../src/games";
+import { GAMES, SITE_URL, filterByTag, isNew, sortGames, usedTags, validateGames, type Game } from "../src/games";
 import { detectLocale } from "../src/i18n";
 
 describe("games.json", () => {
@@ -49,6 +49,7 @@ const game = (over: Partial<Game>): Game => ({
   cover: "covers/x.jpg",
   input: [],
   languages: [],
+  tags: ["puzzle"],
   status: "live",
   added: "2026-01-01",
   ...over,
@@ -75,6 +76,18 @@ describe("library logic", () => {
     expect(errors).toContain("x: url must be https");
     expect(errors).toContain("x: duplicate id");
     expect(validateGames([game({ preview: "covers/x.gif" })])).toContain("x: preview must be previews/<name>.mp4");
+  });
+
+  it("requires known tags on every game", () => {
+    expect(validateGames([game({ tags: [] })])).toContain("x: needs at least one tag");
+    expect(validateGames([game({ tags: ["puzle"] })])).toContain("x: unknown tag puzle");
+  });
+
+  it("filters by tag and lists only tags in use, in label order", () => {
+    const list = [game({ id: "a", tags: ["story", "puzzle"] }), game({ id: "b", tags: ["cards"] })];
+    expect(filterByTag(list, "puzzle").map((g) => g.id)).toEqual(["a"]);
+    expect(filterByTag(list, null)).toHaveLength(2);
+    expect(usedTags(list)).toEqual(["puzzle", "cards", "story"]);
   });
 });
 

@@ -1,14 +1,21 @@
 void import("./fonts");
 import "./style.css";
-import { GAMES, isNew, sortGames, type Game } from "./games";
-import { INPUTS, LOCALE_LABELS, langButtons, loadLocale, saveLocale, t, watchLocale, type Locale } from "./i18n";
+import { GAMES, filterByTag, isNew, sortGames, usedTags, type Game } from "./games";
+import { INPUTS, LOCALE_LABELS, TAGS, langButtons, loadLocale, saveLocale, t, watchLocale, type Locale } from "./i18n";
 import { mailto } from "./feedback";
 import { FEEDBACK_EMAIL, PRIVACY } from "./privacy";
 
 if (location.hash === "#privacy") location.replace("./privacy/");
 
-const state: { locale: Locale } = { locale: loadLocale() };
 const games = sortGames(GAMES.filter((g) => !g.hidden));
+const tags = usedTags(games);
+
+function tagFromHash(): string | null {
+  const tag = new URLSearchParams(location.hash.slice(1)).get("tag");
+  return tag && tags.includes(tag) ? tag : null;
+}
+
+const state: { locale: Locale; tag: string | null } = { locale: loadLocale(), tag: tagFromHash() };
 
 const canHoverPreview = () =>
   matchMedia("(hover: hover) and (pointer: fine)").matches && !matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -51,6 +58,9 @@ function card(g: Game, locale: Locale, now: Date): string {
   <a class="cover" href="${live ? esc(g.url) : "#"}" ${live ? "" : 'tabindex="-1" aria-hidden="true"'}>${cover}${badge}</a>
   <div class="body">
     <h2>${title}</h2>
+    <ul class="tags">${g.tags
+      .map((tag) => `<li><button type="button" data-tag="${tag}" aria-pressed="${tag === state.tag}">${esc(TAGS[tag][locale])}</button></li>`)
+      .join("")}</ul>
     <p class="desc">${esc(g.tagline[locale])}</p>
     <div class="meta"><ul class="inputs">${inputs}</ul><span class="langs">${langs}</span></div>
     <div class="actions">${play}</div>
@@ -75,8 +85,15 @@ function render(): void {
   $(".lang").innerHTML = langButtons(locale);
 
   const now = new Date();
-  $(".grid").innerHTML = games.map((g) => card(g, locale, now)).join("");
-  $(".count").textContent = t(locale, "count", { n: games.length });
+  const shown = filterByTag(games, state.tag);
+  $(".filters").innerHTML = [null, ...tags]
+    .map(
+      (tag) =>
+        `<button type="button" data-tag="${tag ?? ""}" aria-pressed="${tag === state.tag}">${esc(tag ? TAGS[tag][locale] : t(locale, "allTags"))}</button>`,
+    )
+    .join("");
+  $(".grid").innerHTML = shown.map((g) => card(g, locale, now)).join("");
+  $(".count").textContent = t(locale, "count", { n: shown.length });
   $<HTMLAnchorElement>(".mail-address").href = mailto(locale);
   $(".mail-address").textContent = FEEDBACK_EMAIL;
   $<HTMLAnchorElement>(".idea-mail").href = mailto(locale, "ideaSubject");
@@ -110,8 +127,28 @@ for (const [type, on] of [["mouseover", true], ["mouseout", false]] as const) {
   });
 }
 
+function setTag(tag: string | null): void {
+  state.tag = tag;
+  const url = tag ? `#tag=${tag}` : location.pathname + location.search;
+  history.replaceState(null, "", url);
+  render();
+}
+
+window.addEventListener("hashchange", () => {
+  state.tag = tagFromHash();
+  render();
+});
+
 document.addEventListener("click", (e) => {
   const target = e.target as HTMLElement;
+  const tagBtn = target.closest<HTMLButtonElement>("[data-tag]");
+  if (tagBtn) {
+    const tag = tagBtn.dataset.tag || null;
+    const fromCard = !!tagBtn.closest(".card");
+    setTag(fromCard && tag === state.tag ? null : tag);
+    if (fromCard) $(".filters").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    return;
+  }
   const langBtn = target.closest<HTMLButtonElement>("[data-locale]");
   if (langBtn) {
     state.locale = langBtn.dataset.locale as Locale;
