@@ -21,6 +21,7 @@ import {
 } from './engine';
 import { aiChoose } from './ai';
 import { heatArt } from './art';
+import * as sound from './sound';
 import { burst, confetti, flyCard, rectsOf, slideFrom, snapshot, turnTable, type BurstKind } from './fx';
 import { applyDocument, LOCALE_LABELS, LOCALES, locale, setLocale, t, type Key } from './i18n';
 
@@ -190,6 +191,13 @@ function ptsHTML(pi: number): string {
   return `<b class="pts ${sc > (shownScores[pi] ?? 0) ? 'bump' : ''}">${sc}<small>/${GOAL}</small></b>`;
 }
 
+const NOTE_IC = '<svg viewBox="0 0 24 24" class="ic"><path d="M9 17.5a3 3 0 1 1-2-2.83V5l12-2.5v12a3 3 0 1 1-2-2.83V6.9L9 8.6z"/></svg>';
+const SPEAKER_IC = '<svg viewBox="0 0 24 24" class="ic"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+
+function soundToggles(): string {
+  return `<button class="snd ${sound.musicOn ? '' : 'off'}" data-act="music" aria-pressed="${sound.musicOn}" aria-label="${t('sound.music')}" title="${t('sound.music')}">${NOTE_IC}</button><button class="snd ${sound.sfxOn ? '' : 'off'}" data-act="sfx" aria-pressed="${sound.sfxOn}" aria-label="${t('sound.sfx')}" title="${t('sound.sfx')}">${SPEAKER_IC}</button>`;
+}
+
 function avatar(ai: boolean): string {
   return `<span class="who-ic">${ai ? ICON.robot : ICON.person}</span>`;
 }
@@ -251,7 +259,7 @@ function renderPlay(): string {
   <div class="play ${solo ? 'solo' : ''} n${g.players.length}">
     <header class="topbar">
       <span class="mini-logo">${t('title')}</span>
-      <button class="ghost" data-act="quit">${t('quit')}</button>
+      <span class="top-right">${soundToggles()}<button class="ghost" data-act="quit">${t('quit')}</button></span>
     </header>
     ${others.length ? `<section class="opps">${others.map(oppHTML).join('')}</section>` : ''}
     <section class="mid">
@@ -307,7 +315,7 @@ function renderSetup(): string {
     <p class="tagline">${t('tagline')}</p>
     <div class="seats">${rows}</div>
     <div class="btns"><button class="btn primary big" data-act="start">${t('start')}</button><button class="btn" data-act="rules">${t('rules')}</button></div>
-    <div class="langs">${LOCALES.map(l => `<button data-act="lang" data-l="${l}" aria-pressed="${l === locale}">${LOCALE_LABELS[l]}</button>`).join('')}</div>
+    <div class="langs">${soundToggles()}<span class="sep"></span>${LOCALES.map(l => `<button data-act="lang" data-l="${l}" aria-pressed="${l === locale}">${LOCALE_LABELS[l]}</button>`).join('')}</div>
   </div>`;
 }
 
@@ -345,6 +353,15 @@ function showToast(text: string) {
 function absorb(ev: GameEvent[]) {
   const g = game!;
   for (const e of ev) {
+    if (e.type === 'draw') sound.play('flip');
+    else if (e.type === 'place' && e.card.kind === 'num') sound.play('place', { value: e.card.v, delay: 300 });
+    else if (e.type === 'serve') sound.play(e.cheese ? 'serveCheese' : 'serve', { delay: 430 });
+    else if (e.type === 'burn') sound.play('burn', { delay: 430 });
+    else if (e.type === 'fire') sound.play('fire', { delay: 200 });
+    else if (e.type === 'cool') sound.play('cool', { delay: 250 });
+    else if (e.type === 'cheese' && e.plate !== null) sound.play('cheese', { delay: 300 });
+    else if (e.type === 'extra') sound.play('extra', { delay: 350 });
+    else if (e.type === 'reshuffle') sound.play('flip', { delay: 120 });
     if (e.type === 'place') landed = `${e.player}-${e.plate}`;
     else if (e.type === 'serve') flashes.set(`${e.player}-${e.plate}`, { cls: 'served', text: `+${e.points}` });
     else if (e.type === 'burn') flashes.set(`${e.player}-${e.plate}`, { cls: 'burnt', text: t('toast.burn') });
@@ -376,11 +393,16 @@ function afterTurnChange(ev: GameEvent[]) {
     const oldPlates = passing ? snapshot(app.querySelector('.plates')) : null;
     render();
     if (passing && oldRects) {
+      sound.play('pass');
       slideFrom(app, 'data-player', oldRects);
       const play = app.querySelector('.play')!.getBoundingClientRect();
       turnTable(oldPlates, app.querySelector<HTMLElement>('.plates'), { x: play.left + play.width / 2, y: play.top + play.height * 0.42 });
     }
-    if (showResult && g.players[g.winner!] && !g.players[g.winner!].ai) confetti();
+    if (showResult) {
+      sound.duckMusic(true);
+      sound.play('win');
+      if (g.players[g.winner!] && !g.players[g.winner!].ai) confetti();
+    }
     schedule();
   }, ev.some(e => e.type === 'win') ? 1300 : hold);
 }
@@ -444,6 +466,7 @@ function schedule() {
 }
 
 function startGame() {
+  sound.startMusic();
   const used = seats.map((s, i) => ({ s, i })).filter(({ s }) => s.mode !== 'off');
   seatOf = used.map(({ i }) => i);
   const active = used
@@ -479,6 +502,18 @@ app.addEventListener('click', e => {
   const el = (e.target as HTMLElement).closest<HTMLElement>('[data-act]');
   if (!el) return;
   const act = el.dataset.act;
+  if (act === 'music') {
+    sound.setMusic(!sound.musicOn);
+    render();
+    return;
+  }
+  if (act === 'sfx') {
+    sound.setSfx(!sound.sfxOn);
+    sound.play('tap');
+    render();
+    return;
+  }
+  if (!['plate', 'target', 'draw', 'player'].includes(act ?? '')) sound.play('tap');
   if (act === 'close-rules') {
     if (el.classList.contains('overlay') && e.target !== el) return;
     rulesOpen = false;
@@ -537,4 +572,19 @@ window.addEventListener('keydown', e => {
 
 applyDocument();
 render();
+
+window.addEventListener(
+  'pointerdown',
+  () => {
+    sound.unlock();
+    sound.startMusic();
+  },
+  { once: true },
+);
+window.addEventListener('keydown', () => sound.unlock(), { once: true });
+
+app.addEventListener('mouseover', e => {
+  const el = (e.target as HTMLElement).closest('.plate:not(:disabled), .mp.target:not(:disabled), .deck:not(:disabled), .opp.pick, .me.pick');
+  if (el && !el.contains(e.relatedTarget as Node | null) && matchMedia('(hover: hover)').matches) sound.play('hover');
+});
 if (import.meta.env.DEV) Object.assign(window, { __pittari: { get game() { return game; } } });

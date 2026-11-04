@@ -194,6 +194,23 @@ button:disabled { cursor: default; }
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .mini-logo { font-family: var(--display); font-weight: 400; font-size: 18px; white-space: nowrap; }
 .topbar .ghost { white-space: nowrap; flex: none; }
+.top-right { display: flex; align-items: center; gap: 6px; }
+.snd {
+  width: 32px;
+  height: 32px;
+  border: 2.5px solid var(--ink);
+  border-radius: 9px;
+  background: var(--paper);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  position: relative;
+  flex: none;
+}
+.snd.off { background: transparent; color: rgba(31, 26, 23, 0.4); border-style: dashed; }
+.snd.off::after { content: ''; position: absolute; left: 5px; right: 5px; top: 50%; height: 2.5px; background: var(--red); transform: rotate(-40deg); border-radius: 2px; }
+.langs .sep { width: 10px; }
 
 .opps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .n2 .opps { grid-template-columns: minmax(0, 1fr); max-width: 300px; width: 100%; margin: 0 auto; }
