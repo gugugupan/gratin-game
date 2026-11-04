@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#FFE08A">
+  <title>ぴったり焼き | グラタンゲーム</title>
+  <meta name="description" content="3つの皿に数字カードを入れて、ぴったり12に焼き上げるカードゲーム。1〜4人、AIとも遊べる。">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="ぴったり焼き">
+  <meta property="og:description" content="3つの皿に数字カードを入れて、ぴったり12に焼き上げるカードゲーム。1〜4人、AIとも遊べる。">
+  <meta property="og:url" content="%VITE_SITE_URL%pittari-yaki/">
+  <meta property="og:image" content="%VITE_SITE_URL%covers/pittari-yaki.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="../favicon.ico">
+  <script>
+    var gaId = "%VITE_GA_ID%";
+    if (gaId && location.href.indexOf("%VITE_SITE_URL%") === 0) {
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () { dataLayer.push(arguments); };
+      gtag("js", new Date());
+      gtag("config", gaId);
+      var ga = document.createElement("script");
+      ga.async = true;
+      ga.src = "https://www.googletagmanager.com/gtag/js?id=" + gaId;
+      document.head.appendChild(ga);
+    }
+  </script>
+</head>
+<body>
+  <main id="app"></main>
+  <script type="module" src="./src/main.ts"></script>
+</body>
+</html>
