@@ -31,13 +31,15 @@
 }
 
 * { box-sizing: border-box; }
-html, body { margin: 0; min-height: 100%; }
+html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; }
 body {
   background: var(--bg) var(--dots);
   color: var(--ink);
   font-family: var(--ui);
   font-weight: 700;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
 }
 button, input { font: inherit; color: inherit; }
 button { cursor: pointer; background: none; border: 0; padding: 0; }
@@ -46,7 +48,7 @@ button:disabled { cursor: default; }
 .ic.line { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .ic .hole { fill: rgba(31, 26, 23, 0.28); }
 
-#app { min-height: 100dvh; }
+#app { height: 100%; overflow-y: auto; overscroll-behavior: none; }
 
 /* ---------- buttons ---------- */
 .btn {
@@ -651,6 +653,7 @@ button:disabled { cursor: default; }
 }
 
 @media (max-width: 600px) and (max-height: 740px) {
+  .play { gap: 8px; }
   .mid { --cw: 92px; --ch: 129px; gap: 8px 20px; }
   .deck { width: 56px; height: 78px; }
   .deck .back { font-size: 0; }

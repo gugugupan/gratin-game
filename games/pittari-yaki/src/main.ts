@@ -587,4 +587,12 @@ app.addEventListener('mouseover', e => {
   const el = (e.target as HTMLElement).closest('.plate:not(:disabled), .mp.target:not(:disabled), .deck:not(:disabled), .opp.pick, .me.pick');
   if (el && !el.contains(e.relatedTarget as Node | null) && matchMedia('(hover: hover)').matches) sound.play('hover');
 });
+const stop = (e: Event) => e.preventDefault();
+for (const type of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(type, stop, { passive: false });
+document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+window.addEventListener('wheel', e => { if (e.ctrlKey || e.metaKey) e.preventDefault(); }, { passive: false });
+window.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && ['+', '=', '-', '_', '0'].includes(e.key)) e.preventDefault();
+});
+
 if (import.meta.env.DEV) Object.assign(window, { __pittari: { get game() { return game; } } });
