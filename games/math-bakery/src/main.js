@@ -79,51 +79,140 @@ function sTap() { tone(880, 0, 0.05, 'square', 0.03); }
 function sWin() { [0, 4, 7, 12, 16, 19, 24].forEach((s, i) => tone(523.25 * Math.pow(2, s / 12), i * 0.09, 0.45, 'triangle', 0.13)); }
 function makeNoise() { const c = AC, b = c.createBuffer(1, c.sampleRate, c.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; NB = b; }
 
-/* ===== layered music: one more layer for every two correct answers ===== */
-const STEP = 60 / 116 / 2;
-const CH = [[60, 64, 67], [57, 60, 64], [53, 57, 60], [55, 59, 62]];
-const ROOT = [36, 33, 29, 31];
-const MEL = [72, null, 76, null, 79, 76, null, 74, 72, null, 69, null, 72, null, 76, null, 77, null, 76, null, 72, null, 69, 72, 74, null, 71, null, 74, 76, 79, null];
-const CTR = [84, null, null, 88, null, null, 86, null, 84, null, null, 81, null, null, 84, null, 81, null, null, 84, null, null, 88, null, 83, null, null, 86, null, null, 91, null];
-const mus = { on: false, level: 0, step: 0, next: 0, timer: null, bus: null };
+/* ===== layered bossa music: one more layer for every two correct answers ===== */
+const mus = { on: false, home: false, level: 0, step: 0, next: 0, timer: null, bus: null, lp: null, track: null, last: null };
 function busOut() {
   const c = AC;
-  if (!mus.bus) { mus.bus = c.createGain(); const comp = c.createDynamicsCompressor(); mus.bus.connect(comp); comp.connect(c.destination); }
-  mus.bus.gain.value = soundOn ? 0.5 : 0;
+  if (!mus.bus) {
+    mus.bus = c.createGain(); mus.bus.gain.value = 0;
+    mus.lp = c.createBiquadFilter(); mus.lp.type = 'lowpass'; mus.lp.frequency.value = 20000;
+    const comp = c.createDynamicsCompressor();
+    mus.bus.connect(mus.lp); mus.lp.connect(comp); comp.connect(c.destination);
+  }
   return mus.bus;
 }
-function nt(m, t0, d, type, vol, lp) {
-  const c = AC, o = c.createOscillator(), g = c.createGain();
-  o.type = type; o.frequency.value = mf(m);
-  g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(vol, t0 + 0.012); g.gain.exponentialRampToValueAtTime(0.0005, t0 + d);
-  let n = o;
-  if (lp) { const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = lp; o.connect(f); n = f; }
-  n.connect(g); g.connect(mus.bus); o.start(t0); o.stop(t0 + d + 0.05);
+function musicLevel() {
+  if (!mus.bus) return;
+  const now = AC.currentTime, g = mus.bus.gain, target = !soundOn || !mus.on ? 0 : mus.home ? 0.13 : 0.5;
+  g.cancelScheduledValues(now); g.setValueAtTime(g.value, now); g.setTargetAtTime(target, now, mus.on ? 0.3 : 0.12);
+  mus.lp.frequency.setTargetAtTime(mus.home ? 1500 : 20000, now, 0.3);
+}
+function env(g, t0, vol, atk, d) { g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(vol, t0 + atk); g.gain.exponentialRampToValueAtTime(0.0005, t0 + d); }
+function osc(type, f, t0, d, vol, atk, dest) {
+  const o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.value = f;
+  env(g, t0, vol, atk, d); o.connect(g); g.connect(dest || mus.bus); o.start(t0); o.stop(t0 + d + 0.05);
+  return o;
 }
 function nz(t0, d, vol, type, freq) {
-  const c = AC, s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+  const s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
   s.buffer = NB; f.type = type; f.frequency.value = freq;
   g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(0.0005, t0 + d);
-  s.connect(f); f.connect(g); g.connect(mus.bus); s.start(t0); s.stop(t0 + d + 0.02);
+  s.connect(f); f.connect(g); g.connect(mus.bus); s.start(t0, Math.random() * 0.5); s.stop(t0 + d + 0.02);
 }
-function kick(t0) {
-  const c = AC, o = c.createOscillator(), g = c.createGain();
-  o.frequency.setValueAtTime(150, t0); o.frequency.exponentialRampToValueAtTime(42, t0 + 0.12);
-  g.gain.setValueAtTime(0.55, t0); g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.3);
+function kick(t0, vol, hi, lo) {
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.frequency.setValueAtTime(hi, t0); o.frequency.exponentialRampToValueAtTime(lo, t0 + 0.12);
+  g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.3);
   o.connect(g); g.connect(mus.bus); o.start(t0); o.stop(t0 + 0.32);
 }
-function playStep(s, t0) {
-  const bar = s >> 3, b = s & 7, L = mus.level, ch = CH[bar];
-  if (MEL[s] !== null) nt(MEL[s], t0, STEP * 1.9, 'triangle', 0.13);
-  if (L >= 1 && b % 2 === 0) nt(ROOT[bar] + [0, 12, 7, 12][b / 2], t0, STEP * 1.7, 'triangle', 0.24, 700);
-  if (L >= 2) { if (b === 0 || b === 4 || (b === 7 && bar === 3)) kick(t0); nz(t0, b % 2 ? 0.06 : 0.03, b % 2 ? 0.12 : 0.05, 'highpass', 7000); }
-  if (L >= 3) nt(ch[s % 3] + 12, t0, STEP * 0.9, 'square', 0.035, 2600);
-  if (L >= 4 && (b === 2 || b === 6)) { nz(t0, 0.18, 0.28, 'bandpass', 1600); nz(t0 + 0.012, 0.12, 0.18, 'bandpass', 2400); }
-  if (L >= 5) { if (b === 0) ch.forEach((m) => nt(m + 12, t0, STEP * 7.5, 'sawtooth', 0.028, 1800)); if (CTR[s] !== null) nt(CTR[s], t0, STEP * 1.5, 'sawtooth', 0.05, 3200); }
+const wood = (t0, f, vol) => osc('sine', f, t0, 0.06, vol, 0.002);
+function bell(m, t0, d, vol) { [[1, 1], [2.76, 0.35], [5.4, 0.12]].forEach(([r, k]) => osc('sine', mf(m) * r, t0, d / r * 1.4, vol * k, 0.003)); }
+function ep(m, t0, d, vol) { [[1, 1], [2, 0.25], [3, 0.08]].forEach(([r, k]) => osc('sine', mf(m) * r, t0, d / (r * 0.8), vol * k, 0.008)); }
+function pluck(m, t0, d, vol, lp) {
+  const f = AC.createBiquadFilter(); f.type = 'lowpass';
+  f.frequency.setValueAtTime(lp, t0); f.frequency.exponentialRampToValueAtTime(lp * 0.25, t0 + d); f.connect(mus.bus);
+  osc('triangle', mf(m), t0, d, vol, 0.004, f);
 }
-function sched() { if (!mus.on || !AC) return; while (mus.next < AC.currentTime + 0.15) { playStep(mus.step, mus.next); mus.next += STEP; mus.step = (mus.step + 1) % 32; } }
-function musicStart() { const c = ac(); if (!c) return; if (!NB) makeNoise(); busOut(); mus.on = true; mus.step = 0; mus.next = c.currentTime + 0.08; clearInterval(mus.timer); mus.timer = setInterval(sched, 25); }
-function musicStop() { mus.on = false; clearInterval(mus.timer); mus.timer = null; }
+function held(m, t0, d, vol, type, lp, atk, detune, vib) {
+  const g = AC.createGain(), f = AC.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = lp;
+  g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(vol, t0 + atk);
+  g.gain.setValueAtTime(vol, t0 + Math.max(atk, d - 0.08)); g.gain.linearRampToValueAtTime(0, t0 + d);
+  f.connect(g); g.connect(mus.bus);
+  let lfo = null;
+  if (vib) { lfo = AC.createOscillator(); lfo.frequency.value = 5.2; lfo.start(t0); lfo.stop(t0 + d + 0.05); }
+  detune.forEach((c) => {
+    const o = AC.createOscillator(); o.type = type; o.frequency.value = mf(m); o.detune.value = c;
+    if (lfo) { const lg = AC.createGain(); lg.gain.value = mf(m) * vib; lfo.connect(lg); lg.connect(o.frequency); }
+    o.connect(f); o.start(t0); o.stop(t0 + d + 0.05);
+  });
+}
+const flute = (m, t0, d, vol) => held(m, t0, d, vol, 'sine', 4000, 0.05, [0], 0.006);
+const horn = (m, t0, d, vol) => held(m, t0, d, vol, 'sawtooth', 1300, 0.06, [-4, 4], 0.005);
+const whistle = (m, t0, d, vol) => held(m, t0, d, vol, 'sine', 6000, 0.03, [0], 0.009);
+const pad = (ms, t0, d, vol) => ms.forEach((m) => held(m, t0, d, vol, 'sawtooth', 1100, 0.35, [-5, 5], 0));
+function cuica(t0, vol) {
+  const o = osc('sine', 520, t0, 0.22, vol, 0.02);
+  o.frequency.setValueAtTime(520, t0); o.frequency.linearRampToValueAtTime(880, t0 + 0.09); o.frequency.linearRampToValueAtTime(600, t0 + 0.2);
+}
+function holdLen(arr, s) { let n = 1; while (n < 6 && arr[(s + n) % arr.length] === null) n++; return n; }
+const shaker = (b, t0, a = 0.035, w = 0.02, f = 5500) => nz(t0, 0.035, b % 2 ? w : a, 'bandpass', f);
+const COMP = { classic: (bar) => (bar % 2 === 0 ? [0, 3, 6] : [2, 5]), samba: (bar) => (bar % 2 === 0 ? [0, 2, 3, 5, 7] : [1, 3, 4, 6]) };
+function bossa(o) {
+  return {
+    gtrUp: 0, gtrLen: 1.6, gtrLp: 2600, gtrVol: 0.055, leadUp: 0, leadVol: 0.06, ...o,
+    play(s, t0, L, st) {
+      const bar = s >> 3, b = s & 7, ch = this.CH[bar], r = this.ROOT[bar];
+      if (b === 0) pluck(r, t0, st * 3, 0.28, 900);
+      if (b === 4) pluck(r + 7, t0, st * 3, 0.24, 900);
+      if (COMP[this.comp](bar).includes(b)) ch.forEach((m, i) => pluck(m + this.gtrUp, t0 + i * 0.012, st * this.gtrLen, this.gtrVol, this.gtrLp));
+      if (L >= 1 && this.MEL[s] !== null) this.lead(this.MEL[s] + this.leadUp, t0, holdLen(this.MEL, s) * st * 0.95, this.leadVol);
+      if (L >= 2) this.perc(b, bar, t0);
+      if (L >= 3) this.low(b, t0);
+      if (L >= 4) this.l4(b, bar, t0, st, ch);
+      if (L >= 5) this.l5(b, t0, st, ch, s);
+    },
+  };
+}
+const TERRACE = bossa({
+  bpm: 132, comp: 'classic',
+  CH: [[57, 60, 64, 67], [54, 57, 60, 64], [55, 59, 62, 66], [56, 59, 62, 64]], ROOT: [45, 38, 43, 40],
+  MEL: [76, null, null, 74, null, 72, null, null, 74, null, 72, null, 71, null, null, null, 71, null, 74, null, 79, null, 78, null, 76, null, null, null, 74, null, 71, null],
+  lead: flute, leadUp: 12,
+  perc(b, bar, t0) { shaker(b, t0); if ((bar % 2 === 0 ? [0, 3, 6] : [2, 4]).includes(b)) wood(t0, 2100, 0.07); },
+  low(b, t0) { if (b === 0 || b === 4) kick(t0, 0.3, 90, 45); },
+  l4(b, bar, t0, st, ch) { if (b === 1 || b === 5) ch.forEach((m) => ep(m + 12, t0, st * 1.2, 0.018)); },
+  l5(b, t0, st, ch) { if (b === 0) pad(ch, t0, st * 8, 0.012); },
+});
+const TRACKS = [
+  TERRACE,
+  bossa({
+    bpm: 160, comp: 'samba',
+    CH: [[54, 57, 61, 62], [54, 57, 59, 63], [55, 59, 62, 64], [55, 57, 61, 64]], ROOT: [38, 35, 40, 33],
+    MEL: [74, null, 76, 78, null, 81, null, 78, 75, null, 78, null, 81, null, 78, null, 79, null, 78, 76, null, 74, null, 71, 73, null, 76, null, 79, null, 76, null],
+    lead: flute, leadUp: 12, leadVol: 0.055,
+    perc(b, bar, t0) { shaker(b, t0, 0.045, 0.03, 6000); if ((bar % 2 ? [1, 4, 6] : [0, 2, 5]).includes(b)) wood(t0, 2600, 0.05); },
+    low(b, t0) { if (b === 0) kick(t0, 0.22, 80, 45); if (b === 4) kick(t0, 0.42, 85, 40); },
+    l4(b, bar, t0) { if (bar % 2 === 1 && b === 7) cuica(t0, 0.06); },
+    l5(b, t0, st, ch) { if (b === 3 || b === 6) ch.forEach((m) => horn(m + 12, t0, st * 0.9, 0.022)); },
+  }),
+  bossa({
+    bpm: 124, comp: 'classic', gtrUp: 12, gtrLen: 0.9, gtrLp: 3600, gtrVol: 0.045,
+    CH: [[55, 59, 62, 66], [55, 59, 62, 64], [55, 57, 60, 64], [54, 57, 60, 62]], ROOT: [43, 40, 45, 38],
+    MEL: [79, null, 78, 79, null, 83, null, null, 81, null, 79, null, 76, null, null, null, 76, null, 79, null, 81, null, 84, null, 83, null, 81, null, 78, null, null, null],
+    lead: (m, t0, d, v) => bell(m, t0, 1.1, v), leadVol: 0.08,
+    perc(b, bar, t0) { shaker(b, t0); if (b % 4 === 0) wood(t0, b === 0 ? 900 : 1250, 0.09); },
+    low(b, t0) { if (b === 0 || b === 4) kick(t0, 0.26, 95, 50); },
+    l4(b, bar, t0, st, ch) { if (b === 6) bell(ch[3] + 24, t0, 0.8, 0.04); if (b === 7) bell(ch[2] + 24, t0, 0.8, 0.035); },
+    l5(b, t0, st, ch, s) { if (this.MEL[s] !== null) whistle(this.MEL[s] + 12, t0, holdLen(this.MEL, s) * st * 0.9, 0.025); },
+  }),
+];
+const HOME_TRACK = { ...TERRACE, bpm: 112 };
+function sched() {
+  if (!mus.on || !AC) return;
+  const T = mus.track, st = 60 / T.bpm / 2;
+  while (mus.next < AC.currentTime + 0.15) { T.play(mus.step, mus.next, mus.home ? 0 : mus.level, st); mus.next += st; mus.step = (mus.step + 1) % 32; }
+}
+function musicStart(home, resume) {
+  const c = ac(); if (!c) return;
+  if (!NB) makeNoise(); busOut();
+  if (home && mus.on && mus.home) return musicLevel();
+  if (home) mus.track = HOME_TRACK;
+  else if (!resume || !mus.last) { const pool = TRACKS.filter((x) => x !== mus.last); mus.last = mus.track = pool[Math.floor(Math.random() * pool.length)]; }
+  else mus.track = mus.last;
+  mus.home = !!home; mus.on = true; mus.step = 0; mus.next = c.currentTime + 0.08;
+  clearInterval(mus.timer); mus.timer = setInterval(sched, 25); musicLevel();
+}
+function musicStop() { mus.on = false; clearInterval(mus.timer); mus.timer = null; musicLevel(); }
 
 /* ===== particles: crumbs and steam ===== */
 const cv = document.getElementById('fx'), ctx = cv.getContext('2d');
@@ -207,7 +296,7 @@ function render() {
 }
 
 function renderHome() {
-  musicStop();
+  if (AC) musicStart(true);
   const total = load('mb:total', 0), shelf = load('mb:shelf', []);
   app.innerHTML = `
   <div class="langs"><a href="../" aria-label="グラタンゲーム"><img src="${wordmarkUrl}" alt="グラタンゲーム" width="132" height="34"></a>
@@ -462,7 +551,7 @@ app.addEventListener('click', (e) => {
   else if (d.o) tapOp(d.o);
   else if (d.act === 'lang') { setLocale(d.l); render(); }
   else if (d.act === 'help') showTut();
-  else if (d.act === 'sound') { soundOn = !soundOn; save('mb:sound', soundOn); if (mus.bus) mus.bus.gain.value = soundOn ? 0.5 : 0; render(); }
+  else if (d.act === 'sound') { soundOn = !soundOn; save('mb:sound', soundOn); musicLevel(); render(); }
   else if (d.act === 'home' || d.act === 'menu') { G = null; mus.level = 0; render(); }
   else if (d.act === 'again') start(G.mode);
   else if (d.act === 'undo' && !G.locked && G.hist.length) { G.cards = G.hist.pop(); G.sel = null; G.tgt = null; G.fresh = null; G.hint = ''; renderGame(); }
@@ -475,5 +564,11 @@ document.addEventListener('keydown', (e) => {
   if (/^[0-9]$/.test(e.key)) press(e.key);
   else if (e.key === 'Backspace') press('del');
 });
-document.addEventListener('visibilitychange', () => { if (document.hidden) musicStop(); else if (G && !G.done && AC) musicStart(); });
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) musicStop();
+  else if (!AC) return;
+  else if (!G) musicStart(true);
+  else if (!G.done) musicStart(false, true);
+});
+document.addEventListener('pointerdown', (e) => { if (!G && !e.target.closest('[data-mode]')) musicStart(true); });
 render();
