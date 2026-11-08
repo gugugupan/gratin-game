@@ -70,7 +70,7 @@ function tone(f, t0, dur, type, vol) {
   const o = c.createOscillator(), g = c.createGain();
   o.type = type || 'triangle'; o.frequency.value = f;
   const s = c.currentTime + t0;
-  g.gain.setValueAtTime(0, s); g.gain.linearRampToValueAtTime(vol || 0.16, s + 0.01); g.gain.exponentialRampToValueAtTime(0.001, s + dur);
+  g.gain.setValueAtTime(0, s); g.gain.linearRampToValueAtTime((vol || 0.16) * 0.6, s + 0.01); g.gain.exponentialRampToValueAtTime(0.001, s + dur);
   o.connect(g); g.connect(c.destination); o.start(s); o.stop(s + dur + 0.05);
 }
 function sCorrect(c) { const b = 523.25 * Math.pow(2, Math.min(c - 1, 12) / 12); [1, 1.26, 1.5, 2].forEach((m, i) => tone(b * m, i * 0.06, 0.3, 'triangle', 0.15)); tone(1568, 0.32, 0.6, 'sine', 0.07); }
@@ -93,7 +93,7 @@ function busOut() {
 }
 function musicLevel() {
   if (!mus.bus) return;
-  const now = AC.currentTime, g = mus.bus.gain, target = !soundOn || !mus.on ? 0 : mus.home ? 0.13 : 0.5;
+  const now = AC.currentTime, g = mus.bus.gain, target = !soundOn || !mus.on ? 0 : mus.home ? 0.08 : 0.3;
   g.cancelScheduledValues(now); g.setValueAtTime(g.value, now); g.setTargetAtTime(target, now, mus.on ? 0.3 : 0.12);
   mus.lp.frequency.setTargetAtTime(mus.home ? 1500 : 20000, now, 0.3);
 }
