@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#FFF1D6">
+  <title>けいさんベーカリー | グラタンゲーム</title>
+  <meta name="description" content="1問正解するごとにパンがひとつ焼き上がる、暗算ゲーム。たし算・ひき算・かけ算・24パズルの4モード。">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="けいさんベーカリー">
+  <meta property="og:description" content="1問正解するごとにパンがひとつ焼き上がる、暗算ゲーム。たし算・ひき算・かけ算・24パズルの4モード。">
+  <meta property="og:url" content="%VITE_SITE_URL%math-bakery/">
+  <meta property="og:image" content="%VITE_SITE_URL%covers/math-bakery.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="../favicon.ico">
+  <script>
+    var gaId = "%VITE_GA_ID%";
+    if (gaId && location.href.indexOf("%VITE_SITE_URL%") === 0) {
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () { dataLayer.push(arguments); };
+      gtag("js", new Date());
+      gtag("config", gaId);
+      var ga = document.createElement("script");
+      ga.async = true;
+      ga.src = "https://www.googletagmanager.com/gtag/js?id=" + gaId;
+      document.head.appendChild(ga);
+    }
+  </script>
+</head>
+<body>
+  <canvas id="fx"></canvas>
+  <div id="praise"></div>
+  <div id="toast"></div>
+  <main id="app"></main>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

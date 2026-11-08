@@ -4,5 +4,6 @@
   "rto": "games/rto/dist",
   "karesansui": "games/karesansui/dist",
   "toy-legion": "games/toy-legion/dist",
-  "pittari-yaki": "games/pittari-yaki/dist"
+  "pittari-yaki": "games/pittari-yaki/dist",
+  "math-bakery": "games/math-bakery/dist"
 }

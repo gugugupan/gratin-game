@@ -242,5 +242,36 @@
     "status": "live",
     "added": "2026-11-05",
     "preview": "previews/pittari-yaki.mp4"
+  },
+  {
+    "id": "math-bakery",
+    "title": {
+      "ja": "けいさんベーカリー",
+      "zh": "口算面包房",
+      "en": "Math Bakery"
+    },
+    "tagline": {
+      "ja": "1問正解するたびにパンがひとつ焼き上がる暗算ゲーム。ひとけたのたし算、たし算・ひき算、かけ算、24をつくろうの4モード。",
+      "zh": "每答对一题就烤好一个面包的口算游戏。个位加法、进阶加减、乘法、凑 24 点四种模式，难度跟着你的表现变。",
+      "en": "Mental math where every right answer bakes a loaf. Four modes: single-digit adding, adding & subtracting, times tables and Make 24."
+    },
+    "url": "https://gratin-game.com/math-bakery/",
+    "cover": "covers/math-bakery.jpg",
+    "input": [
+      "touch",
+      "mouse",
+      "keyboard"
+    ],
+    "languages": [
+      "ja",
+      "zh",
+      "en"
+    ],
+    "tags": [
+      "puzzle",
+      "chill"
+    ],
+    "status": "live",
+    "added": "2026-11-08"
   }
 ]
