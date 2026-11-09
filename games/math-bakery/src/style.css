@@ -124,9 +124,9 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--crust); outline
 .nc.ghost { position: fixed; left: 0; top: 0; z-index: 70; pointer-events: none; background: var(--cheese); color: var(--on-fill); box-shadow: 0 12px 0 var(--edge); transition: none; }
 .opop { position: absolute; z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px; border-radius: 18px; background: var(--sticker-bg); border: 3px solid var(--cheese); animation: popin .16s ease-out; }
 .opop .pq { color: var(--sticker-fg); font-size: 1rem; font-variant-numeric: tabular-nums; }
-.opop .row { display: flex; gap: 6px; }
+.opop .row { display: grid; grid-template-columns: repeat(2, 64px); gap: 8px; }
 @keyframes popin { from { transform: scale(.6); opacity: 0; } }
-.op { width: 48px; height: 48px; border-radius: 12px; font-size: 1.6rem; border: 2.5px solid var(--sticker-bg); }
+.op { width: 64px; height: 64px; border-radius: 14px; font-size: 2.2rem; border: 2.5px solid var(--sticker-bg); }
 .op.o1 { background: var(--cheese); color: var(--on-fill); } .op.o2 { background: var(--caramel); color: var(--on-fill); }
 .op.o3 { background: var(--crust); color: var(--on-crust); } .op.o4 { background: var(--brown); color: var(--on-crust); }
 .tools { display: flex; gap: 10px; }
